@@ -9,7 +9,7 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     id("com.google.devtools.ksp")
-    id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
+    id("org.jetbrains.gradle.plugin.idea-ext")
 }
 
 group = "me.okonecny"

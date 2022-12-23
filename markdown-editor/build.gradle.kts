@@ -1,8 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.gradle.ext.settings
-import org.jetbrains.gradle.ext.taskTriggers
-
-val kspVersion: String by project
 val kotlinInjectVersion: String by project
 val kotlinJvmTarget: String by project
 
@@ -12,9 +7,6 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jetbrains.gradle.plugin.idea-ext")
 }
-
-group = "me.okonecny"
-version = "1.0-SNAPSHOT"
 
 repositories {
     google()
@@ -33,9 +25,9 @@ kotlin {
         val jvmMain by getting {
             kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
-                implementation(compose.desktop.currentOs)
+                api(compose.desktop.currentOs)
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
-                implementation(project("markdown-editor"))
+                implementation("org.jetbrains:markdown:0.3.5")
             }
         }
         val jvmTest by getting {
@@ -44,22 +36,7 @@ kotlin {
     }
 }
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "whodoes"
-            packageVersion = "1.0.0"
-        }
-    }
-}
-
 dependencies {
     add("kspJvm", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
     add("kspJvmTest", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
-}
-
-idea.project.settings.taskTriggers {
-    afterSync("kspKotlinJvm", "kspTestKotlinJvm")
 }

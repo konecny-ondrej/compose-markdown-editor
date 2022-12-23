@@ -20,3 +20,4 @@ pluginManagement {
 
 rootProject.name = "whodoes"
 
+include(":markdown-editor")

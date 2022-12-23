@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import me.tatarka.inject.annotations.Component
 
 @Composable
 @Preview
@@ -25,7 +26,13 @@ fun App() {
 }
 
 fun main() = application {
+    MainComponent::class.create()
     Window(onCloseRequest = ::exitApplication) {
         App()
     }
+}
+
+@Component
+abstract class MainComponent {
+
 }

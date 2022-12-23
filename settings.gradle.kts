@@ -1,4 +1,7 @@
 pluginManagement {
+    val kotlinVersion: String by settings
+    val kspVersion: String by settings
+    val composeVersion: String by settings
     repositories {
         google()
         gradlePluginPortal()
@@ -7,8 +10,9 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("multiplatform").version(extra["kotlin.version"] as String)
-        id("org.jetbrains.compose").version(extra["compose.version"] as String)
+        id("com.google.devtools.ksp") version kspVersion apply false
+        kotlin("multiplatform") version kotlinVersion apply false
+        id("org.jetbrains.compose") version composeVersion apply false
     }
 }
 

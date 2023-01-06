@@ -1,10 +1,12 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.tatarka.inject.annotations.Component
 
@@ -14,12 +16,14 @@ fun App() {
     var text by remember { mutableStateOf("Hello, World!") }
 
     MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
+        Column {
+            Button(onClick = {
+                text = "Hello, Desktop!"
+            }) {
+                Text(text)
+            }
+            MarkdownEditor(DocumentTheme.default)
         }
-        MarkdownEditor()
     }
 }
 

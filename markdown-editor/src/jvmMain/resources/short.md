@@ -12,7 +12,8 @@ Markdown syntax with conventions for footnotes, definition lists,
 tables, and other constructs, and some allowed output not just in
 HTML but in LaTeX and many other formats.
 
-## Why is a spec needed?
+Why is a spec needed?
+---------------------
 
 John Gruber's [canonical description of Markdown's
 syntax](http://daringfireball.net/projects/markdown/syntax)

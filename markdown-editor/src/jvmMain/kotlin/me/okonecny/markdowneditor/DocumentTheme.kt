@@ -3,7 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 
 @Immutable
 class DocumentTheme(
@@ -24,4 +24,4 @@ class DocumentTheme(
     )
 }
 
-internal val LocalDocumentTheme = staticCompositionLocalOf { DocumentTheme.default }
+internal val LocalDocumentTheme = compositionLocalOf { DocumentTheme.default }

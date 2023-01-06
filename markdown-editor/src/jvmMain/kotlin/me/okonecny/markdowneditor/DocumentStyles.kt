@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 
 @Immutable
@@ -39,15 +40,23 @@ class DocumentStyles(
         fontSize = 20.sp,
         letterSpacing = 0.15.sp
     ),
-    val body1: TextStyle = TextStyle(
+    val paragraph: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        letterSpacing = 0.5.sp
+        fontSize = 20.sp,
+        letterSpacing = 0.5.sp,
+        textAlign = TextAlign.Justify
     ),
-    val body2: TextStyle = TextStyle(
+    val listNumber: TextStyle = TextStyle(
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        letterSpacing = 0.5.sp,
+        textAlign = TextAlign.Left
+    ),
+    val code: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        letterSpacing = 0.25.sp
+        fontFamily = FontFamily.Monospace,
+        fontSize = 20.sp,
+        letterSpacing = 0.5.sp
     )
 ) {
     fun copy(
@@ -58,8 +67,9 @@ class DocumentStyles(
         h4: TextStyle = this.h4,
         h5: TextStyle = this.h5,
         h6: TextStyle = this.h6,
-        body1: TextStyle = this.body1,
-        body2: TextStyle = this.body2
+        paragraph: TextStyle = this.paragraph,
+        listNumber: TextStyle = this.listNumber,
+        code: TextStyle = this.code
     ) = DocumentStyles(
         defaultFontFamily = defaultFontFamily,
         h1 = h1,
@@ -68,7 +78,8 @@ class DocumentStyles(
         h4 = h4,
         h5 = h5,
         h6 = h6,
-        body1 = body1,
-        body2 = body2
+        paragraph = paragraph,
+        listNumber = listNumber,
+        code = code
     )
 }

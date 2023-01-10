@@ -13,19 +13,20 @@ import me.tatarka.inject.annotations.Component
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
-    val markdownSource = remember {
-        useResource("/short.md") { md ->
-            md.bufferedReader().readText()
-        }
-    }
+    var isLong by remember { mutableStateOf(true) }
+    val shortFilename = "/short.md"
+    val longFilename = "/commonMarkSpec.md"
 
     MaterialTheme {
         Column {
             Button(onClick = {
-                text = "Hello, Desktop!"
+                isLong = !isLong
             }) {
-                Text(text)
+                Text(if (isLong) "Make short" else "Make long")
+            }
+            val filename = if (isLong) longFilename else shortFilename
+            val markdownSource = useResource(filename) { md ->
+                md.bufferedReader().readText()
             }
             MarkdownEditor(markdownSource)
         }

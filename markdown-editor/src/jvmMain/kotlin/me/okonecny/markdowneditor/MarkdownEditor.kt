@@ -1,6 +1,5 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownElementTypes.ATX_1
 import org.intellij.markdown.MarkdownElementTypes.ATX_2
@@ -26,6 +26,7 @@ import org.intellij.markdown.MarkdownElementTypes.SETEXT_1
 import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
+import org.intellij.markdown.MarkdownTokenTypes.Companion.HORIZONTAL_RULE
 import org.intellij.markdown.ast.ASTNode
 
 /**
@@ -58,8 +59,8 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
 @Composable
 private fun RenderedNode(node: ASTNode, sourceText: String) {
     val styles = DocumentTheme.current.styles
-    when (node.type) {
-        MARKDOWN_FILE -> File(node, sourceText)
+    when (node.type) { // Only block elements should be here.
+        MARKDOWN_FILE -> File(node, sourceText) // Not really used.
         ATX_1 -> AtxHeader(node, sourceText, styles.h1)
         SETEXT_1 -> SetextHeader(node, sourceText, styles.h1)
         ATX_2 -> AtxHeader(node, sourceText, styles.h2)
@@ -73,6 +74,7 @@ private fun RenderedNode(node: ASTNode, sourceText: String) {
         ORDERED_LIST -> MarkdownList(node, sourceText)
         UNORDERED_LIST -> MarkdownList(node, sourceText)
         LIST_ITEM -> MarkdownListItem(node, sourceText)
+        HORIZONTAL_RULE -> HorizontalRule()
     }
 }
 
@@ -95,11 +97,14 @@ private fun SetextHeader(headerNode: ASTNode, sourceText: String, headerStyle: T
 
 @Composable
 private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
+    buildAnnotatedString {
+        appendInlineContent("test")
+    }
     Text(
-        // TODO: Use AnnotatedString, Ignore newlines and indents.
+        // TODO: Use AnnotatedString and InlineTextContent, Ignore newlines and indents.
         paragraphNode
             .text(sourceText)
-            .replace(Regex("\\s+|\n+"), " "),
+            .replace(Regex("[\\s|\n]+"), " "),
         style = DocumentTheme.current.styles.paragraph
     )
     // TODO: inline elements (images, links, highlights)
@@ -143,4 +148,14 @@ fun MarkdownListItem(itemNode: ASTNode, sourceText: String) {
             }
         }
     }
+}
+
+@Composable
+fun HorizontalRule() {
+    val lineStyle = DocumentTheme.current.lineStyle
+    Box(
+        modifier = Modifier.fillMaxWidth(1f)
+            .then(Modifier.height(lineStyle.width))
+            .then(Modifier.border(lineStyle))
+    )
 }

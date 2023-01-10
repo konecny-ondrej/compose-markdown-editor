@@ -1,9 +1,11 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -33,14 +35,15 @@ import org.intellij.markdown.ast.ASTNode
 fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTheme.default) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
     val parser = remember { markdown.parser }
-    val markdownRoot = remember { parser.buildMarkdownTreeFromString(sourceText) }
+    val markdownRoot = parser.buildMarkdownTreeFromString(sourceText)
 
-    val scrollState = rememberScrollState()
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme
     ) {
-        Column(modifier = Modifier.verticalScroll(scrollState)) {
-            RenderedNode(markdownRoot, sourceText)
+        LazyColumn {
+            items(markdownRoot.children) { node ->
+                RenderedNode(node, sourceText)
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +57,8 @@ class DocumentStyles(
         fontWeight = FontWeight.Normal,
         fontFamily = FontFamily.Monospace,
         fontSize = 20.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.5.sp,
+        background = Color.LightGray
     )
 ) {
     fun copy(

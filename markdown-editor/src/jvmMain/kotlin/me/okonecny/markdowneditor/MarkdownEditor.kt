@@ -18,6 +18,7 @@ import org.intellij.markdown.MarkdownElementTypes.ATX_4
 import org.intellij.markdown.MarkdownElementTypes.ATX_5
 import org.intellij.markdown.MarkdownElementTypes.ATX_6
 import org.intellij.markdown.MarkdownElementTypes.CODE_BLOCK
+import org.intellij.markdown.MarkdownElementTypes.CODE_FENCE
 import org.intellij.markdown.MarkdownElementTypes.CODE_SPAN
 import org.intellij.markdown.MarkdownElementTypes.LIST_ITEM
 import org.intellij.markdown.MarkdownElementTypes.MARKDOWN_FILE
@@ -27,9 +28,13 @@ import org.intellij.markdown.MarkdownElementTypes.SETEXT_1
 import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
+import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_CONTENT
+import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_END
+import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_START
 import org.intellij.markdown.MarkdownTokenTypes.Companion.COLON
 import org.intellij.markdown.MarkdownTokenTypes.Companion.EOL
 import org.intellij.markdown.MarkdownTokenTypes.Companion.EXCLAMATION_MARK
+import org.intellij.markdown.MarkdownTokenTypes.Companion.FENCE_LANG
 import org.intellij.markdown.MarkdownTokenTypes.Companion.GT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.HORIZONTAL_RULE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.LBRACKET
@@ -89,6 +94,7 @@ private fun RenderedNode(node: ASTNode, sourceText: String) {
         UNORDERED_LIST -> UnorderedList(node, sourceText)
         LIST_ITEM -> ListItem(node, sourceText)
         HORIZONTAL_RULE -> HorizontalRule()
+        CODE_FENCE -> CodeFence(node, sourceText)
     }
 }
 
@@ -122,7 +128,7 @@ private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
     CompositionLocalProvider(
         LocalWhitespaceMode provides WhitespaceModes.NO_EOL
     ) {
-        val parsedContent = parseInlineContent(paragraphNode, sourceText)
+        val parsedContent = parseParagraphContent(paragraphNode, sourceText)
         Text(
             parsedContent.text,
             inlineContent = parsedContent.inlineTextContent,
@@ -134,7 +140,7 @@ private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
 
 @Composable
 private fun CodeBlock(blockNode: ASTNode, sourceText: String) {
-    // TODO: add CodeBlock style with padding
+    // TODO: add CodeBlock style with padding and background for the whole block
     Text(
         blockNode.text(sourceText),
         style = DocumentTheme.current.styles.code
@@ -221,7 +227,7 @@ typealias IdToInlineContent = MutableMap<String, InlineTextContent>
 private val LocalLastWasWhitespace = compositionLocalOf { false }
 
 @Composable
-private fun parseInlineContent(blockNode: ASTNode, sourceText: String): MarkdownParsedInline {
+private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): MarkdownParsedInline {
     val inlineContent: IdToInlineContent = mutableMapOf()
     val annotatedStringBuilder = AnnotatedString.Builder()
 
@@ -281,4 +287,20 @@ private fun CodeSpan(
         currentLength,
         currentLength + codeText.length
     )
+}
+
+@Composable
+private fun CodeFence(blockNode: ASTNode, sourceText: String) {
+    Column { // TODO: background and padding for the whole block
+        blockNode.children.forEach { child ->
+            // TODO: syntax highlighting
+            when(child.type) {
+                CODE_FENCE_START, CODE_FENCE_END, FENCE_LANG -> Unit
+                CODE_FENCE_CONTENT -> Text( // TODO: parse contents like Paragraph does.
+                    child.text(sourceText),
+                    style = DocumentTheme.current.styles.code
+                )
+            }
+        }
+    }
 }

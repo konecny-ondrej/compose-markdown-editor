@@ -28,6 +28,7 @@ import org.intellij.markdown.MarkdownElementTypes.SETEXT_1
 import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
+import org.intellij.markdown.MarkdownTokenTypes.Companion.BACKTICK
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_CONTENT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_END
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_START
@@ -115,26 +116,15 @@ private fun SetextHeader(headerNode: ASTNode, sourceText: String, headerStyle: T
     Text(headerContent.text(sourceText).trim(), style = headerStyle)
 }
 
-private enum class WhitespaceModes {
-    PRE,     // Render all whitespace as is.
-    NO_EOL
-}
-
-private val LocalWhitespaceMode = compositionLocalOf { WhitespaceModes.PRE }
-
 @Composable
 private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
     // TODO add padding to style (spaces between paragraphs)
-    CompositionLocalProvider(
-        LocalWhitespaceMode provides WhitespaceModes.NO_EOL
-    ) {
-        val parsedContent = parseParagraphContent(paragraphNode, sourceText)
-        Text(
-            parsedContent.text,
-            inlineContent = parsedContent.inlineTextContent,
-            style = DocumentTheme.current.styles.paragraph
-        )
-    }
+    val parsedContent = parseParagraphContent(paragraphNode, sourceText)
+    Text(
+        parsedContent.text,
+        inlineContent = parsedContent.inlineTextContent,
+        style = DocumentTheme.current.styles.paragraph
+    )
     // TODO: inline elements (images, links, highlights)
 }
 
@@ -224,8 +214,6 @@ private data class MarkdownParsedInline(
 
 typealias IdToInlineContent = MutableMap<String, InlineTextContent>
 
-private val LocalLastWasWhitespace = compositionLocalOf { false }
-
 @Composable
 private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): MarkdownParsedInline {
     val inlineContent: IdToInlineContent = mutableMapOf()
@@ -233,10 +221,12 @@ private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): Markd
 
     var lastWasWhitespace = false
     blockNode.children.forEach { child ->
-        CompositionLocalProvider(
-            LocalLastWasWhitespace provides lastWasWhitespace
-        ) {
-            InlineNode(child, sourceText, annotatedStringBuilder, inlineContent)
+        when (child.type) {
+            WHITE_SPACE, EOL -> {
+                if (!lastWasWhitespace) annotatedStringBuilder.append(" ")
+            }
+
+            else -> ParagraphContent(child, sourceText, annotatedStringBuilder, inlineContent)
         }
         lastWasWhitespace = listOf(EOL, WHITE_SPACE).contains(child.type)
     }
@@ -248,39 +238,44 @@ private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): Markd
 }
 
 @Composable
-private fun InlineNode(
+private fun ParagraphContent(
     inlineNode: ASTNode,
     sourceText: String,
     asBuilder: AnnotatedString.Builder,
     inlineContent: IdToInlineContent
 ) {
     when (inlineNode.type) {
+        // WHITE_SPACE and EOL are handled in parseParagraphContent directly.
         TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET,
         LT, GT, COLON, EXCLAMATION_MARK -> asBuilder.append(inlineNode.text(sourceText))
 
-        WHITE_SPACE -> if (!LocalLastWasWhitespace.current) asBuilder.append(" ")
-        EOL -> EndOfLine(asBuilder)
-        CODE_SPAN -> CodeSpan(asBuilder, inlineNode, sourceText)
+        CODE_SPAN -> CodeSpan(inlineNode, sourceText, asBuilder)
 
-    }
-}
-
-@Composable
-private fun EndOfLine(asBuilder: AnnotatedString.Builder) {
-    when (LocalWhitespaceMode.current) {
-        WhitespaceModes.PRE -> asBuilder.append("\n")
-        WhitespaceModes.NO_EOL -> if (!LocalLastWasWhitespace.current) asBuilder.append(" ")
     }
 }
 
 @Composable
 private fun CodeSpan(
-    asBuilder: AnnotatedString.Builder,
     inlineNode: ASTNode,
-    sourceText: String
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder
+) {
+    inlineNode.children.forEach { child ->
+        when (child.type) {
+            TEXT -> CodeSpanText(child, sourceText, asBuilder)
+            BACKTICK -> Unit // Don't render the backticks around code.
+        }
+    }
+}
+
+@Composable
+private fun CodeSpanText(
+    inlineNode: ASTNode,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder
 ) {
     val currentLength = asBuilder.length
-    val codeText = inlineNode.text(sourceText).trim('`')
+    val codeText = inlineNode.text(sourceText)
     asBuilder.append(codeText)
     asBuilder.addStyle(
         LocalDocumentTheme.current.styles.code.toSpanStyle(),
@@ -294,7 +289,7 @@ private fun CodeFence(blockNode: ASTNode, sourceText: String) {
     Column { // TODO: background and padding for the whole block
         blockNode.children.forEach { child ->
             // TODO: syntax highlighting
-            when(child.type) {
+            when (child.type) {
                 CODE_FENCE_START, CODE_FENCE_END, FENCE_LANG -> Unit
                 CODE_FENCE_CONTENT -> Text( // TODO: parse contents like Paragraph does.
                     child.text(sourceText),

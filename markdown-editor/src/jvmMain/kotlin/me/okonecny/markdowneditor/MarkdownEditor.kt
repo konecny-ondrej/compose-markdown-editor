@@ -117,18 +117,6 @@ private fun SetextHeader(headerNode: ASTNode, sourceText: String, headerStyle: T
 }
 
 @Composable
-private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
-    // TODO add padding to style (spaces between paragraphs)
-    val parsedContent = parseParagraphContent(paragraphNode, sourceText)
-    Text(
-        parsedContent.text,
-        inlineContent = parsedContent.inlineTextContent,
-        style = DocumentTheme.current.styles.paragraph
-    )
-    // TODO: inline elements (images, links, highlights)
-}
-
-@Composable
 private fun CodeBlock(blockNode: ASTNode, sourceText: String) {
     // TODO: add CodeBlock style with padding and background for the whole block
     Text(
@@ -207,6 +195,18 @@ fun HorizontalRule() {
     )
 }
 
+@Composable
+private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
+    // TODO add padding to style (spaces between paragraphs)
+    val parsedContent = parseParagraphContent(paragraphNode, sourceText)
+    Text(
+        parsedContent.text,
+        inlineContent = parsedContent.inlineTextContent,
+        style = DocumentTheme.current.styles.paragraph
+    )
+    // TODO: inline elements (images, links, highlights)
+}
+
 private data class MarkdownParsedInline(
     val text: AnnotatedString,
     val inlineTextContent: Map<String, InlineTextContent>
@@ -223,35 +223,23 @@ private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): Markd
     blockNode.children.forEach { child ->
         when (child.type) {
             WHITE_SPACE, EOL -> {
-                if (!lastWasWhitespace) annotatedStringBuilder.append(" ")
+                if (!lastWasWhitespace) {
+                    annotatedStringBuilder.append(" ")
+                }
             }
 
-            else -> ParagraphContent(child, sourceText, annotatedStringBuilder, inlineContent)
+            TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET,
+            LT, GT, COLON, EXCLAMATION_MARK -> annotatedStringBuilder.append(child.text(sourceText))
+
+            CODE_SPAN -> CodeSpan(child, sourceText, annotatedStringBuilder)
         }
-        lastWasWhitespace = listOf(EOL, WHITE_SPACE).contains(child.type)
+        lastWasWhitespace = child.type == WHITE_SPACE || child.type == EOL
     }
 
     return MarkdownParsedInline(
         annotatedStringBuilder.toAnnotatedString(),
         inlineContent
     )
-}
-
-@Composable
-private fun ParagraphContent(
-    inlineNode: ASTNode,
-    sourceText: String,
-    asBuilder: AnnotatedString.Builder,
-    inlineContent: IdToInlineContent
-) {
-    when (inlineNode.type) {
-        // WHITE_SPACE and EOL are handled in parseParagraphContent directly.
-        TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET,
-        LT, GT, COLON, EXCLAMATION_MARK -> asBuilder.append(inlineNode.text(sourceText))
-
-        CODE_SPAN -> CodeSpan(inlineNode, sourceText, asBuilder)
-
-    }
 }
 
 @Composable
@@ -262,8 +250,8 @@ private fun CodeSpan(
 ) {
     inlineNode.children.forEach { child ->
         when (child.type) {
-            TEXT -> CodeSpanText(child, sourceText, asBuilder)
             BACKTICK -> Unit // Don't render the backticks around code.
+            else -> CodeSpanText(child, sourceText, asBuilder)
         }
     }
 }
@@ -286,16 +274,21 @@ private fun CodeSpanText(
 
 @Composable
 private fun CodeFence(blockNode: ASTNode, sourceText: String) {
-    Column { // TODO: background and padding for the whole block
-        blockNode.children.forEach { child ->
-            // TODO: syntax highlighting
-            when (child.type) {
-                CODE_FENCE_START, CODE_FENCE_END, FENCE_LANG -> Unit
-                CODE_FENCE_CONTENT -> Text( // TODO: parse contents like Paragraph does.
-                    child.text(sourceText),
-                    style = DocumentTheme.current.styles.code
-                )
-            }
+    val inlineContent: IdToInlineContent = mutableMapOf()
+    val asBuilder = AnnotatedString.Builder()
+
+    blockNode.children.forEach { child ->
+        when (child.type) {
+            CODE_FENCE_START, CODE_FENCE_END, FENCE_LANG -> Unit // TODO: syntax highlighting
+            CODE_FENCE_CONTENT -> asBuilder.append(child.text(sourceText))
+            EOL -> asBuilder.append("\n")
         }
     }
+
+    // TODO: background and padding for the whole block
+    Text(
+        asBuilder.toAnnotatedString(),
+        inlineContent = inlineContent,
+        style = DocumentTheme.current.styles.code
+    )
 }

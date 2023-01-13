@@ -118,10 +118,10 @@ private fun SetextHeader(headerNode: ASTNode, sourceText: String, headerStyle: T
 
 @Composable
 private fun CodeBlock(blockNode: ASTNode, sourceText: String) {
-    // TODO: add CodeBlock style with padding and background for the whole block
     Text(
-        blockNode.text(sourceText),
-        style = DocumentTheme.current.styles.code
+        blockNode.text(sourceText).trimFourSpacesIndent(),
+        style = DocumentTheme.current.styles.codeBlock.textStyle,
+        modifier = DocumentTheme.current.styles.codeBlock.modifier
     )
 }
 
@@ -231,7 +231,7 @@ private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): Markd
             TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET,
             LT, GT, COLON, EXCLAMATION_MARK -> annotatedStringBuilder.append(child.text(sourceText))
 
-            CODE_SPAN -> CodeSpan(child, sourceText, annotatedStringBuilder)
+            CODE_SPAN -> CodeSpan(child, sourceText, annotatedStringBuilder, inlineContent)
         }
         lastWasWhitespace = child.type == WHITE_SPACE || child.type == EOL
     }
@@ -246,12 +246,13 @@ private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): Markd
 private fun CodeSpan(
     inlineNode: ASTNode,
     sourceText: String,
-    asBuilder: AnnotatedString.Builder
+    asBuilder: AnnotatedString.Builder,
+    inlineContent: IdToInlineContent
 ) {
     inlineNode.children.forEach { child ->
         when (child.type) {
             BACKTICK -> Unit // Don't render the backticks around code.
-            else -> CodeSpanText(child, sourceText, asBuilder)
+            else -> CodeSpanText(child, sourceText, asBuilder, inlineContent)
         }
     }
 }
@@ -260,13 +261,15 @@ private fun CodeSpan(
 private fun CodeSpanText(
     inlineNode: ASTNode,
     sourceText: String,
-    asBuilder: AnnotatedString.Builder
+    asBuilder: AnnotatedString.Builder,
+    inlineContent: IdToInlineContent
 ) {
     val currentLength = asBuilder.length
     val codeText = inlineNode.text(sourceText)
     asBuilder.append(codeText)
     asBuilder.addStyle(
-        LocalDocumentTheme.current.styles.code.toSpanStyle(),
+        // This cannot be inlineTextContent if we want the text engine to break the text.
+        LocalDocumentTheme.current.styles.inlineCode.toSpanStyle(),
         currentLength,
         currentLength + codeText.length
     )
@@ -277,18 +280,39 @@ private fun CodeFence(blockNode: ASTNode, sourceText: String) {
     val inlineContent: IdToInlineContent = mutableMapOf()
     val asBuilder = AnnotatedString.Builder()
 
-    blockNode.children.forEach { child ->
+    val children = blockNode.children
+    children.forEachIndexed { index, child ->
         when (child.type) {
             CODE_FENCE_START, CODE_FENCE_END, FENCE_LANG -> Unit // TODO: syntax highlighting
-            CODE_FENCE_CONTENT -> asBuilder.append(child.text(sourceText))
-            EOL -> asBuilder.append("\n")
+            CODE_FENCE_CONTENT -> {
+                asBuilder.append(child.text(sourceText))
+            }
+
+            EOL -> CodeFenceEol(asBuilder, index, children)
         }
     }
 
-    // TODO: background and padding for the whole block
     Text(
         asBuilder.toAnnotatedString(),
         inlineContent = inlineContent,
-        style = DocumentTheme.current.styles.code
+        style = DocumentTheme.current.styles.codeBlock.textStyle,
+        modifier = DocumentTheme.current.styles.codeBlock.modifier
     )
+}
+
+@Composable
+private fun CodeFenceEol(asBuilder: AnnotatedString.Builder, indexAmongSiblings: Int, siblingNodes: List<ASTNode>) {
+    // Ignore the first and last EOL
+    if (indexAmongSiblings == 0 || indexAmongSiblings == siblingNodes.lastIndex) return
+    val prevNodeType = siblingNodes[indexAmongSiblings - 1].type
+    val nextNodeType = siblingNodes[indexAmongSiblings + 1].type
+    if (prevNodeType == FENCE_LANG
+        || prevNodeType == CODE_FENCE_START
+        || nextNodeType == CODE_FENCE_END
+    ) return
+    asBuilder.append(System.lineSeparator())
+}
+
+fun String.trimFourSpacesIndent(): String = lines().joinToString(System.lineSeparator()) { line ->
+    if (line.length < 4) "" else line.substring(4)
 }

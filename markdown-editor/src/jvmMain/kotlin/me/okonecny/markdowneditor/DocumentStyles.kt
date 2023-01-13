@@ -1,11 +1,16 @@
 package me.okonecny.markdowneditor
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Immutable
@@ -53,12 +58,16 @@ class DocumentStyles(
         letterSpacing = 0.5.sp,
         textAlign = TextAlign.Left
     ),
-    val code: TextStyle = TextStyle(
+    val inlineCode: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
         fontFamily = FontFamily.Monospace,
         fontSize = 20.sp,
         letterSpacing = 0.5.sp,
         background = Color.LightGray
+    ),
+    val codeBlock: BlockStyle = BlockStyle(
+        textStyle = inlineCode,
+        modifier = Modifier.background(Color.LightGray, shape = RoundedCornerShape(5.dp)).padding(10.dp, 5.dp)
     )
 ) {
     fun copy(
@@ -71,7 +80,8 @@ class DocumentStyles(
         h6: TextStyle = this.h6,
         paragraph: TextStyle = this.paragraph,
         listNumber: TextStyle = this.listNumber,
-        code: TextStyle = this.code
+        inlineCode: TextStyle = this.inlineCode,
+        codeBlock: BlockStyle = this.codeBlock
     ) = DocumentStyles(
         defaultFontFamily = defaultFontFamily,
         h1 = h1,
@@ -82,6 +92,12 @@ class DocumentStyles(
         h6 = h6,
         paragraph = paragraph,
         listNumber = listNumber,
-        code = code
+        inlineCode = inlineCode,
+        codeBlock = codeBlock
     )
 }
+
+data class BlockStyle(
+    val textStyle: TextStyle,
+    val modifier: Modifier
+)

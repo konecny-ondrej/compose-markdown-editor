@@ -68,6 +68,9 @@ class DocumentStyles(
     val codeBlock: BlockStyle = BlockStyle(
         textStyle = inlineCode,
         modifier = Modifier.background(Color.LightGray, shape = RoundedCornerShape(5.dp)).padding(10.dp, 5.dp)
+    ),
+    val blockQuote: BoxStyle = BoxStyle(
+        modifier = Modifier.leftBorder(5.dp, Color.Black).padding(5.dp)
     )
 ) {
     fun copy(
@@ -81,7 +84,8 @@ class DocumentStyles(
         paragraph: TextStyle = this.paragraph,
         listNumber: TextStyle = this.listNumber,
         inlineCode: TextStyle = this.inlineCode,
-        codeBlock: BlockStyle = this.codeBlock
+        codeBlock: BlockStyle = this.codeBlock,
+        blockQuote: BoxStyle = this.blockQuote
     ) = DocumentStyles(
         defaultFontFamily = defaultFontFamily,
         h1 = h1,
@@ -93,9 +97,14 @@ class DocumentStyles(
         paragraph = paragraph,
         listNumber = listNumber,
         inlineCode = inlineCode,
-        codeBlock = codeBlock
+        codeBlock = codeBlock,
+        blockQuote = blockQuote
     )
 }
+
+data class BoxStyle(
+    val modifier: Modifier
+)
 
 data class BlockStyle(
     val textStyle: TextStyle,

@@ -17,9 +17,11 @@ import org.intellij.markdown.MarkdownElementTypes.ATX_3
 import org.intellij.markdown.MarkdownElementTypes.ATX_4
 import org.intellij.markdown.MarkdownElementTypes.ATX_5
 import org.intellij.markdown.MarkdownElementTypes.ATX_6
+import org.intellij.markdown.MarkdownElementTypes.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownElementTypes.CODE_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.CODE_FENCE
 import org.intellij.markdown.MarkdownElementTypes.CODE_SPAN
+import org.intellij.markdown.MarkdownElementTypes.HTML_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.LIST_ITEM
 import org.intellij.markdown.MarkdownElementTypes.MARKDOWN_FILE
 import org.intellij.markdown.MarkdownElementTypes.ORDERED_LIST
@@ -96,6 +98,8 @@ private fun RenderedNode(node: ASTNode, sourceText: String) {
         LIST_ITEM -> ListItem(node, sourceText)
         HORIZONTAL_RULE -> HorizontalRule()
         CODE_FENCE -> CodeFence(node, sourceText)
+        BLOCK_QUOTE -> BlockQuote(node, sourceText)
+        HTML_BLOCK -> HtmlBlock(node, sourceText)
     }
 }
 
@@ -315,4 +319,25 @@ private fun CodeFenceEol(asBuilder: AnnotatedString.Builder, indexAmongSiblings:
 
 fun String.trimFourSpacesIndent(): String = lines().joinToString(System.lineSeparator()) { line ->
     if (line.length < 4) "" else line.substring(4)
+}
+
+@Composable
+private fun HtmlBlock(htmlNode: ASTNode, sourceText: String) {
+    // TODO: try to display <pre><code></code><pre> as CodeBlock. We don't want JCEF.
+    Text(
+        htmlNode.text(sourceText),
+        style = DocumentTheme.current.styles.codeBlock.textStyle,
+        modifier = DocumentTheme.current.styles.codeBlock.modifier
+    )
+}
+
+@Composable
+private fun BlockQuote(quoteNode: ASTNode, sourceText: String) {
+    Column(
+        modifier = DocumentTheme.current.styles.blockQuote.modifier
+    ) {
+        quoteNode.children.forEach { node ->
+            RenderedNode(node, sourceText)
+        }
+    }
 }

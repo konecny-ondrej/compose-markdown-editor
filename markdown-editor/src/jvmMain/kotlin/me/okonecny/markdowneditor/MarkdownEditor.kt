@@ -62,7 +62,7 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme
     ) {
-        LazyColumn {
+        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
             items(markdownRoot.children) { node ->
                 RenderedNode(node, sourceText)
             }
@@ -253,9 +253,14 @@ private fun CodeSpan(
     asBuilder: AnnotatedString.Builder,
     inlineContent: IdToInlineContent
 ) {
-    inlineNode.children.forEach { child ->
+    val children = inlineNode.children
+    children.forEachIndexed { index, child ->
         when (child.type) {
-            BACKTICK -> Unit // Don't render the backticks around code.
+            // Don't render the backticks around code.
+            BACKTICK -> if (index > 0 && index < children.lastIndex) {
+                CodeSpanText(child, sourceText, asBuilder, inlineContent)
+            }
+
             else -> CodeSpanText(child, sourceText, asBuilder, inlineContent)
         }
     }

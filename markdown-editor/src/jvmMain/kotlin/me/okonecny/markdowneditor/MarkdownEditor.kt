@@ -8,8 +8,11 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownElementTypes.ATX_1
 import org.intellij.markdown.MarkdownElementTypes.ATX_2
@@ -17,11 +20,12 @@ import org.intellij.markdown.MarkdownElementTypes.ATX_3
 import org.intellij.markdown.MarkdownElementTypes.ATX_4
 import org.intellij.markdown.MarkdownElementTypes.ATX_5
 import org.intellij.markdown.MarkdownElementTypes.ATX_6
-import org.intellij.markdown.MarkdownElementTypes.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownElementTypes.CODE_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.CODE_FENCE
 import org.intellij.markdown.MarkdownElementTypes.CODE_SPAN
 import org.intellij.markdown.MarkdownElementTypes.HTML_BLOCK
+import org.intellij.markdown.MarkdownElementTypes.INLINE_LINK
+import org.intellij.markdown.MarkdownElementTypes.LINK_TEXT
 import org.intellij.markdown.MarkdownElementTypes.LIST_ITEM
 import org.intellij.markdown.MarkdownElementTypes.MARKDOWN_FILE
 import org.intellij.markdown.MarkdownElementTypes.ORDERED_LIST
@@ -31,10 +35,12 @@ import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.MarkdownTokenTypes.Companion.BACKTICK
+import org.intellij.markdown.MarkdownTokenTypes.Companion.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_CONTENT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_END
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_START
 import org.intellij.markdown.MarkdownTokenTypes.Companion.COLON
+import org.intellij.markdown.MarkdownTokenTypes.Companion.DOUBLE_QUOTE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.EOL
 import org.intellij.markdown.MarkdownTokenTypes.Companion.EXCLAMATION_MARK
 import org.intellij.markdown.MarkdownTokenTypes.Companion.FENCE_LANG
@@ -45,6 +51,7 @@ import org.intellij.markdown.MarkdownTokenTypes.Companion.LPAREN
 import org.intellij.markdown.MarkdownTokenTypes.Companion.LT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.RBRACKET
 import org.intellij.markdown.MarkdownTokenTypes.Companion.RPAREN
+import org.intellij.markdown.MarkdownTokenTypes.Companion.SINGLE_QUOTE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.TEXT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.WHITE_SPACE
 import org.intellij.markdown.ast.ASTNode
@@ -202,7 +209,7 @@ fun HorizontalRule() {
 @Composable
 private fun Paragraph(paragraphNode: ASTNode, sourceText: String) {
     // TODO add padding to style (spaces between paragraphs)
-    val parsedContent = parseParagraphContent(paragraphNode, sourceText)
+    val parsedContent = parseInlineContent(paragraphNode, sourceText)
     Text(
         parsedContent.text,
         inlineContent = parsedContent.inlineTextContent,
@@ -219,31 +226,107 @@ private data class MarkdownParsedInline(
 typealias IdToInlineContent = MutableMap<String, InlineTextContent>
 
 @Composable
-private fun parseParagraphContent(blockNode: ASTNode, sourceText: String): MarkdownParsedInline {
+private fun parseInlineContent(blockNode: ASTNode, sourceText: String): MarkdownParsedInline {
     val inlineContent: IdToInlineContent = mutableMapOf()
     val annotatedStringBuilder = AnnotatedString.Builder()
 
-    var lastWasWhitespace = false
-    blockNode.children.forEach { child ->
+    appendTextNodes(blockNode.children, sourceText, annotatedStringBuilder) { child ->
         when (child.type) {
-            WHITE_SPACE, EOL -> {
-                if (!lastWasWhitespace) {
-                    annotatedStringBuilder.append(" ")
-                }
-            }
-
-            TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET,
-            LT, GT, COLON, EXCLAMATION_MARK -> annotatedStringBuilder.append(child.text(sourceText))
-
             CODE_SPAN -> CodeSpan(child, sourceText, annotatedStringBuilder, inlineContent)
+            INLINE_LINK -> InlineLink(child, sourceText, annotatedStringBuilder, inlineContent)
+            else -> UnparsedInline(child, sourceText, annotatedStringBuilder)
         }
-        lastWasWhitespace = child.type == WHITE_SPACE || child.type == EOL
     }
 
     return MarkdownParsedInline(
         annotatedStringBuilder.toAnnotatedString(),
         inlineContent
     )
+}
+
+@Composable
+private fun appendTextNodes(
+    nodes: List<ASTNode>,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder,
+    ignoreFirst: List<IElementType> = listOf(),
+    ignoreLast: List<IElementType> = listOf(),
+    style: SpanStyle? = null,
+    handleNonTextNode: @Composable (ASTNode) -> Unit
+) {
+    var lastWasWhitespace = false
+    nodes.forEachIndexed { index, child ->
+        if (index == 0 && ignoreFirst.contains(child.type)) return@forEachIndexed
+        if (index == nodes.lastIndex && ignoreLast.contains(child.type)) return@forEachIndexed
+        when (child.type) {
+            WHITE_SPACE, EOL -> {
+                if (!lastWasWhitespace) {
+                    asBuilder.appendStyled(" ", style)
+                }
+            }
+
+            TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET, SINGLE_QUOTE, DOUBLE_QUOTE, MarkdownTokenTypes.BLOCK_QUOTE,
+            LT, GT, COLON, EXCLAMATION_MARK, BACKTICK -> asBuilder.appendStyled(child.text(sourceText), style)
+
+            else -> handleNonTextNode(child)
+        }
+        lastWasWhitespace = child.type == WHITE_SPACE || child.type == EOL
+    }
+}
+
+/**
+ * A placeholder to see unparsed elements. Intended for development.
+ */
+@Composable
+private fun UnparsedInline(
+    child: ASTNode,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder
+) {
+
+    val text = child.type.name + " " + child.text(sourceText)
+    asBuilder.appendStyled(text, SpanStyle(background = Color.Cyan))
+}
+
+private fun AnnotatedString.Builder.appendStyled(text: String, style: SpanStyle? = null) {
+    val originalLength = length
+    append(text)
+    if (style != null) addStyle(style, originalLength, length)
+}
+
+@Composable
+private fun InlineLink(
+    linkNode: ASTNode,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder,
+    inlineContent: IdToInlineContent
+) {
+    linkNode.children.forEach { child ->
+        when (child.type) {
+            // TODO when the link destination is just an anchor (starting with @), show the link text styled differently.
+            LINK_TEXT -> LinkText(child, sourceText, asBuilder, inlineContent)
+            else -> UnparsedInline(child, sourceText, asBuilder)
+        }
+    }
+}
+
+@Composable
+private fun LinkText(
+    linkTextNode: ASTNode,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder,
+    inlineContent: IdToInlineContent
+) {
+    appendTextNodes(
+        linkTextNode.children,
+        sourceText,
+        asBuilder,
+        ignoreFirst = listOf(LBRACKET),
+        ignoreLast = listOf(RBRACKET),
+        style = LocalDocumentTheme.current.styles.link.toSpanStyle()
+    ) { nonTextChild ->
+        UnparsedInline(nonTextChild, sourceText, asBuilder)
+    }
 }
 
 @Composable
@@ -273,15 +356,9 @@ private fun CodeSpanText(
     asBuilder: AnnotatedString.Builder,
     inlineContent: IdToInlineContent
 ) {
-    val currentLength = asBuilder.length
     val codeText = inlineNode.text(sourceText)
-    asBuilder.append(codeText)
-    asBuilder.addStyle(
-        // This cannot be inlineTextContent if we want the text engine to break the text.
-        LocalDocumentTheme.current.styles.inlineCode.toSpanStyle(),
-        currentLength,
-        currentLength + codeText.length
-    )
+    // This cannot be inlineTextContent if we want the text engine to break the text.
+    asBuilder.appendStyled(codeText, LocalDocumentTheme.current.styles.inlineCode.toSpanStyle())
 }
 
 @Composable

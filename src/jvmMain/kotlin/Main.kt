@@ -14,8 +14,8 @@ import me.tatarka.inject.annotations.Component
 @Preview
 fun App() {
     var isLong by remember { mutableStateOf(true) }
-    val shortFilename = "/short.md"
-    val longFilename = "/commonMarkSpec.md"
+    val shortFilename = "/commonMarkSpec.md"
+    val longFilename = "/gfmSpec.md"
 
     MaterialTheme {
         Column {

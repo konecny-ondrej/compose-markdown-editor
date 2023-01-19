@@ -20,11 +20,13 @@ import org.intellij.markdown.MarkdownElementTypes.ATX_3
 import org.intellij.markdown.MarkdownElementTypes.ATX_4
 import org.intellij.markdown.MarkdownElementTypes.ATX_5
 import org.intellij.markdown.MarkdownElementTypes.ATX_6
+import org.intellij.markdown.MarkdownElementTypes.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownElementTypes.CODE_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.CODE_FENCE
 import org.intellij.markdown.MarkdownElementTypes.CODE_SPAN
 import org.intellij.markdown.MarkdownElementTypes.HTML_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.INLINE_LINK
+import org.intellij.markdown.MarkdownElementTypes.LINK_DESTINATION
 import org.intellij.markdown.MarkdownElementTypes.LINK_TEXT
 import org.intellij.markdown.MarkdownElementTypes.LIST_ITEM
 import org.intellij.markdown.MarkdownElementTypes.MARKDOWN_FILE
@@ -35,7 +37,6 @@ import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.MarkdownTokenTypes.Companion.BACKTICK
-import org.intellij.markdown.MarkdownTokenTypes.Companion.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_CONTENT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_END
 import org.intellij.markdown.MarkdownTokenTypes.Companion.CODE_FENCE_START
@@ -45,8 +46,11 @@ import org.intellij.markdown.MarkdownTokenTypes.Companion.EOL
 import org.intellij.markdown.MarkdownTokenTypes.Companion.EXCLAMATION_MARK
 import org.intellij.markdown.MarkdownTokenTypes.Companion.FENCE_LANG
 import org.intellij.markdown.MarkdownTokenTypes.Companion.GT
+import org.intellij.markdown.MarkdownTokenTypes.Companion.HARD_LINE_BREAK
 import org.intellij.markdown.MarkdownTokenTypes.Companion.HORIZONTAL_RULE
 import org.intellij.markdown.MarkdownTokenTypes.Companion.LBRACKET
+import org.intellij.markdown.MarkdownTokenTypes.Companion.LIST_BULLET
+import org.intellij.markdown.MarkdownTokenTypes.Companion.LIST_NUMBER
 import org.intellij.markdown.MarkdownTokenTypes.Companion.LPAREN
 import org.intellij.markdown.MarkdownTokenTypes.Companion.LT
 import org.intellij.markdown.MarkdownTokenTypes.Companion.RBRACKET
@@ -69,11 +73,7 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme
     ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-            items(markdownRoot.children) { node ->
-                RenderedNode(node, sourceText)
-            }
-        }
+        RenderedNode(markdownRoot, sourceText)
     }
 }
 
@@ -88,31 +88,42 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
 private fun RenderedNode(node: ASTNode, sourceText: String) {
     val styles = DocumentTheme.current.styles
     when (node.type) {
-        // Blocks
-        MARKDOWN_FILE -> File(node, sourceText) // Not really used.
+        // Leaf blocks
+        HORIZONTAL_RULE -> HorizontalRule()
         ATX_1 -> AtxHeader(node, sourceText, styles.h1)
-        SETEXT_1 -> SetextHeader(node, sourceText, styles.h1)
         ATX_2 -> AtxHeader(node, sourceText, styles.h2)
-        SETEXT_2 -> SetextHeader(node, sourceText, styles.h2)
         ATX_3 -> AtxHeader(node, sourceText, styles.h3)
         ATX_4 -> AtxHeader(node, sourceText, styles.h4)
         ATX_5 -> AtxHeader(node, sourceText, styles.h5)
         ATX_6 -> AtxHeader(node, sourceText, styles.h6)
-        PARAGRAPH -> Paragraph(node, sourceText)
+        SETEXT_1 -> SetextHeader(node, sourceText, styles.h1)
+        SETEXT_2 -> SetextHeader(node, sourceText, styles.h2)
         CODE_BLOCK -> CodeBlock(node, sourceText)
+        CODE_FENCE -> CodeFence(node, sourceText)
+        HTML_BLOCK -> HtmlBlock(node, sourceText)
+        // TODO: LINK_DEFINITION
+        PARAGRAPH -> Paragraph(node, sourceText)
+        EOL, WHITE_SPACE -> Unit // Skip white space between blocks. They have paddings.
+        // TODO: TABLE
+
+        // Container blocks
+        MARKDOWN_FILE -> File(node, sourceText)
+        BLOCK_QUOTE -> BlockQuote(node, sourceText)
+        LIST_ITEM -> ListItem(node, sourceText)
         ORDERED_LIST -> OrderedList(node, sourceText)
         UNORDERED_LIST -> UnorderedList(node, sourceText)
-        LIST_ITEM -> ListItem(node, sourceText)
-        HORIZONTAL_RULE -> HorizontalRule()
-        CODE_FENCE -> CodeFence(node, sourceText)
-        BLOCK_QUOTE -> BlockQuote(node, sourceText)
-        HTML_BLOCK -> HtmlBlock(node, sourceText)
+        // TODO: CHECK_BOX
+        else -> UnparsedNode(node, sourceText)
     }
 }
 
 @Composable
 private fun File(fileNode: ASTNode, sourceText: String) {
-    fileNode.children.forEach { node -> RenderedNode(node, sourceText) }
+    LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+        items(fileNode.children) { node ->
+            RenderedNode(node, sourceText)
+        }
+    }
 }
 
 @Composable
@@ -183,14 +194,17 @@ private fun ListItem(itemNode: ASTNode, sourceText: String) {
             )
 
             ListTypes.UNORDERED -> Text(
-                "\u2022 ", // TODO: parse the LIST_BULLET
+                "\u2022 ",
                 style = DocumentTheme.current.styles.listNumber
             )
         }
 
         Column {
             itemNode.children.forEach { itemContentNode ->
-                RenderedNode(itemContentNode, sourceText)
+                when (itemContentNode.type) {
+                    LIST_NUMBER, LIST_BULLET -> Unit // TODO: parse the LIST_BULLET?
+                    else -> RenderedNode(itemContentNode, sourceText)
+                }
             }
         }
     }
@@ -265,7 +279,9 @@ private fun appendTextNodes(
                 }
             }
 
-            TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET, SINGLE_QUOTE, DOUBLE_QUOTE, MarkdownTokenTypes.BLOCK_QUOTE,
+            MarkdownTokenTypes.BLOCK_QUOTE -> Unit // Always ignore.
+            HARD_LINE_BREAK -> asBuilder.append(System.lineSeparator())
+            TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET, SINGLE_QUOTE, DOUBLE_QUOTE,
             LT, GT, COLON, EXCLAMATION_MARK, BACKTICK -> asBuilder.appendStyled(child.text(sourceText), style)
 
             else -> handleNonTextNode(child)
@@ -288,6 +304,11 @@ private fun UnparsedInline(
     asBuilder.appendStyled(text, SpanStyle(background = Color.Cyan))
 }
 
+@Composable
+private fun UnparsedNode(node: ASTNode, sourceText: String) {
+    Text(node.type.name + " " + node.text(sourceText), style = TextStyle(background = Color.Magenta))
+}
+
 private fun AnnotatedString.Builder.appendStyled(text: String, style: SpanStyle? = null) {
     val originalLength = length
     append(text)
@@ -305,8 +326,21 @@ private fun InlineLink(
         when (child.type) {
             // TODO when the link destination is just an anchor (starting with @), show the link text styled differently.
             LINK_TEXT -> LinkText(child, sourceText, asBuilder, inlineContent)
+            LINK_DESTINATION -> LinkDestination(child, sourceText, asBuilder, inlineContent)
             else -> UnparsedInline(child, sourceText, asBuilder)
         }
+    }
+}
+
+@Composable
+private fun LinkDestination(
+    destinationNode: ASTNode,
+    sourceText: String,
+    asBuilder: AnnotatedString.Builder,
+    inlineContent: IdToInlineContent
+) {
+    destinationNode.children.forEach { child ->
+        UnparsedInline(child, sourceText, asBuilder)
     }
 }
 
@@ -418,8 +452,11 @@ private fun BlockQuote(quoteNode: ASTNode, sourceText: String) {
     Column(
         modifier = DocumentTheme.current.styles.blockQuote.modifier
     ) {
-        quoteNode.children.forEach { node ->
-            RenderedNode(node, sourceText)
+        quoteNode.children.forEach { child ->
+            when (child.type) {
+                MarkdownTokenTypes.BLOCK_QUOTE -> Unit
+                else -> RenderedNode(child, sourceText)
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -76,6 +77,12 @@ class DocumentStyles(
     val link: TextStyle = paragraph.copy(
         color = Color.Blue,
         textDecoration = TextDecoration.Underline
+    ),
+    val emphasis: TextStyle = paragraph.copy(
+        fontStyle = FontStyle.Italic
+    ),
+    val strong: TextStyle = paragraph.copy(
+        fontWeight = FontWeight.Bold
     )
 ) {
     fun copy(
@@ -91,7 +98,9 @@ class DocumentStyles(
         inlineCode: TextStyle = this.inlineCode,
         codeBlock: BlockStyle = this.codeBlock,
         blockQuote: BoxStyle = this.blockQuote,
-        link: TextStyle = this.link
+        link: TextStyle = this.link,
+        emphasis: TextStyle = this.emphasis,
+        strong: TextStyle = this.strong
     ) = DocumentStyles(
         defaultFontFamily = defaultFontFamily,
         h1 = h1,
@@ -105,7 +114,9 @@ class DocumentStyles(
         inlineCode = inlineCode,
         codeBlock = codeBlock,
         blockQuote = blockQuote,
-        link = link
+        link = link,
+        emphasis = emphasis,
+        strong = strong
     )
 }
 

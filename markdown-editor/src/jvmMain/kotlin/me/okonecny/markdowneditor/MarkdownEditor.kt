@@ -24,6 +24,7 @@ import org.intellij.markdown.MarkdownElementTypes.BLOCK_QUOTE
 import org.intellij.markdown.MarkdownElementTypes.CODE_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.CODE_FENCE
 import org.intellij.markdown.MarkdownElementTypes.CODE_SPAN
+import org.intellij.markdown.MarkdownElementTypes.EMPH
 import org.intellij.markdown.MarkdownElementTypes.HTML_BLOCK
 import org.intellij.markdown.MarkdownElementTypes.INLINE_LINK
 import org.intellij.markdown.MarkdownElementTypes.LINK_DESTINATION
@@ -34,6 +35,7 @@ import org.intellij.markdown.MarkdownElementTypes.ORDERED_LIST
 import org.intellij.markdown.MarkdownElementTypes.PARAGRAPH
 import org.intellij.markdown.MarkdownElementTypes.SETEXT_1
 import org.intellij.markdown.MarkdownElementTypes.SETEXT_2
+import org.intellij.markdown.MarkdownElementTypes.STRONG
 import org.intellij.markdown.MarkdownElementTypes.UNORDERED_LIST
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.MarkdownTokenTypes.Companion.BACKTICK
@@ -284,9 +286,41 @@ private fun appendTextNodes(
             TEXT, LPAREN, RPAREN, LBRACKET, RBRACKET, SINGLE_QUOTE, DOUBLE_QUOTE,
             LT, GT, COLON, EXCLAMATION_MARK, BACKTICK -> asBuilder.appendStyled(child.text(sourceText), style)
 
+            EMPH -> Emphasis(child, sourceText, asBuilder, DocumentTheme.current.styles.emphasis.toSpanStyle())
+            STRONG -> Strong(child, sourceText, asBuilder, DocumentTheme.current.styles.strong.toSpanStyle())
+
             else -> handleNonTextNode(child)
         }
         lastWasWhitespace = child.type == WHITE_SPACE || child.type == EOL
+    }
+}
+
+@Composable
+fun Strong(strongNode: ASTNode, sourceText: String, asBuilder: AnnotatedString.Builder, style: SpanStyle?) {
+    // FIXME: ignore all the leading and trailing _
+    appendTextNodes(
+        strongNode.children,
+        sourceText,
+        asBuilder,
+        ignoreFirst = listOf(MarkdownTokenTypes.EMPH),
+        ignoreLast = listOf(MarkdownTokenTypes.EMPH),
+        style
+    ) { nonTextNode ->
+        UnparsedInline(nonTextNode, sourceText, asBuilder)
+    }
+}
+
+@Composable
+fun Emphasis(emphasisNode: ASTNode, sourceText: String, asBuilder: AnnotatedString.Builder, style: SpanStyle?) {
+    appendTextNodes(
+        emphasisNode.children,
+        sourceText,
+        asBuilder,
+        ignoreFirst = listOf(MarkdownTokenTypes.EMPH),
+        ignoreLast = listOf(MarkdownTokenTypes.EMPH),
+        style
+    ) { nonTextNode ->
+        UnparsedInline(nonTextNode, sourceText, asBuilder)
     }
 }
 

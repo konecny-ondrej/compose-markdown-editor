@@ -16,48 +16,74 @@ internal inline fun <reified T : MdTreeNode> MdTreeNode.findChildByType(): MdTre
         node is T
     }
 
+sealed interface MdBlock : MdTreeNode
+sealed interface MdLeafBlock : MdBlock
+sealed interface MdContainerBlock : MdBlock
+sealed interface MdInline : MdTreeNode
+
+sealed interface MdFileChild : MdTreeNode
+
 class MdFile(
     override val startOffset: Int,
     override val endOffset: Int,
-    override val children: List<MdTreeNode>,
+    override val children: List<MdFileChild>,
 ) : MdTreeNode {
     override val parent: MdTreeNode? = null
     override val name: String = "MARKDOWN_FILE"
 }
 
+sealed interface MdUnorderedListChild : MdTreeNode
+
 class MdUnorderedList(
     override val startOffset: Int,
     override val endOffset: Int,
-    override val children: List<MdTreeNode>,
+    override val children: List<MdUnorderedListChild>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdContainerBlock, MdFileChild, MdBlockQuoteChild {
     override val name: String = "UNORDERED_LIST"
 }
+
+sealed interface MdOrderedListChild : MdTreeNode
 
 class MdOrderedList(
     override val startOffset: Int,
     override val endOffset: Int,
-    override val children: List<MdTreeNode>,
+    override val children: List<MdOrderedListChild>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdContainerBlock, MdFileChild, MdBlockQuoteChild {
     override val name: String = "ORDERED_LIST"
 }
 
-class MdListItem(
+sealed interface MdUnorderedListItemChild : MdTreeNode
+
+class MdUnorderedListItem(
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val children: List<MdUnorderedListItemChild>,
+    override val parent: MdTreeNode
+) : MdTreeNode, MdContainerBlock, MdUnorderedListChild {
+    override val name: String = "LIST_ITEM"
+}
+
+sealed interface MdOrderedListItemChild : MdTreeNode
+
+class MdOrderedListItem(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdContainerBlock, MdOrderedListChild {
     override val name: String = "LIST_ITEM"
 }
+
+sealed interface MdBlockQuoteChild : MdTreeNode
 
 class MdBlockQuote(
     override val startOffset: Int,
     override val endOffset: Int,
-    override val children: List<MdTreeNode>,
+    override val children: List<MdBlockQuoteChild>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdContainerBlock, MdFileChild {
     override val name: String = "BLOCK_QUOTE"
 }
 
@@ -66,7 +92,7 @@ class MdCodeFence(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "CODE_FENCE"
 }
 
@@ -75,7 +101,7 @@ class MdCodeBlock(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "CODE_BLOCK"
 }
 
@@ -84,7 +110,7 @@ class MdCodeSpan(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "CODE_SPAN"
 }
 
@@ -93,7 +119,7 @@ class MdHtmlBlock(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "HTML_BLOCK"
 }
 
@@ -102,16 +128,16 @@ class MdParagraph(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "PARAGRAPH"
 }
 
-class MdEmphasize(
+class MdEmphasis(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "EMPH"
 }
 
@@ -120,7 +146,7 @@ class MdStrong(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "STRONG"
 }
 
@@ -129,7 +155,7 @@ class MdLinkDefinition(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "LINK_DEFINITION"
 }
 
@@ -174,7 +200,7 @@ class MdInlineLink(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "INLINE_LINK"
 }
 
@@ -183,7 +209,7 @@ class MdFullReferenceLink(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "FULL_REFERENCE_LINK"
 }
 
@@ -192,7 +218,7 @@ class MdShortReferenceLink(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "SHORT_REFERENCE_LINK"
 }
 
@@ -201,7 +227,7 @@ class MdImage(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "IMAGE"
 }
 
@@ -210,7 +236,7 @@ class MdSetext1(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "SETEXT_1"
 }
 
@@ -219,7 +245,7 @@ class MdSetext2(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "SETEXT_2"
 }
 
@@ -228,7 +254,7 @@ class MdAtx1(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_1"
 }
 
@@ -237,7 +263,7 @@ class MdAtx2(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_2"
 }
 
@@ -246,7 +272,7 @@ class MdAtx3(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_3"
 }
 
@@ -255,7 +281,7 @@ class MdAtx4(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_4"
 }
 
@@ -264,7 +290,7 @@ class MdAtx5(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_5"
 }
 
@@ -273,7 +299,7 @@ class MdAtx6(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "ATX_6"
 }
 
@@ -282,7 +308,7 @@ class MdStrikethrough(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "STRIKETHROUGH"
 }
 
@@ -291,11 +317,11 @@ class MdTable(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "TABLE"
 }
 
-class MdHeader(
+class MdTableHeader(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
@@ -304,7 +330,7 @@ class MdHeader(
     override val name: String = "HEADER"
 }
 
-class MdRow(
+class MdTableRow(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
@@ -320,7 +346,7 @@ class MdTextToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "TEXT"
 }
 
@@ -446,7 +472,7 @@ class MdHardLineBreakToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "BR"
 }
 
@@ -455,7 +481,7 @@ class MdEolToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdInline, MdFileChild {
     override val name: String = "EOL"
 }
 
@@ -545,7 +571,7 @@ class MdListBulletToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdUnorderedListItemChild {
     override val name: String = "LIST_BULLET"
 }
 
@@ -563,7 +589,7 @@ class MdHorizontalRuleToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdLeafBlock, MdFileChild {
     override val name: String = "HORIZONTAL_RULE"
 }
 
@@ -572,7 +598,7 @@ class MdListNumberToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdOrderedListItemChild {
     override val name: String = "LIST_NUMBER"
 }
 
@@ -626,7 +652,7 @@ class MdAutolinkToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "AUTOLINK"
 }
 
@@ -635,7 +661,7 @@ class MdEmailAutolinkToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "EMAIL_AUTOLINK"
 }
 
@@ -644,7 +670,7 @@ class MdHtmlTagToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "HTML_TAG"
 }
 
@@ -662,7 +688,7 @@ class MdWhiteSpaceToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdFileChild {
     override val name: String = "WHITE_SPACE"
 }
 
@@ -689,7 +715,7 @@ class MdGfmAutolinkToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "GFM_AUTOLINK"
 }
 
@@ -698,7 +724,7 @@ class MdCheckBoxToken(
     override val endOffset: Int,
     override val children: List<MdTreeNode>,
     override val parent: MdTreeNode
-) : MdTreeNode {
+) : MdTreeNode, MdInline {
     override val name: String = "CHECK_BOX"
 }
 

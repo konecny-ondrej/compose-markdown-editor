@@ -11,7 +11,8 @@ import org.intellij.markdown.parser.MarkdownParser
  */
 @Component
 internal abstract class MarkdownEditorComponent {
-    abstract val parser: MarkdownParser
+    abstract val markdownParser: MarkdownParser
+    abstract val documentParser: DocumentParser
 
     @Provides
     protected fun markdownFlavour(): MarkdownFlavourDescriptor = GFMFlavourDescriptor()

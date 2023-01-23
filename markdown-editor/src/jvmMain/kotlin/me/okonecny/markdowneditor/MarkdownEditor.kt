@@ -68,7 +68,7 @@ import org.intellij.markdown.ast.ASTNode
 @Composable
 fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTheme.default) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
-    val parser = remember { markdown.parser }
+    val parser = remember { markdown.markdownParser }
     val markdownRoot = parser.buildMarkdownTreeFromString(sourceText)
     // TODO: make the source or the AST be state so we can edit.
 

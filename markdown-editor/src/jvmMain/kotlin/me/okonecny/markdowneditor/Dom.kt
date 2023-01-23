@@ -23,7 +23,7 @@ sealed interface MdInline : MdTreeNode
 
 sealed interface MdFileChild : MdTreeNode
 
-class MdFile(
+class MdDocument(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdFileChild>,

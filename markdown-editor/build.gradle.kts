@@ -32,6 +32,12 @@ kotlin {
         }
         val jvmTest by getting {
             kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
+            dependencies {
+                implementation(kotlin("test-junit5"))
+            }
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
         }
     }
 }

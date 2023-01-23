@@ -3,7 +3,7 @@ package me.okonecny.markdowneditor
 import kotlin.reflect.KClass
 
 class TestNode(
-    val type: KClass<out MdTreeNode> = MdTreeNode::class,
+    val type: KClass<out MdDomNode> = MdDomNode::class,
     var startOffset: Int = 0,
     var endOffset: Int = 0,
     var children: MutableList<TestNode> = mutableListOf(),
@@ -43,7 +43,7 @@ fun mdDocument(
     )
 }
 
-fun TestNode.mdNode(type: KClass<out MdTreeNode>, childrenDsl: TestNode.() -> Unit) {
+fun TestNode.mdNode(type: KClass<out MdDomNode>, childrenDsl: TestNode.() -> Unit) {
     val node = TestNode(type)
     node.parent = this
     node.childrenDsl()

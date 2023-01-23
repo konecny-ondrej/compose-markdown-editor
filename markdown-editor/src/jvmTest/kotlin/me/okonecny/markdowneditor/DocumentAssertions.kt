@@ -8,7 +8,7 @@ fun assertDocumentEquals(expectedDocument: TestDocument, actualDocument: Documen
     assertDomTreeEquals(expectedDocument.dom, actualDocument.dom)
 }
 
-fun assertDomTreeEquals(expectedTree: TestNode, actualTree: MdTreeNode) {
+fun assertDomTreeEquals(expectedTree: TestNode, actualTree: MdDomNode) {
     assertEquals(expectedTree.type, actualTree::class, expectedTree.path + " has the wrong type.")
     assertEquals(expectedTree.startOffset, actualTree.startOffset, expectedTree.path + " starts at the wrong offset.")
     assertEquals(expectedTree.endOffset, actualTree.endOffset, expectedTree.path + " ends at the wrong offset.")

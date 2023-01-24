@@ -51,6 +51,32 @@ class DocumentParserTest {
         }
     }
 
+    @Test
+    fun ignoresEolBetweenParagraphs() {
+        testDocParsing("A\n\nB") { source ->
+            mdDocument(sourceText = source, links = listOf()) {
+                mdNode(MdParagraph::class) {
+                    startOffset = 0
+                    endOffset = 1
+                    mdNode(MdText::class) {
+                        startOffset = 0
+                        endOffset = 1
+                    }
+                }
+                mdNode(MdIgnored::class)
+                mdNode(MdIgnored::class)
+                mdNode(MdParagraph::class) {
+                    startOffset = 3
+                    endOffset = source.length
+                    mdNode(MdText::class) {
+                        startOffset = 3
+                        endOffset = source.length
+                    }
+                }
+            }
+        }
+    }
+
     private fun testDocParsing(source: String, expectedDocument: (source: String) -> TestDocument) {
         assertDocumentEquals(expectedDocument(source), parser.parse(source))
     }

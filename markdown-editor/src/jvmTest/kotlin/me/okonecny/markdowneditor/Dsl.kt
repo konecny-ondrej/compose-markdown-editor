@@ -43,7 +43,7 @@ fun mdDocument(
     )
 }
 
-fun TestNode.mdNode(type: KClass<out MdDomNode>, childrenDsl: TestNode.() -> Unit) {
+fun TestNode.mdNode(type: KClass<out MdDomNode>, childrenDsl: TestNode.() -> Unit = {}) {
     val node = TestNode(type)
     node.parent = this
     node.childrenDsl()

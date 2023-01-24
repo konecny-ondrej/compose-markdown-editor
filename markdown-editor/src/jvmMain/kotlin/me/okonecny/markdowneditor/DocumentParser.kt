@@ -39,7 +39,8 @@ class DocumentParser(
                     MarkdownElementTypes.ATX_6 -> parseAtxHeader(child, MdAtxHeader.Level.H6)
                     MarkdownElementTypes.SETEXT_1 -> parseSetextHeader(child, MdSetextHeader.Level.H1)
                     MarkdownElementTypes.SETEXT_2 -> parseSetextHeader(child, MdSetextHeader.Level.H2)
-//                MarkdownElementTypes.CODE_BLOCK -> CodeBlock(node, sourceText)
+                    MarkdownTokenTypes.EOL -> MdIgnored(child.type.name)
+                    MarkdownElementTypes.CODE_BLOCK -> parseIndentedCodeBlock(child)
 //                MarkdownElementTypes.CODE_FENCE -> CodeFence(node, sourceText)
 //                MarkdownElementTypes.HTML_BLOCK -> HtmlBlock(node, sourceText)
 //                // TODO: LINK_DEFINITION
@@ -57,6 +58,14 @@ class DocumentParser(
                 }
             }
         }.toList()
+    }
+
+    private fun parseIndentedCodeBlock(codeBlockNode: ASTNode): MdIndentedCodeBlock {
+        return MdIndentedCodeBlock(
+            startOffset = codeBlockNode.startOffset,
+            endOffset = codeBlockNode.endOffset,
+            children = emptyList() // TODO
+        )
     }
 
     private fun parseParagraph(paragraphNode: ASTNode): MdParagraph {

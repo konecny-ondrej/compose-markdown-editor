@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 @Immutable
 class DocumentTheme(
     val styles: DocumentStyles = DocumentStyles(),
-    val lineStyle: BorderStroke = BorderStroke(1.dp, Color.Black)
+    val lineStyle: BorderStroke = BorderStroke(1.dp, Color.Black) // TODO: Dp.Hairline?
 ) {
     companion object {
         val default: DocumentTheme = DocumentTheme(DocumentStyles())

@@ -45,8 +45,8 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdParagraph -> UiParagraph(block, sourceText)
         is MdHorizontalRule -> UiHorizontalRule()
         is MdBlockQuote -> UiBlockQuote(block, sourceText)
-        is MdIndentedCodeBlock -> UiUnparsedBlock(block) // TODO
-        is MdCodeFence -> UiUnparsedBlock(block)
+        is MdIndentedCodeBlock -> UiIndentedCodeBlock(block, sourceText)
+        is MdCodeFence -> UiUnparsedBlock(block)  // TODO
         is MdHtmlBlock -> UiUnparsedBlock(block)
         is MdLinkDefinition -> UiUnparsedBlock(block)
         is MdOrderedList -> UiUnparsedBlock(block)
@@ -55,6 +55,24 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdUnparsedBlock -> UiUnparsedBlock(block)
         is MdOrderedListItem -> UiUnparsedBlock(block)
         is MdUnorderedListItem -> UiUnparsedBlock(block)
+    }
+}
+
+@Composable
+fun UiIndentedCodeBlock(indentedCodeBlock: MdIndentedCodeBlock, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Column(
+        modifier = styles.codeBlock.modifier
+    ) {
+        indentedCodeBlock.children.forEach { child ->
+            when(child) {
+                is MdIndentedCodeLine -> Text(
+                    child.text(sourceText),
+                    style = styles.codeBlock.textStyle
+                )
+                is MdUnparsedBlock -> UiUnparsedBlock(child)
+            }
+        }
     }
 }
 

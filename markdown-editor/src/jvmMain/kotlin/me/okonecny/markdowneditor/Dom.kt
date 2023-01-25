@@ -494,7 +494,7 @@ class MdUnparsedInline(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdDomNode> = emptyList()
-) : MdDomNode, MdInline, MdIndentedCodeBlockChild
+) : MdDomNode, MdInline
 
 class MdWhitespace : MdInline {
     override val startOffset: Int = 0

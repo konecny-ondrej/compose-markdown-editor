@@ -76,13 +76,15 @@ class DocumentParser(
         return MdIndentedCodeBlock(
             startOffset = codeBlockNode.startOffset,
             endOffset = codeBlockNode.endOffset,
-            children = listOf(
-                MdUnparsedBlock(
-                    "Code Block contents",
-                    codeBlockNode.startOffset,
-                    codeBlockNode.endOffset
-                )
-            ) // TODO
+            children = codeBlockNode.children.map { child ->
+                when (child.type) {
+                    MarkdownTokenTypes.CODE_LINE -> MdIndentedCodeLine(
+                        child.startOffset + 4, // Strip the indent.
+                        child.endOffset
+                    )
+                    else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
+                }
+            }
         )
     }
 

@@ -63,8 +63,8 @@ class DocumentParserTest {
                         endOffset = 1
                     }
                 }
-                mdNode(MdIgnored::class)
-                mdNode(MdIgnored::class)
+                mdNode(MdIgnoredBlock::class)
+                mdNode(MdIgnoredBlock::class)
                 mdNode(MdParagraph::class) {
                     startOffset = 3
                     endOffset = source.length

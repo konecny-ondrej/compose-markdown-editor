@@ -9,12 +9,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import org.intellij.markdown.MarkdownTokenTypes
 
 /**
  * A simple WYSIWYG editor for Markdown.
@@ -34,25 +36,33 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
 }
 
 @Composable
+private fun UiBlock(block: MdBlock, sourceText: String) {
+    when (block) {
+        is MdIgnoredBlock -> Unit
+        is MdEol -> Unit // Not significant between blocks.
+        is MdAtxHeader -> UiAtxHeader(block, sourceText)
+        is MdSetextHeader -> UiSetextHeader(block, sourceText)
+        is MdParagraph -> UiParagraph(block, sourceText)
+        is MdHorizontalRule -> UiHorizontalRule()
+        is MdBlockQuote -> UiBlockQuote(block, sourceText)
+        is MdIndentedCodeBlock -> UiUnparsedBlock(block) // TODO
+        is MdCodeFence -> UiUnparsedBlock(block)
+        is MdHtmlBlock -> UiUnparsedBlock(block)
+        is MdLinkDefinition -> UiUnparsedBlock(block)
+        is MdOrderedList -> UiUnparsedBlock(block)
+        is MdTable -> UiUnparsedBlock(block)
+        is MdUnorderedList -> UiUnparsedBlock(block)
+        is MdUnparsedBlock -> UiUnparsedBlock(block)
+        is MdOrderedListItem -> UiUnparsedBlock(block)
+        is MdUnorderedListItem -> UiUnparsedBlock(block)
+    }
+}
+
+@Composable
 private fun UiMdDocument(markdownRoot: MdDocument, sourceText: String) {
     LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-        items(markdownRoot.children) { child: MdDocumentChild ->
-            when(child) {
-                is MdAtxHeader -> UiAtxHeader(child, sourceText)
-                is MdSetextHeader -> UiSetextHeader(child, sourceText)
-                is MdParagraph -> UiParagraph(child, sourceText)
-                is MdHorizontalRule -> UiHorizontalRule()
-                is MdBlockQuote -> UiBlockQuote(child, sourceText)
-                is MdIndentedCodeBlock -> UiUnparsed(child) // TODO
-                is MdCodeFence -> UiUnparsed(child)
-                is MdHtmlBlock -> UiUnparsed(child)
-                is MdLinkDefinition -> UiUnparsed(child)
-                is MdOrderedList -> UiUnparsed(child)
-                is MdTable -> UiUnparsed(child)
-                is MdUnorderedList -> UiUnparsed(child)
-                is MdUnparsed -> UiUnparsed(child)
-                is MdIgnored -> Unit
-            }
+        items(markdownRoot.children) { child: MdBlock ->
+            UiBlock(child, sourceText)
         }
     }
 }
@@ -63,9 +73,7 @@ private fun UiBlockQuote(blockQuote: MdBlockQuote, sourceText: String) {
         modifier = DocumentTheme.current.styles.blockQuote.modifier
     ) {
         blockQuote.children.forEach { child ->
-            when (child) {
-                else -> UiUnparsed(child) // TODO
-            }
+            UiBlock(child, sourceText)
         }
     }
 }
@@ -81,9 +89,9 @@ private fun UiHorizontalRule() {
 }
 
 @Composable
-private fun UiUnparsed(node: MdDomNode) {
-    val tag = when(node) {
-        is MdUnparsed -> node.name
+private fun UiUnparsedBlock(node: MdBlock) {
+    val tag = when (node) {
+        is MdUnparsedBlock -> node.name
         else -> node::class.simpleName
     }
 
@@ -111,7 +119,7 @@ fun UiSetextHeader(header: MdSetextHeader, sourceText: String) {
     Text(
         text = inlines.text,
         inlineContent = inlines.inlineContent,
-        style = when(header.level) {
+        style = when (header.level) {
             MdSetextHeader.Level.H1 -> styles.h1
             MdSetextHeader.Level.H2 -> styles.h2
         }
@@ -125,7 +133,7 @@ private fun UiAtxHeader(header: MdAtxHeader, sourceText: String) {
     Text(
         text = inlines.text,
         inlineContent = inlines.inlineContent,
-        style = when(header.level) {
+        style = when (header.level) {
             MdAtxHeader.Level.H1 -> styles.h1
             MdAtxHeader.Level.H2 -> styles.h2
             MdAtxHeader.Level.H3 -> styles.h3
@@ -143,16 +151,56 @@ private data class ParsedInlines(
     val inlineContent: Map<String, InlineTextContent>
 )
 
+@Composable
 private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInlines {
+    val styles = DocumentTheme.current.styles
     return ParsedInlines(
         text = buildAnnotatedString {
             inlines.forEach { inline ->
                 // TODO: proper parsing
-                append(inline.text(sourceText))
+                when (inline) {
+                    is MdIgnoredInline -> Unit
+                    is MdUnparsedInline -> appendUnparsed(inline, sourceText)
+                    is MdText -> append(inline.text(sourceText))
+                    is MdCodeSpan -> appendStyled(inline, sourceText, styles.inlineCode.toSpanStyle())
+                    is MdEmphasis -> appendStyled(inline, sourceText, styles.emphasis.toSpanStyle())
+                    is MdStrong -> appendStyled(inline, sourceText, styles.strong.toSpanStyle())
+                    // TODO
+                    is MdAutolinkToken -> appendUnparsed(inline, sourceText)
+                    is MdCheckBoxToken -> appendUnparsed(inline, sourceText)
+                    is MdEmailAutolinkToken -> appendUnparsed(inline, sourceText)
+                    is MdEol -> appendUnparsed(inline, sourceText)
+                    is MdFullReferenceLink -> appendUnparsed(inline, sourceText)
+                    is MdGfmAutolinkToken -> appendUnparsed(inline, sourceText)
+                    is MdHardLineBreakToken -> appendUnparsed(inline, sourceText)
+                    is MdHtmlTagToken -> appendUnparsed(inline, sourceText)
+                    is MdImage -> appendUnparsed(inline, sourceText)
+                    is MdInlineLink -> appendUnparsed(inline, sourceText)
+                    is MdShortReferenceLink -> appendUnparsed(inline, sourceText)
+                    is MdStrikethrough -> appendUnparsed(inline, sourceText)
+                    is MdWhitespace -> append(" ")
+                }
             }
         },
         inlineContent = mapOf()
     )
+}
+
+@Composable
+private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: MdInline, sourceText: String) {
+    appendStyled(
+        unparsedNode,
+        sourceText,
+        DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
+    )
+}
+
+private fun AnnotatedString.Builder.appendStyled(inlineNode: MdInline, sourceText: String, style: SpanStyle) {
+    val start = length
+    val text = inlineNode.text(sourceText)
+    append(text)
+    val end = length
+    addStyle(style, start, end)
 }
 
 // endregion inlines

@@ -42,24 +42,82 @@ class DocumentParser(
                 MarkdownElementTypes.ATX_6 -> parseAtxHeader(blockNode, MdAtxHeader.Level.H6)
                 MarkdownElementTypes.SETEXT_1 -> parseSetextHeader(blockNode, MdSetextHeader.Level.H1)
                 MarkdownElementTypes.SETEXT_2 -> parseSetextHeader(blockNode, MdSetextHeader.Level.H2)
-                MarkdownTokenTypes.EOL -> MdIgnoredBlock(blockNode.type.name)
+                in whitespaceTypes -> MdIgnoredBlock(blockNode.type.name)
                 MarkdownElementTypes.CODE_BLOCK -> parseIndentedCodeBlock(blockNode)
                 MarkdownElementTypes.CODE_FENCE -> parseCodeFence(blockNode)
                 MarkdownElementTypes.HTML_BLOCK -> parseHtmlBlock(blockNode)
-//                // TODO: LINK_DEFINITION
                 MarkdownElementTypes.PARAGRAPH -> parseParagraph(blockNode)
-//                // TODO: TABLE
-//
                 MarkdownElementTypes.BLOCK_QUOTE -> parseBlockQuote(blockNode)
                 // Sometimes there is some filth in blockquotes.
                 MarkdownTokenTypes.BLOCK_QUOTE -> MdIgnoredBlock(type.name)
-//                MarkdownElementTypes.LIST_ITEM -> ListItem(node, sourceText)
-//                MarkdownElementTypes.ORDERED_LIST -> OrderedList(node, sourceText)
-//                MarkdownElementTypes.UNORDERED_LIST -> UnorderedList(node, sourceText)
+                MarkdownElementTypes.ORDERED_LIST -> parseOrderedList(blockNode)
+                MarkdownElementTypes.UNORDERED_LIST -> parseUnorderedList(blockNode)
+//                // TODO: LINK_DEFINITION
+//                // TODO: TABLE
 //                // TODO: CHECK_BOX
                 else -> MdUnparsedBlock(type.name, startOffset, endOffset)
             }
         }
+    }
+
+    private fun parseUnorderedList(unorderedListNode: ASTNode): MdUnorderedList {
+        return MdUnorderedList(
+            startOffset = unorderedListNode.startOffset,
+            endOffset = unorderedListNode.endOffset,
+            children = unorderedListNode.children.mapNotNull { child ->
+                when (child.type) {
+                    MarkdownElementTypes.LIST_ITEM -> MdUnorderedListItem(
+                        startOffset = child.startOffset,
+                        endOffset = child.endOffset,
+                        children = child.children.filter { listItemContent ->
+                            // Ignore list numbers. We generate them to be consistent.
+                            listItemContent.type != MarkdownTokenTypes.LIST_BULLET
+                        }.map(::parseBlock),
+                        bullet = with(child.children.find { listItemContent ->
+                            listItemContent.type == MarkdownTokenTypes.LIST_BULLET
+                        }) {
+                            if (this == null) {
+                                MdListItemBullet.unspecifiedBullet
+                            } else {
+                                MdListItemBullet(startOffset, endOffset)
+                            }
+                        }
+                    )
+
+                    in whitespaceTypes -> null
+                    else -> {
+                        throw IllegalArgumentException(child.type.name)
+                    }
+                }
+            }
+        )
+
+    }
+
+    private fun parseOrderedList(orderedListNode: ASTNode): MdOrderedList {
+        var itemNumber = 1
+        return MdOrderedList(
+            startOffset = orderedListNode.startOffset,
+            endOffset = orderedListNode.endOffset,
+            children = orderedListNode.children.mapNotNull { child ->
+                when (child.type) {
+                    MarkdownElementTypes.LIST_ITEM -> MdOrderedListItem(
+                        startOffset = child.startOffset,
+                        endOffset = child.endOffset,
+                        children = child.children.filter { listItemContent ->
+                            // Ignore list numbers. We generate them to be consistent.
+                            listItemContent.type != MarkdownTokenTypes.LIST_NUMBER
+                        }.map(::parseBlock),
+                        number = itemNumber++
+                    )
+
+                    in whitespaceTypes -> null
+                    else -> {
+                        throw IllegalArgumentException(child.type.name)
+                    }
+                }
+            }
+        )
     }
 
     private fun parseHtmlBlock(htmlBlockNode: ASTNode): MdHtmlBlock {
@@ -67,7 +125,7 @@ class DocumentParser(
             startOffset = htmlBlockNode.startOffset,
             endOffset = htmlBlockNode.endOffset,
             children = htmlBlockNode.children.map { child ->
-                when(child.type) {
+                when (child.type) {
                     MarkdownTokenTypes.HTML_BLOCK_CONTENT -> MdHtmlBlockContent(child.startOffset, child.endOffset)
                     MarkdownTokenTypes.EOL -> MdIgnoredBlock(child.type.name)
                     else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
@@ -78,17 +136,18 @@ class DocumentParser(
 
     private fun parseCodeFence(fenceNode: ASTNode): MdCodeFence {
         var language: MdCodeFenceLang? = null
-        val children = fenceNode.children.map { child ->
+        val children: List<MdCodeFenceChild> = fenceNode.children.map { child ->
             when (child.type) {
                 MarkdownTokenTypes.FENCE_LANG -> {
                     language = MdCodeFenceLang(child.startOffset, child.endOffset)
-                    MdIgnoredBlock(child.type.name)
+                    MdIgnoredInline(child.type.name)
                 }
 
-                MarkdownTokenTypes.CODE_FENCE_START, MarkdownTokenTypes.CODE_FENCE_END -> MdIgnoredBlock(child.type.name)
+                MarkdownTokenTypes.CODE_FENCE_START, MarkdownTokenTypes.CODE_FENCE_END -> MdIgnoredInline(child.type.name)
                 MarkdownTokenTypes.CODE_FENCE_CONTENT -> MdCodeFenceLine(child.startOffset, child.endOffset)
-                MarkdownTokenTypes.EOL -> MdIgnoredBlock(child.type.name)
-                else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
+                MarkdownTokenTypes.EOL -> MdEol(child.startOffset, child.startOffset)
+                MarkdownTokenTypes.WHITE_SPACE -> MdIgnoredInline(child.type.name)
+                else -> MdUnparsedInline(child.type.name, child.startOffset, child.endOffset)
             }
         }
         return MdCodeFence(
@@ -168,7 +227,7 @@ class DocumentParser(
         if (isEmpty()) return emptyList()
         var leadingSpanEnd = 0
         for (i in 0..lastIndex) {
-            if (this[i] !is MdWhitespace) {
+            if (this[i] !is MdInsignificantWhitespace) {
                 leadingSpanEnd = i
                 break
             }
@@ -176,7 +235,7 @@ class DocumentParser(
 
         var trailingSpanStart = lastIndex
         for (i in lastIndex downTo 0) {
-            if (this[i] !is MdWhitespace) {
+            if (this[i] !is MdInsignificantWhitespace) {
                 trailingSpanStart = i
                 break
             }
@@ -211,7 +270,7 @@ class DocumentParser(
                         if (lastWasWhitespace) {
                             MdIgnoredInline(type.name)
                         } else {
-                            MdWhitespace()
+                            MdInsignificantWhitespace()
                         }
                     }
 

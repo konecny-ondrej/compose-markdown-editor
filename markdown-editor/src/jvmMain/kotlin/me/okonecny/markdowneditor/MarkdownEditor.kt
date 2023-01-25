@@ -1,10 +1,7 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.InlineTextContent
@@ -48,13 +45,52 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdIndentedCodeBlock -> UiIndentedCodeBlock(block, sourceText)
         is MdCodeFence -> UiCodeFence(block, sourceText)
         is MdHtmlBlock -> UiHtmlBlock(block, sourceText)
-        is MdOrderedList -> UiUnparsedBlock(block) // TODO
-        is MdUnorderedList -> UiUnparsedBlock(block)
-        is MdTable -> UiUnparsedBlock(block)
+        is MdOrderedList -> UiOrderedList(block, sourceText)
+        is MdUnorderedList -> UiUnorderedList(block, sourceText)
+        is MdTable -> UiUnparsedBlock(block) // TODO
         is MdLinkDefinition -> UiUnparsedBlock(block)
         is MdUnparsedBlock -> UiUnparsedBlock(block)
-        is MdOrderedListItem -> UiUnparsedBlock(block)
-        is MdUnorderedListItem -> UiUnparsedBlock(block)
+    }
+}
+
+@Composable
+private fun UiUnorderedList(unorderedList: MdUnorderedList, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Column {
+        unorderedList.children.forEach { child ->
+            Row {
+                Text(
+                    text = "\u2022",
+                    style = styles.listNumber
+                )
+                Column {
+                    child.children.forEach { listItemContent ->
+                        UiBlock(listItemContent, sourceText)
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun UiOrderedList(orderedList: MdOrderedList, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Column {
+        orderedList.children.forEach { child ->
+            Row {
+                Text(
+                    text = child.number.toString(),
+                    style = styles.listNumber
+                )
+                Column {
+                    child.children.forEach { listItemContent ->
+                        UiBlock(listItemContent, sourceText)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -65,11 +101,12 @@ private fun UiHtmlBlock(htmlBlock: MdHtmlBlock, sourceText: String) {
         modifier = styles.codeBlock.modifier
     ) {
         htmlBlock.children.forEach { child ->
-            when(child) {
+            when (child) {
                 is MdHtmlBlockContent -> Text(
                     child.text(sourceText),
                     style = styles.codeBlock.textStyle
                 )
+
                 is MdIgnoredBlock -> Unit
                 else -> UiUnparsedBlock(child)
             }
@@ -83,16 +120,20 @@ private fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
     Column(
         modifier = styles.codeBlock.modifier
     ) {
-        codeFence.children.forEach { child ->
-            when(child) {
-                is MdCodeFenceLine -> Text(
-                    child.text(sourceText),
-                    style = styles.codeBlock.textStyle
-                )
-                is MdIgnoredBlock -> Unit
-                else -> UiUnparsedBlock(child)
+        val code = buildAnnotatedString {
+            codeFence.children.forEach { child ->
+                when (child) {
+                    is MdCodeFenceLine -> append(child.text(sourceText))
+                    is MdEol -> append(System.lineSeparator())
+                    is MdIgnoredInline -> Unit
+                    else -> appendUnparsed(child, sourceText)
+                }
             }
         }
+        Text(
+            text = code,
+            style = styles.codeBlock.textStyle
+        )
     }
 }
 
@@ -103,11 +144,12 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: MdIndentedCodeBlock, sourceTe
         modifier = styles.codeBlock.modifier
     ) {
         indentedCodeBlock.children.forEach { child ->
-            when(child) {
+            when (child) {
                 is MdIndentedCodeLine -> Text(
                     child.text(sourceText),
                     style = styles.codeBlock.textStyle
                 )
+
                 is MdUnparsedBlock -> UiUnparsedBlock(child)
             }
         }
@@ -221,20 +263,20 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
                     is MdCodeSpan -> appendStyled(inline, sourceText, styles.inlineCode.toSpanStyle())
                     is MdEmphasis -> appendStyled(inline, sourceText, styles.emphasis.toSpanStyle())
                     is MdStrong -> appendStyled(inline, sourceText, styles.strong.toSpanStyle())
+                    is MdHardLineBreakToken -> append(System.lineSeparator())
+                    is MdEol -> append(System.lineSeparator())
                     // TODO
                     is MdAutolinkToken -> appendUnparsed(inline, sourceText)
                     is MdCheckBoxToken -> appendUnparsed(inline, sourceText)
                     is MdEmailAutolinkToken -> appendUnparsed(inline, sourceText)
-                    is MdEol -> appendUnparsed(inline, sourceText)
                     is MdFullReferenceLink -> appendUnparsed(inline, sourceText)
                     is MdGfmAutolinkToken -> appendUnparsed(inline, sourceText)
-                    is MdHardLineBreakToken -> appendUnparsed(inline, sourceText)
                     is MdHtmlTagToken -> appendUnparsed(inline, sourceText)
                     is MdImage -> appendUnparsed(inline, sourceText)
                     is MdInlineLink -> appendUnparsed(inline, sourceText)
                     is MdShortReferenceLink -> appendUnparsed(inline, sourceText)
                     is MdStrikethrough -> appendUnparsed(inline, sourceText)
-                    is MdWhitespace -> append(" ")
+                    is MdInsignificantWhitespace -> append(" ")
                 }
             }
         },
@@ -243,7 +285,7 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
 }
 
 @Composable
-private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: MdInline, sourceText: String) {
+private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: MdDomNode, sourceText: String) {
     appendStyled(
         unparsedNode,
         sourceText,
@@ -251,7 +293,7 @@ private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: MdInline, sourc
     )
 }
 
-private fun AnnotatedString.Builder.appendStyled(inlineNode: MdInline, sourceText: String, style: SpanStyle) {
+private fun AnnotatedString.Builder.appendStyled(inlineNode: MdDomNode, sourceText: String, style: SpanStyle) {
     val start = length
     val text = inlineNode.text(sourceText)
     append(text)

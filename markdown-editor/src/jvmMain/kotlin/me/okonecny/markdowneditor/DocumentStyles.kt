@@ -78,10 +78,10 @@ class DocumentStyles(
         color = Color.Blue,
         textDecoration = TextDecoration.Underline
     ),
-    val emphasis: TextStyle = paragraph.copy(
+    val emphasis: TextStyle = TextStyle(
         fontStyle = FontStyle.Italic
     ),
-    val strong: TextStyle = paragraph.copy(
+    val strong: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold
     )
 ) {

@@ -44,7 +44,7 @@ class DocumentParser(
                 MarkdownElementTypes.SETEXT_2 -> parseSetextHeader(blockNode, MdSetextHeader.Level.H2)
                 MarkdownTokenTypes.EOL -> MdIgnoredBlock(blockNode.type.name)
                 MarkdownElementTypes.CODE_BLOCK -> parseIndentedCodeBlock(blockNode)
-//                MarkdownElementTypes.CODE_FENCE -> CodeFence(node, sourceText)
+                MarkdownElementTypes.CODE_FENCE -> parseCodeFence(blockNode)
 //                MarkdownElementTypes.HTML_BLOCK -> HtmlBlock(node, sourceText)
 //                // TODO: LINK_DEFINITION
                 MarkdownElementTypes.PARAGRAPH -> parseParagraph(blockNode)
@@ -64,6 +64,28 @@ class DocumentParser(
         }
     }
 
+    private fun parseCodeFence(fenceNode: ASTNode): MdCodeFence {
+        var language: MdCodeFenceLang? = null
+        val children = fenceNode.children.map { child ->
+            when (child.type) {
+                MarkdownTokenTypes.FENCE_LANG -> {
+                    language = MdCodeFenceLang(child.startOffset, child.endOffset)
+                    MdIgnoredBlock(child.type.name)
+                }
+                MarkdownTokenTypes.CODE_FENCE_START, MarkdownTokenTypes.CODE_FENCE_END -> MdIgnoredBlock(child.type.name)
+                MarkdownTokenTypes.CODE_FENCE_CONTENT -> MdCodeFenceLine(child.startOffset, child.endOffset)
+                MarkdownTokenTypes.EOL -> MdIgnoredBlock(child.type.name)
+                else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
+            }
+        }
+        return MdCodeFence(
+            fenceNode.startOffset,
+            fenceNode.endOffset,
+            children,
+            language
+        )
+    }
+
     private fun parseBlockQuote(blockQuoteNode: ASTNode): MdBlockQuote {
         return MdBlockQuote(
             startOffset = blockQuoteNode.endOffset,
@@ -79,9 +101,10 @@ class DocumentParser(
             children = codeBlockNode.children.map { child ->
                 when (child.type) {
                     MarkdownTokenTypes.CODE_LINE -> MdIndentedCodeLine(
-                        child.startOffset + 4, // Strip the indent.
+                        child.startOffset + 4, // Strip the indent. It is always 4 spaces.
                         child.endOffset
                     )
+
                     else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
                 }
             }

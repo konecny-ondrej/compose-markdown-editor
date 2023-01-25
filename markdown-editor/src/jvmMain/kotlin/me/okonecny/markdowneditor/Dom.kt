@@ -68,13 +68,20 @@ class MdCodeFence(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdCodeFenceChild>,
-    val language: String
+    val language: MdCodeFenceLang?
 ) : MdDomNode, MdLeafBlock
 
 class MdCodeFenceLine(
     override val startOffset: Int,
     override val endOffset: Int
 ) : MdDomNode, MdCodeFenceChild {
+    override val children: List<MdDomNode> = emptyList()
+}
+
+class MdCodeFenceLang(
+    override val startOffset: Int,
+    override val endOffset: Int
+): MdDomNode {
     override val children: List<MdDomNode> = emptyList()
 }
 
@@ -487,7 +494,7 @@ class MdUnparsedBlock(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdDomNode> = emptyList()
-) : MdDomNode, MdLeafBlock, MdContainerBlock, MdIndentedCodeBlockChild
+) : MdDomNode, MdLeafBlock, MdContainerBlock, MdIndentedCodeBlockChild, MdCodeFenceChild
 
 class MdUnparsedInline(
     val name: String,
@@ -507,7 +514,7 @@ class MdWhitespace : MdInline {
  */
 class MdIgnoredBlock(
     val name: String
-) : MdDomNode, MdLeafBlock, MdBlock {
+) : MdDomNode, MdLeafBlock, MdBlock, MdCodeFenceChild {
     override val startOffset: Int = 0
     override val endOffset: Int = 0
     override val children: List<MdDomNode> = emptyList()

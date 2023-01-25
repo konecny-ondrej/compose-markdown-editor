@@ -46,8 +46,8 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdHorizontalRule -> UiHorizontalRule()
         is MdBlockQuote -> UiBlockQuote(block, sourceText)
         is MdIndentedCodeBlock -> UiIndentedCodeBlock(block, sourceText)
-        is MdCodeFence -> UiUnparsedBlock(block)  // TODO
-        is MdHtmlBlock -> UiUnparsedBlock(block)
+        is MdCodeFence -> UiCodeFence(block, sourceText)
+        is MdHtmlBlock -> UiUnparsedBlock(block) // TODO
         is MdLinkDefinition -> UiUnparsedBlock(block)
         is MdOrderedList -> UiUnparsedBlock(block)
         is MdTable -> UiUnparsedBlock(block)
@@ -55,6 +55,25 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdUnparsedBlock -> UiUnparsedBlock(block)
         is MdOrderedListItem -> UiUnparsedBlock(block)
         is MdUnorderedListItem -> UiUnparsedBlock(block)
+    }
+}
+
+@Composable
+fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Column(
+        modifier = styles.codeBlock.modifier
+    ) {
+        codeFence.children.forEach { child ->
+            when(child) {
+                is MdCodeFenceLine -> Text(
+                    child.text(sourceText),
+                    style = styles.codeBlock.textStyle
+                )
+                is MdIgnoredBlock -> Unit
+                else -> UiUnparsedBlock(child)
+            }
+        }
     }
 }
 
@@ -107,7 +126,7 @@ private fun UiHorizontalRule() {
 }
 
 @Composable
-private fun UiUnparsedBlock(node: MdBlock) {
+private fun UiUnparsedBlock(node: MdDomNode) {
     val tag = when (node) {
         is MdUnparsedBlock -> node.name
         else -> node::class.simpleName

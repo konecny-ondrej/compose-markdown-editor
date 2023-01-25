@@ -38,11 +38,25 @@ class MdOrderedList(
     override val children: List<MdOrderedListItem>
 ) : MdDomNode, MdContainerBlock
 
+class MdOrderedListItem(
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val children: List<MdBlock>,
+    val number: MdListItemNumber
+) : MdDomNode
+
+class MdListItemNumber(
+    override val startOffset: Int,
+    override val endOffset: Int
+) : MdDomNode {
+    override val children: List<MdDomNode> = emptyList()
+}
+
 class MdUnorderedListItem(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdBlock>,
-    val bullet: MdListItemBullet
+    val bullet: MdListItemBullet = MdListItemBullet.unspecifiedBullet
 ) : MdDomNode
 
 class MdListItemBullet(
@@ -55,13 +69,6 @@ class MdListItemBullet(
         val unspecifiedBullet = MdListItemBullet(0, 0)
     }
 }
-
-class MdOrderedListItem(
-    override val startOffset: Int,
-    override val endOffset: Int,
-    override val children: List<MdBlock>,
-    val number: Int
-) : MdDomNode
 
 class MdBlockQuote(
     override val startOffset: Int,

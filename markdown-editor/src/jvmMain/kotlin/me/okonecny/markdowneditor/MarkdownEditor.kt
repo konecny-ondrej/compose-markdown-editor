@@ -78,10 +78,16 @@ private fun UiUnorderedList(unorderedList: MdUnorderedList, sourceText: String) 
 private fun UiOrderedList(orderedList: MdOrderedList, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column {
+        var computedNumber: Int = -1
         orderedList.children.forEach { child ->
             Row {
                 Text(
-                    text = child.number.toString(),
+                    text = if (computedNumber == -1) { // TODO: moce this logic to the parser?
+                        computedNumber = child.number.text(sourceText).trim('.', ')', ' ').toInt()
+                        computedNumber++
+                    } else {
+                        computedNumber++
+                    }.toString() + ". ",
                     style = styles.listNumber
                 )
                 Column {
@@ -255,7 +261,6 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
     return ParsedInlines(
         text = buildAnnotatedString {
             inlines.forEach { inline ->
-                // TODO: proper parsing
                 when (inline) {
                     is MdIgnoredInline -> Unit
                     is MdUnparsedInline -> appendUnparsed(inline, sourceText)
@@ -263,9 +268,11 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
                     is MdCodeSpan -> appendStyled(inline, sourceText, styles.inlineCode.toSpanStyle())
                     is MdEmphasis -> appendStyled(inline, sourceText, styles.emphasis.toSpanStyle())
                     is MdStrong -> appendStyled(inline, sourceText, styles.strong.toSpanStyle())
+                    is MdStrikethrough -> appendStyled(inline, sourceText, styles.strikethrough.toSpanStyle())
                     is MdHardLineBreakToken -> append(System.lineSeparator())
                     is MdEol -> append(System.lineSeparator())
-                    // TODO
+                    is MdInsignificantWhitespace -> append(" ")
+                    // TODO: proper parsing
                     is MdAutolinkToken -> appendUnparsed(inline, sourceText)
                     is MdCheckBoxToken -> appendUnparsed(inline, sourceText)
                     is MdEmailAutolinkToken -> appendUnparsed(inline, sourceText)
@@ -275,8 +282,6 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
                     is MdImage -> appendUnparsed(inline, sourceText)
                     is MdInlineLink -> appendUnparsed(inline, sourceText)
                     is MdShortReferenceLink -> appendUnparsed(inline, sourceText)
-                    is MdStrikethrough -> appendUnparsed(inline, sourceText)
-                    is MdInsignificantWhitespace -> append(" ")
                 }
             }
         },

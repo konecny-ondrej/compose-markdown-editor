@@ -83,6 +83,9 @@ class DocumentStyles(
     ),
     val strong: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold
+    ),
+    val strikethrough: TextStyle = TextStyle(
+        textDecoration = TextDecoration.LineThrough
     )
 ) {
     fun copy(
@@ -100,7 +103,8 @@ class DocumentStyles(
         blockQuote: BoxStyle = this.blockQuote,
         link: TextStyle = this.link,
         emphasis: TextStyle = this.emphasis,
-        strong: TextStyle = this.strong
+        strong: TextStyle = this.strong,
+        strikethrough: TextStyle = this.strikethrough
     ) = DocumentStyles(
         defaultFontFamily = defaultFontFamily,
         h1 = h1,
@@ -116,7 +120,8 @@ class DocumentStyles(
         blockQuote = blockQuote,
         link = link,
         emphasis = emphasis,
-        strong = strong
+        strong = strong,
+        strikethrough = strikethrough
     )
 }
 

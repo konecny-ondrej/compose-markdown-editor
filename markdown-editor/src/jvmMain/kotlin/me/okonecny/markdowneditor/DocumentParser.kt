@@ -95,7 +95,6 @@ class DocumentParser(
     }
 
     private fun parseOrderedList(orderedListNode: ASTNode): MdOrderedList {
-        var itemNumber = 1
         return MdOrderedList(
             startOffset = orderedListNode.startOffset,
             endOffset = orderedListNode.endOffset,
@@ -108,7 +107,16 @@ class DocumentParser(
                             // Ignore list numbers. We generate them to be consistent.
                             listItemContent.type != MarkdownTokenTypes.LIST_NUMBER
                         }.map(::parseBlock),
-                        number = itemNumber++
+                        number = with(child.children.find { listItemContent ->
+                            // Ignore list numbers. We generate them to be consistent.
+                            listItemContent.type == MarkdownTokenTypes.LIST_NUMBER
+                        }) {
+                            if (this == null) {
+                                throw IllegalArgumentException("Ordered list item must have a number!")
+                            } else {
+                                MdListItemNumber(startOffset, endOffset)
+                            }
+                        }
                     )
 
                     in whitespaceTypes -> null

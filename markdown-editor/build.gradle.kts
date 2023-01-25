@@ -27,7 +27,7 @@ kotlin {
             dependencies {
                 api(compose.desktop.currentOs)
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
-                implementation("org.jetbrains:markdown:0.3.5")
+                implementation("org.jetbrains:markdown:0.3.6")
             }
         }
         val jvmTest by getting {

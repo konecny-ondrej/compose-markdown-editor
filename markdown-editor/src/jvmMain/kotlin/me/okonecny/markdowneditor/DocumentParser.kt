@@ -45,13 +45,11 @@ class DocumentParser(
                 MarkdownTokenTypes.EOL -> MdIgnoredBlock(blockNode.type.name)
                 MarkdownElementTypes.CODE_BLOCK -> parseIndentedCodeBlock(blockNode)
                 MarkdownElementTypes.CODE_FENCE -> parseCodeFence(blockNode)
-//                MarkdownElementTypes.HTML_BLOCK -> HtmlBlock(node, sourceText)
+                MarkdownElementTypes.HTML_BLOCK -> parseHtmlBlock(blockNode)
 //                // TODO: LINK_DEFINITION
                 MarkdownElementTypes.PARAGRAPH -> parseParagraph(blockNode)
-//                MarkdownTokenTypes.EOL, MarkdownTokenTypes.WHITE_SPACE -> Unit // Skip white space between blocks. They have paddings.
 //                // TODO: TABLE
 //
-//                // Container blocks
                 MarkdownElementTypes.BLOCK_QUOTE -> parseBlockQuote(blockNode)
                 // Sometimes there is some filth in blockquotes.
                 MarkdownTokenTypes.BLOCK_QUOTE -> MdIgnoredBlock(type.name)
@@ -64,6 +62,20 @@ class DocumentParser(
         }
     }
 
+    private fun parseHtmlBlock(htmlBlockNode: ASTNode): MdHtmlBlock {
+        return MdHtmlBlock(
+            startOffset = htmlBlockNode.startOffset,
+            endOffset = htmlBlockNode.endOffset,
+            children = htmlBlockNode.children.map { child ->
+                when(child.type) {
+                    MarkdownTokenTypes.HTML_BLOCK_CONTENT -> MdHtmlBlockContent(child.startOffset, child.endOffset)
+                    MarkdownTokenTypes.EOL -> MdIgnoredBlock(child.type.name)
+                    else -> MdUnparsedBlock(child.type.name, child.startOffset, child.endOffset)
+                }
+            }
+        )
+    }
+
     private fun parseCodeFence(fenceNode: ASTNode): MdCodeFence {
         var language: MdCodeFenceLang? = null
         val children = fenceNode.children.map { child ->
@@ -72,6 +84,7 @@ class DocumentParser(
                     language = MdCodeFenceLang(child.startOffset, child.endOffset)
                     MdIgnoredBlock(child.type.name)
                 }
+
                 MarkdownTokenTypes.CODE_FENCE_START, MarkdownTokenTypes.CODE_FENCE_END -> MdIgnoredBlock(child.type.name)
                 MarkdownTokenTypes.CODE_FENCE_CONTENT -> MdCodeFenceLine(child.startOffset, child.endOffset)
                 MarkdownTokenTypes.EOL -> MdIgnoredBlock(child.type.name)
@@ -101,7 +114,8 @@ class DocumentParser(
             children = codeBlockNode.children.map { child ->
                 when (child.type) {
                     MarkdownTokenTypes.CODE_LINE -> MdIndentedCodeLine(
-                        child.startOffset + 4, // Strip the indent. It is always 4 spaces.
+                        // Strip the indent. It is always 4 spaces.
+                        (child.startOffset + 4).coerceAtMost(child.endOffset),
                         child.endOffset
                     )
 

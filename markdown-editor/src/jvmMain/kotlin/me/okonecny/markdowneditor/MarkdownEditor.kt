@@ -47,11 +47,11 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
         is MdBlockQuote -> UiBlockQuote(block, sourceText)
         is MdIndentedCodeBlock -> UiIndentedCodeBlock(block, sourceText)
         is MdCodeFence -> UiCodeFence(block, sourceText)
-        is MdHtmlBlock -> UiUnparsedBlock(block) // TODO
-        is MdLinkDefinition -> UiUnparsedBlock(block)
-        is MdOrderedList -> UiUnparsedBlock(block)
-        is MdTable -> UiUnparsedBlock(block)
+        is MdHtmlBlock -> UiHtmlBlock(block, sourceText)
+        is MdOrderedList -> UiUnparsedBlock(block) // TODO
         is MdUnorderedList -> UiUnparsedBlock(block)
+        is MdTable -> UiUnparsedBlock(block)
+        is MdLinkDefinition -> UiUnparsedBlock(block)
         is MdUnparsedBlock -> UiUnparsedBlock(block)
         is MdOrderedListItem -> UiUnparsedBlock(block)
         is MdUnorderedListItem -> UiUnparsedBlock(block)
@@ -59,7 +59,26 @@ private fun UiBlock(block: MdBlock, sourceText: String) {
 }
 
 @Composable
-fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
+private fun UiHtmlBlock(htmlBlock: MdHtmlBlock, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Column(
+        modifier = styles.codeBlock.modifier
+    ) {
+        htmlBlock.children.forEach { child ->
+            when(child) {
+                is MdHtmlBlockContent -> Text(
+                    child.text(sourceText),
+                    style = styles.codeBlock.textStyle
+                )
+                is MdIgnoredBlock -> Unit
+                else -> UiUnparsedBlock(child)
+            }
+        }
+    }
+}
+
+@Composable
+private fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column(
         modifier = styles.codeBlock.modifier
@@ -78,7 +97,7 @@ fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
 }
 
 @Composable
-fun UiIndentedCodeBlock(indentedCodeBlock: MdIndentedCodeBlock, sourceText: String) {
+private fun UiIndentedCodeBlock(indentedCodeBlock: MdIndentedCodeBlock, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column(
         modifier = styles.codeBlock.modifier

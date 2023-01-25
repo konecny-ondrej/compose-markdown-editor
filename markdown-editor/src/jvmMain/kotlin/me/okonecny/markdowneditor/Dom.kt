@@ -106,10 +106,12 @@ class MdCodeSpan(
     override val children: List<MdDomNode>
 ) : MdDomNode, MdInline
 
+sealed interface MdHtmlBlockChild : MdDomNode
+
 class MdHtmlBlock(
     override val startOffset: Int,
     override val endOffset: Int,
-    override val children: List<MdDomNode>
+    override val children: List<MdHtmlBlockChild>
 ) : MdDomNode, MdLeafBlock
 
 class MdParagraph(
@@ -247,9 +249,10 @@ class MdBlockQuoteToken(
 
 class MdHtmlBlockContent(
     override val startOffset: Int,
-    override val endOffset: Int,
-    override val children: List<MdDomNode>
-) : MdDomNode
+    override val endOffset: Int
+) : MdDomNode, MdHtmlBlockChild {
+    override val children: List<MdDomNode> = emptyList()
+}
 
 class MdSingleQuoteToken(
     override val startOffset: Int,
@@ -494,7 +497,7 @@ class MdUnparsedBlock(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdDomNode> = emptyList()
-) : MdDomNode, MdLeafBlock, MdContainerBlock, MdIndentedCodeBlockChild, MdCodeFenceChild
+) : MdDomNode, MdLeafBlock, MdContainerBlock, MdIndentedCodeBlockChild, MdCodeFenceChild, MdHtmlBlockChild
 
 class MdUnparsedInline(
     val name: String,
@@ -514,7 +517,7 @@ class MdWhitespace : MdInline {
  */
 class MdIgnoredBlock(
     val name: String
-) : MdDomNode, MdLeafBlock, MdBlock, MdCodeFenceChild {
+) : MdDomNode, MdLeafBlock, MdBlock, MdCodeFenceChild, MdHtmlBlockChild {
     override val startOffset: Int = 0
     override val endOffset: Int = 0
     override val children: List<MdDomNode> = emptyList()

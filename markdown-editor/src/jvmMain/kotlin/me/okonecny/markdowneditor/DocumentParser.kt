@@ -265,6 +265,7 @@ class DocumentParser(
                     MarkdownElementTypes.EMPH -> parseEmphasis(child)
                     MarkdownElementTypes.STRONG -> parseStrong(child)
                     MarkdownElementTypes.CODE_SPAN -> parseCodeSpan(child)
+                    MarkdownTokenTypes.HARD_LINE_BREAK -> MdHardLineBreakToken(startOffset, endOffset)
                     MarkdownTokenTypes.BLOCK_QUOTE -> MdIgnoredInline(type.name)
 
                     MarkdownTokenTypes.SINGLE_QUOTE, MarkdownTokenTypes.DOUBLE_QUOTE,

@@ -330,9 +330,10 @@ class MdExclamationMarkToken(
 
 class MdHardLineBreakToken(
     override val startOffset: Int,
-    override val endOffset: Int,
-    override val children: List<MdDomNode>
-) : MdDomNode, MdInline
+    override val endOffset: Int
+) : MdDomNode, MdInline {
+    override val children: List<MdDomNode> = emptyList()
+}
 
 class MdEol(
     override val startOffset: Int,

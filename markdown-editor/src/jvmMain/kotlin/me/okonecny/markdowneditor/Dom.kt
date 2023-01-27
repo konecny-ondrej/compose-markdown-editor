@@ -211,14 +211,24 @@ class MdSetextHeader(
     }
 }
 
-class MdAtxHeader(
+class MdHeading(
     override val startOffset: Int,
     override val endOffset: Int,
     override val children: List<MdInline>,
-    val level: Level
+    val level: Level,
+    val type: Type = Type.ATX
 ) : MdDomNode, MdLeafBlock {
     enum class Level {
-        H1, H2, H3, H4, H5, H6
+        H1, H2, H3, H4, H5, H6;
+        companion object {
+            fun fromLevelNumber(level: Int): Level {
+                if (level < 1 || level > 6) throw IndexOutOfBoundsException("Heading level can only be 1-6 (inclusive)")
+                return Level.values()[level - 1]
+            }
+        }
+    }
+    enum class Type {
+        ATX, SETEXT
     }
 }
 
@@ -408,10 +418,9 @@ class MdUrlToken(
     override val children: List<MdDomNode>
 ) : MdDomNode
 
-class MdHorizontalRule(
-    override val startOffset: Int,
-    override val endOffset: Int
-) : MdDomNode, MdLeafBlock {
+class MdHorizontalRule: MdDomNode, MdLeafBlock {
+    override val startOffset: Int = 0
+    override val endOffset: Int = 0
     override val children: List<MdDomNode> = emptyList()
 }
 

@@ -3,7 +3,6 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +13,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import com.vladsch.flexmark.ast.*
+import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
+import com.vladsch.flexmark.util.ast.Document
+import com.vladsch.flexmark.util.ast.Node
+import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 
 /**
  * A simple WYSIWYG editor for Markdown.
@@ -28,33 +32,27 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme
     ) {
-        UiMdDocument(document.dom, sourceText)
+        UiMdDocument(document.ast, sourceText)
     }
 }
 
 @Composable
-private fun UiBlock(block: MdBlock, sourceText: String) {
+private fun UiBlock(block: Node, sourceText: String) {
     when (block) {
-        is MdIgnoredBlock -> Unit
-        is MdEol -> Unit // Not significant between blocks.
-        is MdAtxHeader -> UiAtxHeader(block, sourceText)
-        is MdSetextHeader -> UiSetextHeader(block, sourceText)
-        is MdParagraph -> UiParagraph(block, sourceText)
-        is MdHorizontalRule -> UiHorizontalRule()
-        is MdBlockQuote -> UiBlockQuote(block, sourceText)
-        is MdIndentedCodeBlock -> UiIndentedCodeBlock(block, sourceText)
-        is MdCodeFence -> UiCodeFence(block, sourceText)
-        is MdHtmlBlock -> UiHtmlBlock(block, sourceText)
-        is MdOrderedList -> UiOrderedList(block, sourceText)
-        is MdUnorderedList -> UiUnorderedList(block, sourceText)
-        is MdTable -> UiUnparsedBlock(block) // TODO
-        is MdLinkDefinition -> UiUnparsedBlock(block)
-        is MdUnparsedBlock -> UiUnparsedBlock(block)
+        is Heading -> UiHeading(block, sourceText)
+        is Paragraph -> UiParagraph(block, sourceText)
+        is ThematicBreak -> UiHorizontalRule()
+        is BlockQuote -> UiBlockQuote(block, sourceText)
+        is IndentedCodeBlock -> UiIndentedCodeBlock(block)
+        is FencedCodeBlock -> UiCodeFence(block, sourceText)
+        is HtmlBlock -> UiHtmlBlock(block, sourceText)
+        is OrderedList -> UiOrderedList(block, sourceText)
+        is BulletList -> UiBulletList(block, sourceText)
     }
 }
 
 @Composable
-private fun UiUnorderedList(unorderedList: MdUnorderedList, sourceText: String) {
+private fun UiBulletList(unorderedList: BulletList, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column {
         unorderedList.children.forEach { child ->
@@ -75,53 +73,44 @@ private fun UiUnorderedList(unorderedList: MdUnorderedList, sourceText: String) 
 }
 
 @Composable
-private fun UiOrderedList(orderedList: MdOrderedList, sourceText: String) {
+private fun UiOrderedList(orderedList: OrderedList, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column {
-        var computedNumber: Int = -1
+        var computedNumber: Int = orderedList.startNumber
+
         orderedList.children.forEach { child ->
-            Row {
-                Text(
-                    text = if (computedNumber == -1) { // TODO: moce this logic to the parser?
-                        computedNumber = child.number.text(sourceText).trim('.', ')', ' ').toInt()
-                        computedNumber++
-                    } else {
-                        computedNumber++
-                    }.toString() + ". ",
-                    style = styles.listNumber
-                )
-                Column {
-                    child.children.forEach { listItemContent ->
-                        UiBlock(listItemContent, sourceText)
+            when (child) {
+                is OrderedListItem -> Row {
+                    Text(
+                        text = (computedNumber++).toString() + orderedList.delimiter,
+                        style = styles.listNumber
+                    )
+                    Column {
+                        child.children.forEach { listItemContent ->
+                            UiBlock(listItemContent, sourceText)
+                        }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun UiHtmlBlock(htmlBlock: MdHtmlBlock, sourceText: String) {
-    val styles = DocumentTheme.current.styles
-    Column(
-        modifier = styles.codeBlock.modifier
-    ) {
-        htmlBlock.children.forEach { child ->
-            when (child) {
-                is MdHtmlBlockContent -> Text(
-                    child.text(sourceText),
-                    style = styles.codeBlock.textStyle
-                )
-
-                is MdIgnoredBlock -> Unit
+                // TODO: task list item
                 else -> UiUnparsedBlock(child)
             }
+
         }
     }
 }
 
 @Composable
-private fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
+private fun UiHtmlBlock(htmlBlock: HtmlBlock, sourceText: String) {
+    val styles = DocumentTheme.current.styles
+    Text(
+        text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
+        style = styles.codeBlock.textStyle,
+        modifier = styles.codeBlock.modifier
+    )
+}
+
+@Composable
+private fun UiCodeFence(codeFence: FencedCodeBlock, sourceText: String) {
     val styles = DocumentTheme.current.styles
     Column(
         modifier = styles.codeBlock.modifier
@@ -129,10 +118,8 @@ private fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
         val code = buildAnnotatedString {
             codeFence.children.forEach { child ->
                 when (child) {
-                    is MdCodeFenceLine -> append(child.text(sourceText))
-                    is MdEol -> append(System.lineSeparator())
-                    is MdIgnoredInline -> Unit
-                    else -> appendUnparsed(child, sourceText)
+                    is Text -> append(child.text())
+                    else -> appendUnparsed(child)
                 }
             }
         }
@@ -144,35 +131,28 @@ private fun UiCodeFence(codeFence: MdCodeFence, sourceText: String) {
 }
 
 @Composable
-private fun UiIndentedCodeBlock(indentedCodeBlock: MdIndentedCodeBlock, sourceText: String) {
+private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     val styles = DocumentTheme.current.styles
-    Column(
+    Text(
+        text = indentedCodeBlock.contentLines.joinToString(System.lineSeparator()),
+        style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier
-    ) {
-        indentedCodeBlock.children.forEach { child ->
-            when (child) {
-                is MdIndentedCodeLine -> Text(
-                    child.text(sourceText),
-                    style = styles.codeBlock.textStyle
-                )
+    )
+}
 
-                is MdUnparsedBlock -> UiUnparsedBlock(child)
+@Composable
+private fun UiMdDocument(markdownRoot: Document, sourceText: String) {
+    LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+        markdownRoot.children.forEach { child ->
+            item {
+                UiBlock(child, sourceText)
             }
         }
     }
 }
 
 @Composable
-private fun UiMdDocument(markdownRoot: MdDocument, sourceText: String) {
-    LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-        items(markdownRoot.children) { child: MdBlock ->
-            UiBlock(child, sourceText)
-        }
-    }
-}
-
-@Composable
-private fun UiBlockQuote(blockQuote: MdBlockQuote, sourceText: String) {
+private fun UiBlockQuote(blockQuote: BlockQuote, sourceText: String) {
     Column(
         modifier = DocumentTheme.current.styles.blockQuote.modifier
     ) {
@@ -193,20 +173,15 @@ private fun UiHorizontalRule() {
 }
 
 @Composable
-private fun UiUnparsedBlock(node: MdDomNode) {
-    val tag = when (node) {
-        is MdUnparsedBlock -> node.name
-        else -> node::class.simpleName
-    }
-
+private fun UiUnparsedBlock(node: Node) {
     Text(
-        text = "!${tag}!",
+        text = "!${node.nodeName}!",
         style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)
     )
 }
 
 @Composable
-private fun UiParagraph(paragraph: MdParagraph, sourceText: String) {
+private fun UiParagraph(paragraph: Paragraph, sourceText: String) {
     val inlines = parseInlines(paragraph.children, sourceText)
     val styles = DocumentTheme.current.styles
     Text(
@@ -217,33 +192,20 @@ private fun UiParagraph(paragraph: MdParagraph, sourceText: String) {
 }
 
 @Composable
-fun UiSetextHeader(header: MdSetextHeader, sourceText: String) {
+private fun UiHeading(header: Heading, sourceText: String) {
     val inlines = parseInlines(header.children, sourceText)
     val styles = DocumentTheme.current.styles
     Text(
         text = inlines.text,
         inlineContent = inlines.inlineContent,
         style = when (header.level) {
-            MdSetextHeader.Level.H1 -> styles.h1
-            MdSetextHeader.Level.H2 -> styles.h2
-        }
-    )
-}
-
-@Composable
-private fun UiAtxHeader(header: MdAtxHeader, sourceText: String) {
-    val inlines = parseInlines(header.children, sourceText)
-    val styles = DocumentTheme.current.styles
-    Text(
-        text = inlines.text,
-        inlineContent = inlines.inlineContent,
-        style = when (header.level) {
-            MdAtxHeader.Level.H1 -> styles.h1
-            MdAtxHeader.Level.H2 -> styles.h2
-            MdAtxHeader.Level.H3 -> styles.h3
-            MdAtxHeader.Level.H4 -> styles.h4
-            MdAtxHeader.Level.H5 -> styles.h5
-            MdAtxHeader.Level.H6 -> styles.h6
+            1 -> styles.h1
+            2 -> styles.h2
+            3 -> styles.h3
+            4 -> styles.h4
+            5 -> styles.h5
+            6 -> styles.h6
+            else -> styles.h1
         }
     )
 }
@@ -256,32 +218,26 @@ private data class ParsedInlines(
 )
 
 @Composable
-private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInlines {
+private fun parseInlines(inlines: Iterable<Node>, sourceText: String): ParsedInlines {
     val styles = DocumentTheme.current.styles
     return ParsedInlines(
         text = buildAnnotatedString {
             inlines.forEach { inline ->
                 when (inline) {
-                    is MdIgnoredInline -> Unit
-                    is MdUnparsedInline -> appendUnparsed(inline, sourceText)
-                    is MdText -> append(inline.text(sourceText))
-                    is MdCodeSpan -> appendStyled(inline, sourceText, styles.inlineCode.toSpanStyle())
-                    is MdEmphasis -> appendStyled(inline, sourceText, styles.emphasis.toSpanStyle())
-                    is MdStrong -> appendStyled(inline, sourceText, styles.strong.toSpanStyle())
-                    is MdStrikethrough -> appendStyled(inline, sourceText, styles.strikethrough.toSpanStyle())
-                    is MdHardLineBreakToken -> append(System.lineSeparator())
-                    is MdEol -> append(System.lineSeparator())
-                    is MdInsignificantWhitespace -> append(" ")
-                    // TODO: proper parsing
-                    is MdAutolinkToken -> appendUnparsed(inline, sourceText)
-                    is MdCheckBoxToken -> appendUnparsed(inline, sourceText)
-                    is MdEmailAutolinkToken -> appendUnparsed(inline, sourceText)
-                    is MdFullReferenceLink -> appendUnparsed(inline, sourceText)
-                    is MdGfmAutolinkToken -> appendUnparsed(inline, sourceText)
-                    is MdHtmlTagToken -> appendUnparsed(inline, sourceText)
-                    is MdImage -> appendUnparsed(inline, sourceText)
-                    is MdInlineLink -> appendUnparsed(inline, sourceText)
-                    is MdShortReferenceLink -> appendUnparsed(inline, sourceText)
+                    is Text -> append(inline.text())
+                    is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
+                    is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
+                    is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
+                    is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
+                    is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
+                    is HardLineBreak -> append(System.lineSeparator())
+//                    // TODO: proper parsing
+                    is MailLink -> appendUnparsed(inline)
+                    is AutoLink -> appendUnparsed(inline)
+                    is HtmlInlineBase -> appendUnparsed(inline)
+                    is Image -> appendUnparsed(inline)
+                    is Link -> appendUnparsed(inline)
+                    else -> appendUnparsed(inline)
                 }
             }
         },
@@ -290,20 +246,23 @@ private fun parseInlines(inlines: List<MdInline>, sourceText: String): ParsedInl
 }
 
 @Composable
-private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: MdDomNode, sourceText: String) {
+private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: Node) {
     appendStyled(
         unparsedNode,
-        sourceText,
         DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
 }
 
-private fun AnnotatedString.Builder.appendStyled(inlineNode: MdDomNode, sourceText: String, style: SpanStyle) {
+private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
     val start = length
-    val text = inlineNode.text(sourceText)
-    append(text)
+    append(inlineNode.text())
     val end = length
     addStyle(style, start, end)
+}
+
+private fun Node.text(): String {
+    val builder = TextCollectingVisitor()
+    return builder.collectAndGetText(this)
 }
 
 // endregion inlines

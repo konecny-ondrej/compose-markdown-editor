@@ -1,17 +1,11 @@
 package me.okonecny.markdowneditor
 
-interface Document {
-    val sourceText: String
-    val dom: MdDocument
-    val links: List<Link>
-}
-
-interface Link // TODO
+import com.vladsch.flexmark.util.ast.Document
 
 class MarkdownDocument(
-    override val sourceText: String,
-    override val dom: MdDocument,
-    override val links: List<Link>
-) : Document
+    val sourceText: String,
+    val ast: Document,
+    val links: List<MarkdownLink>
+)
 
-class MarkdownLink : Link
+class MarkdownLink // TODO

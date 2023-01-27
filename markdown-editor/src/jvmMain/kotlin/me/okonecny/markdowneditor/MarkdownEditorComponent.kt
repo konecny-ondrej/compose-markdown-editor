@@ -15,7 +15,7 @@ internal abstract class MarkdownEditorComponent {
     abstract val documentParser: DocumentParser
 
     @Provides
-    protected fun documentParser(parser: JetbrainsDocumentParser): DocumentParser = parser
+    protected fun documentParser(parser: FlexmarkDocumentParser): DocumentParser = parser
 
     // region Jetbrains-Markdown
     @Provides

@@ -2,7 +2,7 @@ package me.okonecny.markdowneditor
 
 import kotlin.test.Test
 
-class DocumentParserTest {
+class JetbrainsDocumentParserTest {
     private val component = MarkdownEditorComponent::class.create()
     private val parser = component.documentParser
 

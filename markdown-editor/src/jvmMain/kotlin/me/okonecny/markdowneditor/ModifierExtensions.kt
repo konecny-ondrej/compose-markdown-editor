@@ -12,14 +12,15 @@ fun Modifier.leftBorder(strokeWidth: Dp, color: Color) = composed(
     factory = {
         val density = LocalDensity.current
         val strokeWidthPx = density.run { strokeWidth.toPx() }
+        val xOffset = strokeWidthPx / 2f
 
         Modifier.drawBehind {
             val height = size.height
 
             drawLine(
                 color = color,
-                start = Offset(x = 0f, y = 0f),
-                end = Offset(x = 0f, y = height),
+                start = Offset(x = xOffset, y = 0f),
+                end = Offset(x = xOffset, y = height),
                 strokeWidth = strokeWidthPx
             )
         }

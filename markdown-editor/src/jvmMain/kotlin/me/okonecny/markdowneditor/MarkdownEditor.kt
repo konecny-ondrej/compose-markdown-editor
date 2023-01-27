@@ -48,6 +48,8 @@ private fun UiBlock(block: Node) {
         is HtmlBlock -> UiHtmlBlock(block)
         is OrderedList -> UiOrderedList(block)
         is BulletList -> UiBulletList(block)
+        is HtmlCommentBlock -> Unit // Ignore HTML comments. They are not visible in HTML either.
+        else -> UiUnparsedBlock(block)
     }
 }
 

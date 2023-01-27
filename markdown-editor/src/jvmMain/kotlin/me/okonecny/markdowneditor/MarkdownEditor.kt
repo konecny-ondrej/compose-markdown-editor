@@ -32,48 +32,51 @@ fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTh
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme
     ) {
-        UiMdDocument(document.ast, sourceText)
+        UiMdDocument(document.ast)
     }
 }
 
 @Composable
-private fun UiBlock(block: Node, sourceText: String) {
+private fun UiBlock(block: Node) {
     when (block) {
-        is Heading -> UiHeading(block, sourceText)
-        is Paragraph -> UiParagraph(block, sourceText)
+        is Heading -> UiHeading(block)
+        is Paragraph -> UiParagraph(block)
         is ThematicBreak -> UiHorizontalRule()
-        is BlockQuote -> UiBlockQuote(block, sourceText)
+        is BlockQuote -> UiBlockQuote(block)
         is IndentedCodeBlock -> UiIndentedCodeBlock(block)
-        is FencedCodeBlock -> UiCodeFence(block, sourceText)
-        is HtmlBlock -> UiHtmlBlock(block, sourceText)
-        is OrderedList -> UiOrderedList(block, sourceText)
-        is BulletList -> UiBulletList(block, sourceText)
+        is FencedCodeBlock -> UiCodeFence(block)
+        is HtmlBlock -> UiHtmlBlock(block)
+        is OrderedList -> UiOrderedList(block)
+        is BulletList -> UiBulletList(block)
     }
 }
 
 @Composable
-private fun UiBulletList(unorderedList: BulletList, sourceText: String) {
+private fun UiBulletList(unorderedList: BulletList) {
     val styles = DocumentTheme.current.styles
     Column {
         unorderedList.children.forEach { child ->
-            Row {
-                Text(
-                    text = "\u2022",
-                    style = styles.listNumber
-                )
-                Column {
-                    child.children.forEach { listItemContent ->
-                        UiBlock(listItemContent, sourceText)
+            when (child) {
+                is BulletListItem -> Row {
+                    Text(
+                        text = "\u2022",
+                        style = styles.listNumber
+                    )
+                    Column {
+                        child.children.forEach { listItemContent ->
+                            UiBlock(listItemContent)
+                        }
                     }
                 }
+                // TODO: task list item
+                else -> UiUnparsedBlock(child)
             }
         }
     }
-
 }
 
 @Composable
-private fun UiOrderedList(orderedList: OrderedList, sourceText: String) {
+private fun UiOrderedList(orderedList: OrderedList) {
     val styles = DocumentTheme.current.styles
     Column {
         var computedNumber: Int = orderedList.startNumber
@@ -87,7 +90,7 @@ private fun UiOrderedList(orderedList: OrderedList, sourceText: String) {
                     )
                     Column {
                         child.children.forEach { listItemContent ->
-                            UiBlock(listItemContent, sourceText)
+                            UiBlock(listItemContent)
                         }
                     }
                 }
@@ -100,7 +103,7 @@ private fun UiOrderedList(orderedList: OrderedList, sourceText: String) {
 }
 
 @Composable
-private fun UiHtmlBlock(htmlBlock: HtmlBlock, sourceText: String) {
+private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     val styles = DocumentTheme.current.styles
     Text(
         text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
@@ -110,7 +113,7 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock, sourceText: String) {
 }
 
 @Composable
-private fun UiCodeFence(codeFence: FencedCodeBlock, sourceText: String) {
+private fun UiCodeFence(codeFence: FencedCodeBlock) {
     val styles = DocumentTheme.current.styles
     Column(
         modifier = styles.codeBlock.modifier
@@ -141,23 +144,23 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
 }
 
 @Composable
-private fun UiMdDocument(markdownRoot: Document, sourceText: String) {
+private fun UiMdDocument(markdownRoot: Document) {
     LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
         markdownRoot.children.forEach { child ->
             item {
-                UiBlock(child, sourceText)
+                UiBlock(child)
             }
         }
     }
 }
 
 @Composable
-private fun UiBlockQuote(blockQuote: BlockQuote, sourceText: String) {
+private fun UiBlockQuote(blockQuote: BlockQuote) {
     Column(
         modifier = DocumentTheme.current.styles.blockQuote.modifier
     ) {
         blockQuote.children.forEach { child ->
-            UiBlock(child, sourceText)
+            UiBlock(child)
         }
     }
 }
@@ -181,8 +184,8 @@ private fun UiUnparsedBlock(node: Node) {
 }
 
 @Composable
-private fun UiParagraph(paragraph: Paragraph, sourceText: String) {
-    val inlines = parseInlines(paragraph.children, sourceText)
+private fun UiParagraph(paragraph: Paragraph) {
+    val inlines = parseInlines(paragraph.children)
     val styles = DocumentTheme.current.styles
     Text(
         text = inlines.text,
@@ -192,8 +195,8 @@ private fun UiParagraph(paragraph: Paragraph, sourceText: String) {
 }
 
 @Composable
-private fun UiHeading(header: Heading, sourceText: String) {
-    val inlines = parseInlines(header.children, sourceText)
+private fun UiHeading(header: Heading) {
+    val inlines = parseInlines(header.children)
     val styles = DocumentTheme.current.styles
     Text(
         text = inlines.text,
@@ -218,7 +221,7 @@ private data class ParsedInlines(
 )
 
 @Composable
-private fun parseInlines(inlines: Iterable<Node>, sourceText: String): ParsedInlines {
+private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
     val styles = DocumentTheme.current.styles
     return ParsedInlines(
         text = buildAnnotatedString {

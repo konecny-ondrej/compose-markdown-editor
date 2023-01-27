@@ -28,6 +28,7 @@ kotlin {
                 api(compose.desktop.currentOs)
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
                 implementation("org.jetbrains:markdown:0.3.6")
+                implementation("com.vladsch.flexmark:flexmark-all:0.64.0")
             }
         }
         val jvmTest by getting {

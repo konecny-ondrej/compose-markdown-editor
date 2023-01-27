@@ -200,6 +200,7 @@ private fun UiParagraph(paragraph: Paragraph) {
 private fun UiHeading(header: Heading) {
     val inlines = parseInlines(header.children)
     val styles = DocumentTheme.current.styles
+//    System.err.println(header.anchorRefId)
     Text(
         text = inlines.text,
         inlineContent = inlines.inlineContent,

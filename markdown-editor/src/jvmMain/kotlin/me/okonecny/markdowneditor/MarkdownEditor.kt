@@ -128,6 +128,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
                 }
             }
         }
+        // TODO: parse various styles based on codeFence.info
         Text(
             text = code,
             style = styles.codeBlock.textStyle
@@ -238,9 +239,11 @@ private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
                     is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                     is HardLineBreak -> append(System.lineSeparator())
                     is Link -> appendLink(inline)
+                    is AutoLink -> appendLink(inline)
+                    is LinkRef -> appendLinkRef(inline)
+                    is HtmlEntity -> append(inline.text())
 //                    // TODO: proper parsing
                     is MailLink -> appendUnparsed(inline)
-                    is AutoLink -> appendUnparsed(inline)
                     is HtmlInlineBase -> appendUnparsed(inline)
                     is Image -> appendUnparsed(inline)
                     else -> appendUnparsed(inline)
@@ -249,6 +252,16 @@ private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
         },
         inlineContent = mapOf()
     )
+}
+
+@Composable
+private fun AnnotatedString.Builder.appendLinkRef(linkRef: LinkRef) {
+    append(AnnotatedString(linkRef.reference.toString(), DocumentTheme.current.styles.link.toSpanStyle()))
+}
+
+@Composable
+private fun AnnotatedString.Builder.appendLink(link: AutoLink) {
+    append(AnnotatedString(link.text.toString(), DocumentTheme.current.styles.link.toSpanStyle()))
 }
 
 @Composable
@@ -273,10 +286,7 @@ private fun AnnotatedString.Builder.appendStyled(annotatedString: AnnotatedStrin
 }
 
 private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    val start = length
-    append(inlineNode.text())
-    val end = length
-    addStyle(style, start, end)
+    append(AnnotatedString(inlineNode.text(), style))
 }
 
 private fun Node.text(): String {

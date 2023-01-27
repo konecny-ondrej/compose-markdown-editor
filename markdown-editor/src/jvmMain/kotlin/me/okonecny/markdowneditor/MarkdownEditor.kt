@@ -237,12 +237,12 @@ private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
                     is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
                     is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                     is HardLineBreak -> append(System.lineSeparator())
+                    is Link -> appendLink(inline)
 //                    // TODO: proper parsing
                     is MailLink -> appendUnparsed(inline)
                     is AutoLink -> appendUnparsed(inline)
                     is HtmlInlineBase -> appendUnparsed(inline)
                     is Image -> appendUnparsed(inline)
-                    is Link -> appendUnparsed(inline)
                     else -> appendUnparsed(inline)
                 }
             }
@@ -252,11 +252,24 @@ private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
 }
 
 @Composable
+private fun AnnotatedString.Builder.appendLink(link: Link) {
+    val parsedInlines = parseInlines(link.children)
+    appendStyled(parsedInlines.text, DocumentTheme.current.styles.link.toSpanStyle())
+}
+
+@Composable
 private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: Node) {
     appendStyled(
         unparsedNode,
         DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
+}
+
+private fun AnnotatedString.Builder.appendStyled(annotatedString: AnnotatedString, style: SpanStyle) {
+    val start = length
+    append(annotatedString)
+    val end = length
+    addStyle(style, start, end)
 }
 
 private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {

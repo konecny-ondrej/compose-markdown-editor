@@ -69,7 +69,8 @@ class DocumentStyles(
     ),
     val codeBlock: BlockStyle = BlockStyle(
         textStyle = inlineCode,
-        modifier = Modifier.background(Color.LightGray, shape = RoundedCornerShape(5.dp)).padding(10.dp, 5.dp)
+        modifier = Modifier.padding(10.dp).background(Color.LightGray, shape = RoundedCornerShape(5.dp))
+            .padding(10.dp, 5.dp)
     ),
     val blockQuote: BoxStyle = BoxStyle(
         modifier = Modifier.leftBorder(5.dp, Color.Black).background(Color.Black.copy(alpha = 0.2f)).padding(5.dp)

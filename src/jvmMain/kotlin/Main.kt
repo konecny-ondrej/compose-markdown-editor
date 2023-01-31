@@ -8,6 +8,7 @@ import androidx.compose.ui.res.useResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import me.okonecny.markdowneditor.MarkdownEditor
+import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.tatarka.inject.annotations.Component
 
 @Composable
@@ -28,7 +29,10 @@ fun App() {
             val markdownSource = useResource(filename) { md ->
                 md.bufferedReader().readText()
             }
-            MarkdownEditor(markdownSource)
+            MarkdownEditor(
+                markdownSource,
+                codeFenceRenderers = listOf(ExampleRenderer())
+            )
         }
     }
 }

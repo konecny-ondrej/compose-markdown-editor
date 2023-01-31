@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,16 +24,43 @@ import com.vladsch.flexmark.util.ast.TextCollectingVisitor
  * A simple WYSIWYG editor for Markdown.
  */
 @Composable
-fun MarkdownEditor(sourceText: String, documentTheme: DocumentTheme = DocumentTheme.default) {
+fun MarkdownEditor(
+    sourceText: String,
+    documentTheme: DocumentTheme = DocumentTheme.default,
+    scrollable: Boolean = true,
+    codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
+) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
     val parser = remember { markdown.documentParser }
     val document = parser.parse(sourceText)
     // TODO: make the source or the AST be state so we can edit.
 
     CompositionLocalProvider(
-        LocalDocumentTheme provides documentTheme
+        LocalDocumentTheme provides documentTheme,
+        CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
     ) {
-        UiMdDocument(document.ast)
+        UiMdDocument(document.ast, scrollable)
+    }
+}
+
+private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFenceRenderer>() }
+
+@Composable
+private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {
+    if (scrollable) {
+        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+            markdownRoot.children.forEach { child ->
+                item {
+                    UiBlock(child)
+                }
+            }
+        }
+    } else {
+        Column {
+            markdownRoot.children.forEach { child ->
+                UiBlock(child)
+            }
+        }
     }
 }
 
@@ -117,22 +145,26 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
 @Composable
 private fun UiCodeFence(codeFence: FencedCodeBlock) {
     val styles = DocumentTheme.current.styles
-    Column(
-        modifier = styles.codeBlock.modifier
-    ) {
+    Column {
         val code = buildAnnotatedString {
             codeFence.children.forEach { child ->
                 when (child) {
-                    is Text -> append(child.text())
+                    is Text -> append(child.rawCode())
                     else -> appendUnparsed(child)
                 }
             }
         }
-        // TODO: parse various styles based on codeFence.info
-        Text(
-            text = code,
-            style = styles.codeBlock.textStyle
-        )
+        val codeFenceType = codeFence.info.toString()
+        val codeFenceRenderer = CodeFenceRenderers.current[codeFenceType]
+        if (codeFenceRenderer == null) {
+            Text(
+                text = code,
+                style = styles.codeBlock.textStyle,
+                modifier = styles.codeBlock.modifier
+            )
+        } else {
+            codeFenceRenderer.render(code.text)
+        }
     }
 }
 
@@ -144,17 +176,6 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier
     )
-}
-
-@Composable
-private fun UiMdDocument(markdownRoot: Document) {
-    LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-        markdownRoot.children.forEach { child ->
-            item {
-                UiBlock(child)
-            }
-        }
-    }
 }
 
 @Composable
@@ -289,9 +310,19 @@ private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanSt
     append(AnnotatedString(inlineNode.text(), style))
 }
 
+/**
+ * Collects the node text, resolving all escapes.
+ */
 private fun Node.text(): String {
     val builder = TextCollectingVisitor()
     return builder.collectAndGetText(this)
+}
+
+/**
+ * Returns the unprocessed Markdown source code corresponding to the node.
+ */
+private fun Node.rawCode(): String {
+    return this.chars.toString()
 }
 
 // endregion inlines

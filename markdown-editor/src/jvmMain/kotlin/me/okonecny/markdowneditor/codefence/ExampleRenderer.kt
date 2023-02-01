@@ -25,9 +25,11 @@ class ExampleRenderer : CodeFenceRenderer {
         val markdownCode = lines
             .subList(0, splitterLineNo.coerceAtLeast(0))
             .joinToString(System.lineSeparator())
+            .trim()
         val output = lines
             .subList((splitterLineNo + 1).coerceAtMost(lines.lastIndex), lines.size)
             .joinToString(System.lineSeparator())
+            .trim()
 
         Column(
             modifier = Modifier.padding(0.dp, 10.dp)
@@ -42,22 +44,17 @@ class ExampleRenderer : CodeFenceRenderer {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
-                        .fillMaxHeight()
                         .background(Color(0xAAAAAAFF))
                 ) {
                     MarkdownEditor(markdownCode, scrollable = false)
                 }
-                Box(
+                Text(
+                    text = output,
+                    style = styles.codeBlock.textStyle,
                     modifier = Modifier
-                        .fillMaxWidth(1f)
-                        .fillMaxHeight()
                         .background(Color(0xAAAAFFAA))
-                ) {
-                    Text(
-                        text = output,
-                        style = styles.codeBlock.textStyle
-                    )
-                }
+                        .fillMaxWidth(1f)
+                )
             }
         }
     }

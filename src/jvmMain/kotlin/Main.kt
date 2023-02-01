@@ -23,7 +23,7 @@ fun App() {
             Button(onClick = {
                 isLong = !isLong
             }) {
-                Text(if (isLong) "Make short" else "Make long")
+                Text(if (isLong) "GFM Spec" else "CommonMark Spec")
             }
             val filename = if (isLong) longFilename else shortFilename
             val markdownSource = useResource(filename) { md ->

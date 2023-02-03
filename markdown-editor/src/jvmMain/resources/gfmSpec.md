@@ -4851,7 +4851,7 @@ implementors are free to render the checkboxes as disabled or inmutable elements
 or they may dynamically handle dynamic interactions (i.e. checking, unchecking) in
 the final rendered document.
 
-```````````````````````````````` example disabled
+```````````````````````````````` example
 - [ ] foo
 - [x] bar
 .
@@ -4863,7 +4863,7 @@ the final rendered document.
 
 Task lists can be arbitrarily nested:
 
-```````````````````````````````` example disabled
+```````````````````````````````` example
 - [x] foo
   - [ ] bar
   - [x] baz
@@ -7257,7 +7257,7 @@ available.
 
 Strikethrough text is any text wrapped in two tildes (`~`).
 
-```````````````````````````````` example strikethrough
+```````````````````````````````` example
 ~~Hi~~ Hello, world!
 .
 <p><del>Hi</del> Hello, world!</p>
@@ -7266,7 +7266,7 @@ Strikethrough text is any text wrapped in two tildes (`~`).
 As with regular emphasis delimiters, a new paragraph will cause strikethrough
 parsing to cease:
 
-```````````````````````````````` example strikethrough
+```````````````````````````````` example
 This ~~has a
 
 new paragraph~~.
@@ -8641,7 +8641,7 @@ and no underscores may be present in the last two segments of the domain.
 
 The scheme `http` will be inserted automatically:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 www.commonmark.org
 .
 <p><a href="http://www.commonmark.org">www.commonmark.org</a></p>
@@ -8649,7 +8649,7 @@ www.commonmark.org
 
 After a [valid domain], zero or more non-space non-`<` characters may follow:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 Visit www.commonmark.org/help for more information.
 .
 <p>Visit <a href="http://www.commonmark.org/help">www.commonmark.org/help</a> for more information.</p>
@@ -8661,7 +8661,7 @@ Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
 will not be considered part of the autolink, though they may be included in the
 interior of the link:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 Visit www.commonmark.org.
 
 Visit www.commonmark.org/a.b.
@@ -8675,7 +8675,7 @@ of parentheses. If there is a greater number of closing parentheses than
 opening ones, we don't consider the unmatched trailing parentheses part of the
 autolink, in order to facilitate including an autolink inside a parenthesis:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 www.google.com/search?q=Markup+(business)
 
 www.google.com/search?q=Markup+(business)))
@@ -8694,7 +8694,7 @@ This check is only done when the link ends in a closing parentheses `)`, so if
 the only parentheses are in the interior of the autolink, no special rules are
 applied:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 www.google.com/search?q=(business))+ok
 .
 <p><a href="http://www.google.com/search?q=(business))+ok">www.google.com/search?q=(business))+ok</a></p>
@@ -8705,7 +8705,7 @@ resemble an [entity reference][entity references]; if the preceding text is `&`
 followed by one or more alphanumeric characters. If so, it is excluded from
 the autolink:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 www.google.com/search?q=commonmark&hl=en
 
 www.google.com/search?q=commonmark&hl;
@@ -8716,7 +8716,7 @@ www.google.com/search?q=commonmark&hl;
 
 `<` immediately ends an autolink.
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 www.commonmark.org/he<lp
 .
 <p><a href="http://www.commonmark.org/he">www.commonmark.org/he</a>&lt;lp</p>
@@ -8727,7 +8727,7 @@ An [extended url autolink](@) will be recognised when one of the schemes
 more non-space non-`<` characters according to
 [extended autolink path validation]:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 http://commonmark.org
 
 (Visit https://encrypted.google.com/search?q=Markup+(business))
@@ -8752,7 +8752,7 @@ the following rules:
 
 The scheme `mailto:` will automatically be added to the generated link:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 foo@bar.baz
 .
 <p><a href="mailto:foo@bar.baz">foo@bar.baz</a></p>
@@ -8760,7 +8760,7 @@ foo@bar.baz
 
 `+` can occur before the `@`, but not after.
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 .
 <p>hello@mail+xyz.example isn't valid, but <a href="mailto:hello+xyz@mail.example">hello+xyz@mail.example</a> is.</p>
@@ -8770,7 +8770,7 @@ hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 the end of the email address, in which case it will not be considered part of
 the address:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example
 a.b-c_d@a.b
 
 a.b-c_d@a.b.
@@ -9064,7 +9064,7 @@ usually undesireable in the context of other rendered Markdown content.
 
 All other HTML tags are left untouched.
 
-```````````````````````````````` example tagfilter
+```````````````````````````````` example
 <strong> <title> <style> <em>
 
 <blockquote>

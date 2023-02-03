@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor
 
+import com.vladsch.flexmark.ext.tables.TablesExtension
 import com.vladsch.flexmark.html.renderer.HeaderIdGenerator
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.parser.ParserEmulationProfile
@@ -24,6 +25,7 @@ internal abstract class MarkdownEditorComponent {
     protected fun flexmarkParser(): Parser {
         val builder = Parser.builder()
         builder.setAll(ParserEmulationProfile.GITHUB.profileOptions)
+        TablesExtension().extend(builder)
         return builder.build()
     }
 

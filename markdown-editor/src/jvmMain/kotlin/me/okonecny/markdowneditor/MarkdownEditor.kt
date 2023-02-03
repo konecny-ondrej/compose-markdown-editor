@@ -17,6 +17,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
+import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
@@ -80,7 +81,54 @@ private fun UiBlock(block: Node) {
         is OrderedList -> UiOrderedList(block)
         is BulletList -> UiBulletList(block)
         is HtmlCommentBlock -> Unit // Ignore HTML comments. They are not visible in HTML either.
+        is TableBlock -> UiTableBlock(block)
         else -> UiUnparsedBlock(block)
+    }
+}
+
+@Composable
+private fun UiTableBlock(tableBlock: TableBlock) {
+    UiTable {
+        tableBlock.children.forEach { tableChild ->
+            when (tableChild) {
+                is TableHead ->
+                    tableChild.children.forEach { tableHeadRow ->
+                        when (tableHeadRow) {
+                            is TableRow -> UiTableHeaderRow {
+                                tableHeadRow.children.forEach { tableHeadCell ->
+                                    when (tableHeadCell) {
+                                        is TableCell -> UiTableCell(parseInlines(tableHeadCell.children).text)
+                                        else -> UiTableCell("Unparsed header cell") // TODO
+                                    }
+
+                                }
+                            }
+
+                            else -> UiTableHeaderRow { UiTableCell("Unparsed row") } // TODO
+                        }
+                    }
+
+                is TableBody ->
+                    tableChild.children.forEach { tableHeadRow ->
+                        when (tableHeadRow) {
+                            is TableRow -> UiTableRow {
+                                tableHeadRow.children.forEach { tableBodyCell ->
+                                    when (tableBodyCell) {
+                                        is TableCell -> UiTableCell(parseInlines(tableBodyCell.children).text)
+                                        else -> UiTableCell("Unparsed header cell") // TODO
+                                    }
+
+                                }
+                            }
+
+                            else -> UiTableRow { UiTableCell("Unparsed row") } // TODO
+                        }
+                    }
+
+                is TableSeparator -> Unit // This is just a Markdown syntax to specify alignment of the columns.
+                else -> UiUnparsedBlock(tableChild)
+            }
+        }
     }
 }
 

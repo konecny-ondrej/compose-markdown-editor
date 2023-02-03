@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
+import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
@@ -133,14 +135,37 @@ private fun UiTableBlock(tableBlock: TableBlock) {
 }
 
 @Composable
+private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String, number: Int? = null) {
+    val styles = DocumentTheme.current.styles
+    Row {
+        Text(
+            text = if (taskListItem.isOrderedItem) {
+                number.toString() + bulletOrDelimiter
+            } else {
+                bulletOrDelimiter
+            },
+            style = styles.listNumber
+        )
+        Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = null)
+        Column {
+            taskListItem.children.forEach { listItemContent ->
+                UiBlock(listItemContent)
+            }
+        }
+    }
+}
+
+@Composable
 private fun UiBulletList(unorderedList: BulletList) {
     val styles = DocumentTheme.current.styles
+    val bullet = "\u2022"
     Column {
         unorderedList.children.forEach { child ->
             when (child) {
+                is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet)
                 is BulletListItem -> Row {
                     Text(
-                        text = "\u2022",
+                        text = bullet,
                         style = styles.listNumber
                     )
                     Column {
@@ -149,7 +174,7 @@ private fun UiBulletList(unorderedList: BulletList) {
                         }
                     }
                 }
-                // TODO: task list item
+
                 else -> UiUnparsedBlock(child)
             }
         }
@@ -164,6 +189,12 @@ private fun UiOrderedList(orderedList: OrderedList) {
 
         orderedList.children.forEach { child ->
             when (child) {
+                is TaskListItem -> UiTaskListItem(
+                    child,
+                    bulletOrDelimiter = orderedList.delimiter.toString(),
+                    number = computedNumber++
+                )
+
                 is OrderedListItem -> Row {
                     Text(
                         text = (computedNumber++).toString() + orderedList.delimiter,
@@ -175,7 +206,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
                         }
                     }
                 }
-                // TODO: task list item
+
                 else -> UiUnparsedBlock(child)
             }
 

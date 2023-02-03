@@ -38,10 +38,13 @@ class ExampleRenderer : CodeFenceRenderer {
                 text = "Example",
                 style = styles.h6
             )
-            Row {
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Max)
+            ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.5f)
+                        .weight(0.5f)
+                        .fillMaxHeight()
                         .background(Color(0xAAAAAAFF))
                 ) {
                     MarkdownEditor(markdownCode, scrollable = false)
@@ -51,7 +54,8 @@ class ExampleRenderer : CodeFenceRenderer {
                     style = styles.codeBlock.textStyle,
                     modifier = Modifier
                         .background(Color(0xAAAAFFAA))
-                        .fillMaxWidth(1f)
+                        .weight(0.5f)
+                        .fillMaxHeight()
                 )
             }
         }

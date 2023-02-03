@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
@@ -89,44 +90,39 @@ private fun UiBlock(block: Node) {
 }
 
 @Composable
+private fun TableScope.UiTableRowCells(rowType: RowType, tableSectionRows: Iterable<Node>) {
+    tableSectionRows.forEach { tableRow ->
+        when (tableRow) {
+            is TableRow -> UiTableRow(rowType) {
+                tableRow.children.forEach { tableHeadCell ->
+                    when (tableHeadCell) {
+                        is TableCell -> UiTableCell(
+                            parseInlines(tableHeadCell.children).text,
+                            textAlign = when (tableHeadCell.alignment) {
+                                TableCell.Alignment.RIGHT -> TextAlign.Right
+                                TableCell.Alignment.CENTER -> TextAlign.Center
+                                else -> TextAlign.Left
+                            }
+                        )
+
+                        else -> UiTableCell("Bad table cell", TextAlign.Left)
+                    }
+
+                }
+            }
+
+            else -> UiTableRow(rowType) { UiTableCell("Bad table row", TextAlign.Left) }
+        }
+    }
+}
+
+@Composable
 private fun UiTableBlock(tableBlock: TableBlock) {
     UiTable {
         tableBlock.children.forEach { tableChild ->
             when (tableChild) {
-                is TableHead ->
-                    tableChild.children.forEach { tableHeadRow ->
-                        when (tableHeadRow) {
-                            is TableRow -> UiTableHeaderRow {
-                                tableHeadRow.children.forEach { tableHeadCell ->
-                                    when (tableHeadCell) {
-                                        is TableCell -> UiTableCell(parseInlines(tableHeadCell.children).text)
-                                        else -> UiTableCell("Unparsed header cell") // TODO
-                                    }
-
-                                }
-                            }
-
-                            else -> UiTableHeaderRow { UiTableCell("Unparsed row") } // TODO
-                        }
-                    }
-
-                is TableBody ->
-                    tableChild.children.forEach { tableHeadRow ->
-                        when (tableHeadRow) {
-                            is TableRow -> UiTableRow {
-                                tableHeadRow.children.forEach { tableBodyCell ->
-                                    when (tableBodyCell) {
-                                        is TableCell -> UiTableCell(parseInlines(tableBodyCell.children).text)
-                                        else -> UiTableCell("Unparsed header cell") // TODO
-                                    }
-
-                                }
-                            }
-
-                            else -> UiTableRow { UiTableCell("Unparsed row") } // TODO
-                        }
-                    }
-
+                is TableHead -> UiTableRowCells(RowType.HEADER, tableChild.children)
+                is TableBody -> UiTableRowCells(RowType.BODY, tableChild.children)
                 is TableSeparator -> Unit // This is just a Markdown syntax to specify alignment of the columns.
                 else -> UiUnparsedBlock(tableChild)
             }

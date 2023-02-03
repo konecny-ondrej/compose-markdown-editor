@@ -1,91 +1,72 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 
-@Composable
-private fun RowScope.TableCell(
-    text: AnnotatedString,
-    weight: Float
-) {
-    Text(
-        text = text,
-        Modifier
-            .border(1.dp, Color.Black)
-            .weight(weight)
-            .padding(8.dp)
-            .fillMaxHeight()
-    )
-}
+internal data class Cell(
+    val text: AnnotatedString,
+    val textAlign: TextAlign
+)
 
 internal interface TableRowScope {
-    val cells: List<AnnotatedString>
+    val cells: List<Cell>
 
     @Composable
-    fun UiTableCell(text: String)
+    fun UiTableCell(text: String, textAlign: TextAlign)
 
     @Composable
-    fun UiTableCell(text: AnnotatedString)
+    fun UiTableCell(text: AnnotatedString, textAlign: TextAlign)
+}
+
+internal enum class RowType {
+    HEADER,
+    BODY
 }
 
 internal interface TableScope {
-    val rows: List<List<AnnotatedString>>
-    val headerRow: List<AnnotatedString>
-    val hasHeader: Boolean
+    val rows: List<List<Cell>>
+    val headerRows: List<List<Cell>>
 
     @Composable
-    fun UiTableRow(cells: @Composable TableRowScope.() -> Unit)
-
-    @Composable
-    fun UiTableHeaderRow(cells: @Composable TableRowScope.() -> Unit)
+    fun UiTableRow(rowType: RowType, cells: @Composable TableRowScope.() -> Unit)
 }
 
 private class TableScopeImpl : TableScope {
-    override val rows: MutableList<List<AnnotatedString>> = mutableListOf()
-    override val headerRow: MutableList<AnnotatedString> = mutableListOf()
-    override var hasHeader: Boolean = false
+    override val rows: MutableList<List<Cell>> = mutableListOf()
+    override val headerRows: MutableList<List<Cell>> = mutableListOf()
 
     @Composable
-    override fun UiTableRow(cells: @Composable TableRowScope.() -> Unit) {
+    override fun UiTableRow(rowType: RowType, cells: @Composable TableRowScope.() -> Unit) {
         val rowScope = TableRowScopeImpl()
         rowScope.cells()
-        rows.add(rowScope.cells)
-    }
-
-    @Composable
-    override fun UiTableHeaderRow(cells: @Composable TableRowScope.() -> Unit) {
-        val rowScope = TableRowScopeImpl()
-        rowScope.cells()
-        hasHeader = true
-        headerRow.addAll(rowScope.cells)
+        when (rowType) {
+            RowType.HEADER -> headerRows.add(rowScope.cells)
+            RowType.BODY -> rows.add(rowScope.cells)
+        }
     }
 }
 
 private class TableRowScopeImpl : TableRowScope {
-    override val cells: MutableList<AnnotatedString> = mutableListOf()
+    override val cells: MutableList<Cell> = mutableListOf()
 
     @Composable
-    override fun UiTableCell(text: String) {
-        cells.add(AnnotatedString(text))
+    override fun UiTableCell(text: String, textAlign: TextAlign) {
+        cells.add(Cell(AnnotatedString(text), textAlign))
     }
 
     @Composable
-    override fun UiTableCell(text: AnnotatedString) {
-        cells.add(text)
+    override fun UiTableCell(text: AnnotatedString, textAlign: TextAlign) {
+        cells.add(Cell(text, textAlign))
     }
 }
 
 private fun computeWeights(table: TableScope): List<Float> {
     val maxSizes: MutableList<Int> = mutableListOf()
-    val allRows = mutableListOf(table.headerRow)
-    allRows.addAll(table.rows)
+    val allRows = table.headerRows + table.rows
     if (allRows.isEmpty()) return emptyList()
 
     allRows.forEach { row ->
@@ -95,7 +76,7 @@ private fun computeWeights(table: TableScope): List<Float> {
             }
         }
         row.forEachIndexed { columnIndex, column ->
-            maxSizes[columnIndex] = maxSizes[columnIndex].coerceAtLeast(column.length)
+            maxSizes[columnIndex] = maxSizes[columnIndex].coerceAtLeast(column.text.length)
         }
     }
     val totalMaxSize = maxSizes.sum().toFloat()
@@ -110,33 +91,34 @@ internal fun UiTable(
     columnWeights: List<Float>? = null,
     rows: @Composable TableScope.() -> Unit
 ) {
+    val tableStyle: TableStyle = DocumentTheme.current.styles.table
     val tableScope: TableScope = TableScopeImpl()
     tableScope.rows()
-    val tableRows = tableScope.rows
     val computedWeights: List<Float> = columnWeights ?: computeWeights(tableScope)
     // TODO: remember the weights so we don't recalculate all the time.
 
-    // Table
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        // Header row
-        if (tableScope.hasHeader) {
-            Row(Modifier.background(Color.Gray).height(IntrinsicSize.Max)) {
-                tableScope.headerRow.forEachIndexed { columnIndex, columnText ->
-                    TableCell(text = columnText, weight = computedWeights[columnIndex])
-                }
+    @Composable
+    fun renderRow(row: List<Cell>, cellStyle: BlockStyle) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
+            row.forEachIndexed { columnIndex, cell ->
+                Text(
+                    text = cell.text,
+                    textAlign = cell.textAlign,
+                    style = cellStyle.textStyle,
+                    modifier = cellStyle.modifier
+                        .weight(weight = computedWeights[columnIndex])
+                        .fillMaxHeight()
+                )
             }
         }
+    }
 
-        // Body rows
-        tableRows.forEach { row ->
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
-                row.forEachIndexed { columnIndex, columnText ->
-                    TableCell(
-                        text = columnText,
-                        weight = computedWeights[columnIndex]
-                    )
-                }
-            }
+    Column(tableStyle.modifier) {
+        tableScope.headerRows.forEach { row ->
+            renderRow(row, tableStyle.headerCellStyle)
+        }
+        tableScope.rows.forEach { row ->
+            renderRow(row, tableStyle.bodyCellStyle)
         }
     }
 }

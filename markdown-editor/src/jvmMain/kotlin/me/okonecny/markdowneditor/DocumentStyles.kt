@@ -2,13 +2,14 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -21,8 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Immutable
-class DocumentStyles(
+data class DocumentStyles(
     val defaultFontFamily: FontFamily = FontFamily.Default,
+    val blockShape: Shape = RoundedCornerShape(5.dp),
     val h1: TextStyle = TextStyle(
         fontWeight = FontWeight.Light,
         fontSize = 96.sp,
@@ -76,20 +78,40 @@ class DocumentStyles(
         textStyle = inlineCode.copy(background = Color.Transparent),
         modifier = Modifier
             .padding(15.dp)
-//            .shadow(10.dp, RoundedCornerShape(5.dp), spotColor = Color.DarkGray)
-            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), RoundedCornerShape(5.dp))
-            .background(Color.LightGray, RoundedCornerShape(5.dp))
+//            .shadow(10.dp, blockShape, spotColor = Color.DarkGray)
+            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)
+            .background(Color.LightGray, blockShape)
             .padding(10.dp, 5.dp)
     ),
     val blockQuote: BoxStyle = BoxStyle(
         modifier = Modifier
             .padding(15.dp)
-            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), RoundedCornerShape(5.dp))
-            .background(Color.Black.copy(alpha = 0.2f), RoundedCornerShape(5.dp))
-            .clip(RoundedCornerShape(5.dp))
+            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)
+            .background(Color.Black.copy(alpha = 0.2f), blockShape)
+            .clip(blockShape)
             .leftBorder(5.dp, lerp(Color.LightGray, Color.Black, 0.2f))
             .padding(10.dp, 5.dp)
 
+    ),
+    val table: TableStyle = TableStyle(
+        headerCellStyle = BlockStyle(
+            textStyle = paragraph,
+            modifier = Modifier
+                .background(Color.LightGray)
+                .border(Dp.Hairline, Color.Gray)
+                .padding(8.dp)
+        ),
+        bodyCellStyle = BlockStyle(
+            textStyle = paragraph,
+            modifier = Modifier
+                .border(Dp.Hairline, Color.Gray)
+                .padding(8.dp)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clip(blockShape)
+            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)
     ),
     val link: TextStyle = paragraph.copy(
         color = Color.Blue,
@@ -104,43 +126,7 @@ class DocumentStyles(
     val strikethrough: TextStyle = TextStyle(
         textDecoration = TextDecoration.LineThrough
     )
-) {
-    fun copy(
-        defaultFontFamily: FontFamily = this.defaultFontFamily,
-        h1: TextStyle = this.h1,
-        h2: TextStyle = this.h2,
-        h3: TextStyle = this.h3,
-        h4: TextStyle = this.h4,
-        h5: TextStyle = this.h5,
-        h6: TextStyle = this.h6,
-        paragraph: TextStyle = this.paragraph,
-        listNumber: TextStyle = this.listNumber,
-        inlineCode: TextStyle = this.inlineCode,
-        codeBlock: BlockStyle = this.codeBlock,
-        blockQuote: BoxStyle = this.blockQuote,
-        link: TextStyle = this.link,
-        emphasis: TextStyle = this.emphasis,
-        strong: TextStyle = this.strong,
-        strikethrough: TextStyle = this.strikethrough
-    ) = DocumentStyles(
-        defaultFontFamily = defaultFontFamily,
-        h1 = h1,
-        h2 = h2,
-        h3 = h3,
-        h4 = h4,
-        h5 = h5,
-        h6 = h6,
-        paragraph = paragraph,
-        listNumber = listNumber,
-        inlineCode = inlineCode,
-        codeBlock = codeBlock,
-        blockQuote = blockQuote,
-        link = link,
-        emphasis = emphasis,
-        strong = strong,
-        strikethrough = strikethrough
-    )
-}
+)
 
 data class BoxStyle(
     val modifier: Modifier
@@ -148,5 +134,11 @@ data class BoxStyle(
 
 data class BlockStyle(
     val textStyle: TextStyle,
+    val modifier: Modifier
+)
+
+data class TableStyle(
+    val headerCellStyle: BlockStyle,
+    val bodyCellStyle: BlockStyle,
     val modifier: Modifier
 )

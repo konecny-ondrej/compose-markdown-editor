@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,18 +48,20 @@ private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFence
 
 @Composable
 private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {
-    if (scrollable) {
-        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-            markdownRoot.children.forEach { child ->
-                item {
-                    UiBlock(child)
+    SelectionContainer {
+        if (scrollable) {
+            LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+                markdownRoot.children.forEach { child ->
+                    item {
+                        UiBlock(child)
+                    }
                 }
             }
-        }
-    } else {
-        Column {
-            markdownRoot.children.forEach { child ->
-                UiBlock(child)
+        } else {
+            Column {
+                markdownRoot.children.forEach { child ->
+                    UiBlock(child)
+                }
             }
         }
     }
@@ -222,7 +225,6 @@ private fun UiParagraph(paragraph: Paragraph) {
 private fun UiHeading(header: Heading) {
     val inlines = parseInlines(header.children)
     val styles = DocumentTheme.current.styles
-//    System.err.println(header.anchorRefId)
     Text(
         text = inlines.text,
         inlineContent = inlines.inlineContent,

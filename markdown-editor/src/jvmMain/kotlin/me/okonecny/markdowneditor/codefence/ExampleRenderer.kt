@@ -38,9 +38,7 @@ class ExampleRenderer : CodeFenceRenderer {
                 text = "Example",
                 style = styles.h6
             )
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Max)
-            ) {
+            Row {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)

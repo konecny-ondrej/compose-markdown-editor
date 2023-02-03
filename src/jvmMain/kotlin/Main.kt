@@ -14,8 +14,8 @@ import me.tatarka.inject.annotations.Component
 @Composable
 @Preview
 fun App() {
-    var isLong by remember { mutableStateOf(true) }
-    val shortFilename = "/commonMarkSpec.md"
+    var isLong by remember { mutableStateOf(false) }
+    val shortFilename = "/short.md"
     val longFilename = "/gfmSpec.md"
 
     MaterialTheme {
@@ -23,7 +23,7 @@ fun App() {
             Button(onClick = {
                 isLong = !isLong
             }) {
-                Text(if (isLong) "GFM Spec" else "CommonMark Spec")
+                Text(if (isLong) "GFM Spec" else "Short demo")
             }
             val filename = if (isLong) longFilename else shortFilename
             val markdownSource = useResource(filename) { md ->

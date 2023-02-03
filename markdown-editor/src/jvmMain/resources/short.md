@@ -1,191 +1,221 @@
-# Introduction
+# Demo
+Based on [this cheatsheet][cheatsheet]
 
-## What is Markdown?
+---
 
-Markdown is a plain text format for writing structured documents,
-based on conventions used for indicating formatting in email and
-usenet posts. It was developed in 2004 by John Gruber, who wrote
-the first Markdown-to-HTML converter in perl, and it soon became
-widely used in websites. By 2014 there were dozens of
-implementations in many languages. Some of them extended basic
-Markdown syntax with conventions for footnotes, definition lists,
-tables, and other constructs, and some allowed output not just in
-HTML but in LaTeX and many other formats.
+## Headers
+---
+# Header 1
+## Header 2
+### Header 3
+#### Header 4
+##### Header 5
+###### Header 6
+---
 
-Why is a spec needed?
----------------------
+## Emphasis
 
-John Gruber's [canonical description of Markdown's
-syntax](http://daringfireball.net/projects/markdown/syntax)
-does not specify the syntax unambiguously. Here are some examples of
-questions it does not answer:
+Emphasis, aka italics, with *asterisks* or _underscores_.
 
-1. How much indentation is needed for a sublist? The spec says that
-   continuation paragraphs need to be indented four spaces, but is
-   not fully explicit about sublists. It is natural to think that
-   they, too, must be indented four spaces, but `Markdown.pl` does
-   not require that. This is hardly a "corner case," and divergences
-   between implementations on this issue often lead to surprises for
-   users in real documents. (See [this comment by John
-   Gruber](http://article.gmane.org/gmane.text.markdown.general/1997).)
+Strong emphasis, aka bold, with **asterisks** or __underscores__.
 
-2. Is a blank line needed before a block quote or header?
-   Most implementations do not require the blank line. However,
-   this can lead to unexpected results in hard-wrapped text, and
-   also to ambiguities in parsing (note that some implementations
-   put the header inside the blockquote, while others do not).
-   (John Gruber has also spoken [in favor of requiring the blank
-   lines](http://article.gmane.org/gmane.text.markdown.general/2146).)
+Combined emphasis with **asterisks and _underscores_**.
 
-3. Is a blank line needed before an indented code block?
-   (`Markdown.pl` requires it, but this is not mentioned in the
-   documentation, and some implementations do not require it.)
+---
 
-   ``` markdown
-   paragraph
-       code?
-   ```
+## Lists
+1. First ordered list item
+2. Another item
+   * Unordered sub-list.
+1. Actual numbers don't matter, just that it's a number
+   1. Ordered sub-list
+4. And another item.
 
-4. What is the exact rule for determining when list items get
-   wrapped in `<p>` tags? Can a list be partially "loose" and partially
-   "tight"? What should we do with a list like this?
+   You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
 
-   ``` markdown
-   1. one
+   To have a line break without a paragraph, you will need to use two trailing spaces.
+   Note that this line is separate, but within the same paragraph.
+   (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
 
-   2. two
-   3. three
-   ```
+* Unordered list can use asterisks
+- Or minuses
++ Or pluses
 
-   Or this?
+---
 
-   ``` markdown
-   1.  one
-       - a
+## Links
 
-       - b
-   2.  two
-   ```
+[I'm an inline-style link](https://www.google.com)
 
-   (There are some relevant comments by John Gruber
-   [here](http://article.gmane.org/gmane.text.markdown.general/2554).)
+[I'm a reference-style link][Arbitrary case-insensitive reference text]
 
-5. Can list markers be indented? Can ordered list markers be right-aligned?
+[I'm a relative reference to a repository file](../blob/master/LICENSE)
 
-   ``` markdown
-    8. item 1
-    9. item 2
-   10. item 2a
-   ```
+[You can use numbers for reference-style link definitions][1]
 
-6. Is this one list with a horizontal rule in its second item,
-   or two lists separated by a horizontal rule?
+Or leave it empty and use the [link text itself].
 
-   ``` markdown
-   * a
-   * * * * *
-   * b
-   ```
+Autolink option will detect text links like https://www.google.com and turn them into Markdown links automatically.
 
-7. When list markers change from numbers to bullets, do we have
-   two lists or one?  (The Markdown syntax description suggests two,
-   but the perl scripts and many other implementations produce one.)
+---
 
-   ``` markdown
-   1. fee
-   2. fie
-   -  foe
-   -  fum
-   ```
+## Code
 
-8. What are the precedence rules for the markers of inline structure?
-   For example, is the following a valid link, or does the code span
-   take precedence ?
+Inline `code` has `back-ticks around` it.
 
-   ``` markdown
-   [a backtick (`)](/url) and [another backtick (`)](/url).
-   ```
+```javascript
+var s = "JavaScript syntax highlighting";
+alert(s);
+```
 
-9. What are the precedence rules for markers of emphasis and strong
-   emphasis? For example, how should the following be parsed?
+```python
+s = "Python syntax highlighting"
+print s
+```
 
-   ``` markdown
-   *foo *bar* baz*
-   ```
+```java
+/**
+ * Helper method to obtain a Parser with registered strike-through &amp; table extensions
+ * &amp; task lists (added in 1.0.1)
+ *
+ * @return a Parser instance that is supported by this library
+ * @since 1.0.0
+ */
+@NonNull
+public static Parser createParser() {
+  return new Parser.Builder()
+      .extensions(Arrays.asList(
+          StrikethroughExtension.create(),
+          TablesExtension.create(),
+          TaskListExtension.create()
+      ))
+      .build();
+}
+```
 
-10. What are the precedence rules between block-level and inline-level
-    structure? For example, how should the following be parsed?
+```xml
+<ScrollView
+  android:id="@+id/scroll_view"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:layout_marginTop="?android:attr/actionBarSize">
 
-    ``` markdown
-    - `a long code span can contain a hyphen like this
-      - and it can screw things up`
-    ```
+  <TextView
+    android:id="@+id/text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dip"
+    android:lineSpacingExtra="2dip"
+    android:textSize="16sp"
+    tools:text="yo\nman" />
 
-11. Can list items include section headers?  (`Markdown.pl` does not
-    allow this, but does allow blockquotes to include headers.)
+</ScrollView>
+```
 
-    ``` markdown
-    - # Heading
-    ```
+```
+No language indicated, so no syntax highlighting.
+But let's throw in a <b>tag</b>.
+```
 
-12. Can list items be empty?
+---
 
-    ``` markdown
-    * a
-    *
-    * b
-    ```
+## Images
 
-13. Can link references be defined inside block quotes or list items?
+Inline-style:
 
-    ``` markdown
-    > Blockquote [foo].
-    >
-    > [foo]: /url
-    ```
+![random image](https://picsum.photos/seed/picsum/400/400 "Text 1")
 
-14. If there are multiple definitions for the same reference, which takes
-    precedence?
+Reference-style:
 
-    ``` markdown
-    [foo]: /url1
-    [foo]: /url2
+![random image][logo]
 
-    [foo][]
-    ```
+[logo]: https://picsum.photos/seed/picsum2/400/400 "Text 2"
 
-In the absence of a spec, early implementers consulted `Markdown.pl`
-to resolve these ambiguities. But `Markdown.pl` was quite buggy, and
-gave manifestly bad results in many cases, so it was not a
-satisfactory replacement for a spec.
+---
 
-Because there is no unambiguous spec, implementations have diverged
-considerably. As a result, users are often surprised to find that
-a document that renders one way on one system (say, a github wiki)
-renders differently on another (say, converting to docbook using
-pandoc). To make matters worse, because nothing in Markdown counts
-as a "syntax error," the divergence often isn't discovered right away.
+## Tables
 
-## About this document
+Colons can be used to align columns.
 
-This document attempts to specify Markdown syntax unambiguously.
-It contains many examples with side-by-side Markdown and
-HTML. These are intended to double as conformance tests. An
-accompanying script `spec_tests.py` can be used to run the tests
-against any Markdown program:
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | ${'$'}1600 |
+| col 2 is      | centered      |   ${'$'}12 |
+| zebra stripes | are neat      |    ${'$'}1 |
 
-    python test/spec_tests.py --spec spec.txt --program PROGRAM
+There must be at least 3 dashes separating each header cell.
+The outer pipes (|) are optional, and you don't need to make the
+raw Markdown line up prettily. You can also use inline Markdown.
 
-Since this document describes how Markdown is to be parsed into
-an abstract syntax tree, it would have made sense to use an abstract
-representation of the syntax tree instead of HTML. But HTML is capable
-of representing the structural distinctions we need to make, and the
-choice of HTML for the tests makes it possible to run the tests against
-an implementation without writing an abstract syntax tree renderer.
+Markdown | Less | Pretty
+--- | --- | ---
+*Still* | `renders` | ![random image](https://picsum.photos/seed/picsum/400/400 "Text 1")
+1 | 2 | 3
 
-This document is generated from a text file, `spec.txt`, written
-in Markdown with a small extension for the side-by-side tests.
-The script `tools/makespec.py` can be used to convert `spec.txt` into
-HTML or CommonMark (which can then be converted into other formats).
+---
 
-In the examples, the `→` character is used to represent tabs.
+## Blockquotes
+
+> Blockquotes are very handy in email to emulate reply text.
+> This line is part of the same quote.
+
+Quote break.
+
+> This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** into a blockquote.
+
+Nested quotes
+> Hello!
+>> And to you!
+
+---
+
+## Inline HTML
+
+```html
+<u><i>H<sup>T<sub>M</sub></sup><b><s>L</s></b></i></u>
+```
+
+<body><u><i>H<sup>T<sub>M</sub></sup><b><s>L</s></b></i></u></body>
+
+---
+
+## Horizontal Rule
+
+Three or more...
+
+---
+
+Hyphens (`-`)
+
+***
+
+Asterisks (`*`)
+
+___
+
+Underscores (`_`)
+
+
+## License
+
+```
+  Copyright 2019 Dimitry Ivanov (legal@noties.io)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+```
+
+[cheatsheet]: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
+
+[arbitrary case-insensitive reference text]: https://www.mozilla.org
+[1]: http://slashdot.org
+[link text itself]: http://www.reddit.com

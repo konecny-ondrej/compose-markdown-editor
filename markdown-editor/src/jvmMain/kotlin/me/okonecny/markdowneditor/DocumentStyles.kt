@@ -98,13 +98,14 @@ data class DocumentStyles(
             textStyle = paragraph,
             modifier = Modifier
                 .background(Color.LightGray)
-                .border(Dp.Hairline, Color.Gray)
+                .leftBorder(Dp.Hairline, Color.Gray)
                 .padding(8.dp)
         ),
         bodyCellStyle = BlockStyle(
             textStyle = paragraph,
             modifier = Modifier
-                .border(Dp.Hairline, Color.Gray)
+                .leftBorder(Dp.Hairline, Color.LightGray)
+                .topBorder(Dp.Hairline, Color.LightGray)
                 .padding(8.dp)
         ),
         modifier = Modifier

@@ -4,7 +4,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -52,20 +51,18 @@ private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFence
 
 @Composable
 private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {
-    SelectionContainer {
-        if (scrollable) {
-            LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
-                markdownRoot.children.forEach { child ->
-                    item {
-                        UiBlock(child)
-                    }
-                }
-            }
-        } else {
-            Column {
-                markdownRoot.children.forEach { child ->
+    if (scrollable) {
+        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+            markdownRoot.children.forEach { child ->
+                item {
                     UiBlock(child)
                 }
+            }
+        }
+    } else {
+        Column {
+            markdownRoot.children.forEach { child ->
+                UiBlock(child)
             }
         }
     }

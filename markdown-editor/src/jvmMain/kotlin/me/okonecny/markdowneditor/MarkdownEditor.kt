@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Checkbox
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -24,10 +23,7 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import me.okonecny.markdowneditor.internal.*
-import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
-import me.okonecny.markdowneditor.internal.RowType
-import me.okonecny.markdowneditor.internal.TableScope
-import me.okonecny.markdowneditor.internal.UiTable
+import me.okonecny.markdowneditor.internal.interactive.InteractiveText
 
 /**
  * A simple WYSIWYG editor for Markdown.
@@ -136,7 +132,7 @@ private fun UiTableBlock(tableBlock: TableBlock) {
 private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String, number: Int? = null) {
     val styles = DocumentTheme.current.styles
     Row {
-        Text(
+        InteractiveText(
             text = if (taskListItem.isOrderedItem) {
                 number.toString() + bulletOrDelimiter
             } else {
@@ -162,7 +158,7 @@ private fun UiBulletList(unorderedList: BulletList) {
             when (child) {
                 is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet)
                 is BulletListItem -> Row {
-                    Text(
+                    InteractiveText(
                         text = bullet,
                         style = styles.listNumber
                     )
@@ -194,7 +190,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
                 )
 
                 is OrderedListItem -> Row {
-                    Text(
+                    InteractiveText(
                         text = (computedNumber++).toString() + orderedList.delimiter,
                         style = styles.listNumber
                     )
@@ -215,7 +211,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
 @Composable
 private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     val styles = DocumentTheme.current.styles
-    Text(
+    InteractiveText(
         text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier
@@ -237,7 +233,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
         val codeFenceType = codeFence.info.toString()
         val codeFenceRenderer = CodeFenceRenderers.current[codeFenceType]
         if (codeFenceRenderer == null) {
-            Text(
+            InteractiveText(
                 text = code,
                 style = styles.codeBlock.textStyle,
                 modifier = styles.codeBlock.modifier
@@ -251,7 +247,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
 @Composable
 private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     val styles = DocumentTheme.current.styles
-    Text(
+    InteractiveText(
         text = indentedCodeBlock.contentLines.joinToString(System.lineSeparator()),
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier
@@ -281,7 +277,7 @@ private fun UiHorizontalRule() {
 
 @Composable
 private fun UiUnparsedBlock(node: Node) {
-    Text(
+    InteractiveText(
         text = "!${node.nodeName}!",
         style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)
     )
@@ -291,7 +287,7 @@ private fun UiUnparsedBlock(node: Node) {
 private fun UiParagraph(paragraph: Paragraph) {
     val inlines = parseInlines(paragraph.children)
     val styles = DocumentTheme.current.styles
-    Text(
+    InteractiveText(
         text = inlines.text,
         inlineContent = inlines.inlineContent,
         style = styles.paragraph
@@ -302,7 +298,7 @@ private fun UiParagraph(paragraph: Paragraph) {
 private fun UiHeading(header: Heading) {
     val inlines = parseInlines(header.children)
     val styles = DocumentTheme.current.styles
-    Text(
+    InteractiveText(
         text = inlines.text,
         inlineContent = inlines.inlineContent,
         style = when (header.level) {

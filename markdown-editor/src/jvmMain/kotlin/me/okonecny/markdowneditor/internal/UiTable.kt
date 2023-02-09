@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.markdowneditor.internal
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -6,6 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import me.okonecny.markdowneditor.BlockStyle
+import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.TableStyle
 
 internal data class Cell(
     val text: AnnotatedString,

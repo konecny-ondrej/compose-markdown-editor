@@ -23,6 +23,11 @@ import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
+import me.okonecny.markdowneditor.internal.*
+import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
+import me.okonecny.markdowneditor.internal.RowType
+import me.okonecny.markdowneditor.internal.TableScope
+import me.okonecny.markdowneditor.internal.UiTable
 
 /**
  * A simple WYSIWYG editor for Markdown.

@@ -18,7 +18,10 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import kotlin.math.floor
 
-internal data class CursorPosition(
+/**
+ * Used as mutable state. Must stay a value object.
+ */
+data class CursorPosition(
     val componentId: InteractiveId,
     val offset: Int
 ) {
@@ -40,7 +43,7 @@ internal fun Modifier.cursorLine(
 ): Modifier {
     if (!enabled || textLayoutResult == null || offset < 0) return Modifier
 
-    return Modifier.composed {
+    return composed {
         val cursorAlpha = remember { Animatable(1f) }
         LaunchedEffect(textLayoutResult, offset) {
             // ensure that the value is always 1f _this_ frame by calling snapTo

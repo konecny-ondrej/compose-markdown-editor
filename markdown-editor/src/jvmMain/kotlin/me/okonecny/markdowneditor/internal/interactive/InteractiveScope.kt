@@ -1,20 +1,18 @@
 package me.okonecny.markdowneditor.internal.interactive
 
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import me.okonecny.markdowneditor.MarkdownDocument
 import java.util.concurrent.atomic.AtomicLong
 
 internal typealias InteractiveId = Long
 
 internal const val firstInteractiveId: InteractiveId = 0
 
-internal class InteractiveScope(
-    private val key: Any,
+class InteractiveScope(
     val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.home),
 ) {
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
+    private val registeredInteractives: MutableSet<InteractiveId> = mutableSetOf()
 
     /**
      * Generates ID for interactive components.
@@ -22,27 +20,29 @@ internal class InteractiveScope(
      */
     @Composable
     fun rememberInteractiveId(): InteractiveId =
-        rememberSaveable(
-            key,
-            saver = interactiveIdSaver()
-        ) {
+        rememberSaveable(this, key = System.identityHashCode(this).toString()) {
             currentId.getAndIncrement()
         }
 
-    private fun interactiveIdSaver() = Saver<InteractiveId, InteractiveId>(
-        save = { it },
-        restore = { it }
-    )
+    fun register(id: InteractiveId) { // TODO pass some representation of the interactive element.
+        if (registeredInteractives.contains(id)) return
+        registeredInteractives.add(id)
+    }
 }
 
-internal val LocalInteractiveScope = compositionLocalOf { InteractiveScope("") }
+internal val LocalInteractiveScope = compositionLocalOf<InteractiveScope?> { null }
 
 @Composable
-internal fun InteractiveContainer(key: Any, interactiveContent: @Composable () -> Unit) {
-    val scope: InteractiveScope = remember(key) { InteractiveScope(key) }
+fun InteractiveContainer(
+    scope: InteractiveScope? = rememberInteractiveScope(),
+    interactiveContent: @Composable () -> Unit
+) {
     CompositionLocalProvider(
         LocalInteractiveScope provides scope
     ) {
         interactiveContent()
     }
 }
+
+@Composable
+fun rememberInteractiveScope(vararg keys: Any?) = remember(keys) { InteractiveScope() }

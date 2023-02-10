@@ -25,6 +25,7 @@ import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import me.okonecny.markdowneditor.internal.*
 import me.okonecny.markdowneditor.internal.interactive.InteractiveContainer
 import me.okonecny.markdowneditor.internal.interactive.InteractiveText
+import me.okonecny.markdowneditor.internal.interactive.rememberInteractiveScope
 
 /**
  * A simple WYSIWYG editor for Markdown.
@@ -41,7 +42,13 @@ fun MarkdownEditor(
     val document = parser.parse(sourceText)
     // TODO: make the source or the AST be state so we can edit.
 
-    InteractiveContainer(sourceText) {
+    InteractiveContainer(
+        scope = if (scrollable) {
+            rememberInteractiveScope(sourceText)
+        } else {
+            null
+        }
+    ) {
         CompositionLocalProvider(
             LocalDocumentTheme provides documentTheme,
             CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)

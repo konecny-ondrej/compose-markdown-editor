@@ -18,29 +18,38 @@ internal fun InteractiveText(
     inlineContent: Map<String, InlineTextContent> = mapOf()
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var interactiveModifier: Modifier = Modifier
     val interactiveScope = LocalInteractiveScope.current
-    val interactiveId = interactiveScope.rememberInteractiveId()
 
-    val cursorPosition by interactiveScope.cursorPosition
-    // TODO: cursor
-    // TODO: move the cursor on click, to the clicked space
-    // TODO: move cursor back and forth on arrow keys, also among components
-    // TODO: selection
-    // TODO: clickable links
-    Text( // TODO: delete
-        text = interactiveId.toString()
-    )
-    Text( // TODO: use BasicText?
-        text = text,
-        style = style,
-        modifier = modifier.cursorLine(
+    if (interactiveScope != null) {
+        val interactiveId = interactiveScope.rememberInteractiveId()
+        interactiveScope.register(interactiveId)
+        val cursorPosition by interactiveScope.cursorPosition
+
+        interactiveModifier = Modifier.cursorLine(
             textLayoutResult,
             cursorPosition.offset,
             cursorPosition.componentId == interactiveId
         ).onGloballyPositioned {
             // TODO: use this to sort the interactive elements. Perhaps register the ID to somewhere.
             // see androidx.compose.foundation.text.selection.SelectionRegistrarImpl.sort
-        },
+        }
+
+        Text( // TODO: delete, used only for debugging
+            text = interactiveId.toString()
+        )
+    }
+
+    // TODO: cursor
+    // TODO: move the cursor on click, to the clicked space
+    // TODO: move cursor back and forth on arrow keys, also among components
+    // TODO: selection
+    // TODO: clickable links
+
+    Text( // TODO: use BasicText?
+        text = text,
+        style = style,
+        modifier = modifier.then(interactiveModifier),
         inlineContent = inlineContent,
         onTextLayout = { layoutResult: TextLayoutResult ->
             textLayoutResult = layoutResult

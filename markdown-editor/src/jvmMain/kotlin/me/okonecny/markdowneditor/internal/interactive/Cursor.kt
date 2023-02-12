@@ -6,6 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import kotlin.math.floor
@@ -84,3 +86,62 @@ private val cursorAnimationSpec: AnimationSpec<Float> = infiniteRepeatable(
         0f at 999
     }
 )
+
+/**
+ * Moves the cursor based on keyboard input.
+ */
+@OptIn(ExperimentalComposeUiApi::class) // Because of key codes.
+internal fun Modifier.cursorKeyboardInteraction(
+    scope: InteractiveScope,
+    onCursorPositionChanged: (CursorPosition) -> Unit
+): Modifier = onKeyEvent { keyEvent: KeyEvent ->
+    if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
+    val oldPosition = scope.cursorPosition.value
+    val oldComponentId = oldPosition.componentId
+    val oldComponent = scope.getComponent(oldComponentId)
+
+    // TODO: refactor
+    when (keyEvent.key) {
+        Key.DirectionLeft -> {
+            val newComponentId: InteractiveId = if (oldPosition.offset == oldComponent.textRange.start) {
+                scope.prev(oldComponentId)
+            } else {
+                oldComponent.id
+            }
+            val newComponent = scope.getComponent(newComponentId)
+            val newOffset = if (oldPosition.offset == oldComponent.textRange.start) {
+                if (oldComponentId == newComponentId) {
+                    oldPosition.offset // TODO: onOverscroll callback to move the window further?
+                } else {
+                    newComponent.textRange.end
+                }
+            } else {
+                oldPosition.offset - 1
+            }
+            onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            true
+        }
+
+        Key.DirectionRight -> {
+            val newComponentId: InteractiveId = if (oldPosition.offset == oldComponent.textRange.end) {
+                scope.next(oldComponentId)
+            } else {
+                oldComponent.id
+            }
+            val newComponent = scope.getComponent(newComponentId)
+            val newOffset = if (oldPosition.offset == oldComponent.textRange.end) {
+                if (oldComponentId == newComponentId) {
+                    oldPosition.offset // TODO: onOverscroll callback to move the window further?
+                } else {
+                    newComponent.textRange.start
+                }
+            } else {
+                oldPosition.offset + 1
+            }
+            onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            true
+        }
+        // TODO: handle up and down keys, page up and page down, too.
+        else -> false
+    }
+}

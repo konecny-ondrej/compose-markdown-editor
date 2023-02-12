@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 
@@ -25,16 +26,21 @@ internal fun InteractiveText(
 
     if (interactiveScope != null) {
         val interactiveId = interactiveScope.rememberInteractiveId()
-        interactiveScope.register(interactiveId)
         val cursorPosition by interactiveScope.cursorPosition
 
         interactiveModifier = Modifier.cursorLine(
             textLayoutResult,
             cursorPosition.offset,
             cursorPosition.componentId == interactiveId
-        ).onGloballyPositioned {
-            // TODO: use this to sort the interactive elements. Perhaps register the ID to somewhere.
-            // see androidx.compose.foundation.text.selection.SelectionRegistrarImpl.sort
+        ).onGloballyPositioned { layoutCoordinates ->
+            interactiveScope.register(
+                Interactive( // TODO unregister when removed from composition
+                    id = interactiveId,
+                    layoutCoordinates = layoutCoordinates,
+                    textRange = TextRange(0, text.length)
+                )
+            )
+
         }
 
         Text( // TODO: delete, used only for debugging

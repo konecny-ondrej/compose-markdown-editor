@@ -148,7 +148,7 @@ private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String
             } else {
                 bulletOrDelimiter
             },
-            style = styles.listNumber
+            style = styles.listNumber,
         )
         Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = null)
         Column {
@@ -170,7 +170,7 @@ private fun UiBulletList(unorderedList: BulletList) {
                 is BulletListItem -> Row {
                     InteractiveText(
                         text = bullet,
-                        style = styles.listNumber
+                        style = styles.listNumber,
                     )
                     Column {
                         child.children.forEach { listItemContent ->
@@ -202,7 +202,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
                 is OrderedListItem -> Row {
                     InteractiveText(
                         text = (computedNumber++).toString() + orderedList.delimiter,
-                        style = styles.listNumber
+                        style = styles.listNumber,
                     )
                     Column {
                         child.children.forEach { listItemContent ->
@@ -224,7 +224,7 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     InteractiveText(
         text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
         style = styles.codeBlock.textStyle,
-        modifier = styles.codeBlock.modifier
+        modifier = styles.codeBlock.modifier,
     )
 }
 
@@ -246,7 +246,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
             InteractiveText(
                 text = code,
                 style = styles.codeBlock.textStyle,
-                modifier = styles.codeBlock.modifier
+                modifier = styles.codeBlock.modifier,
             )
         } else {
             codeFenceRenderer.render(code.text)
@@ -260,7 +260,7 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     InteractiveText(
         text = indentedCodeBlock.contentLines.joinToString(System.lineSeparator()),
         style = styles.codeBlock.textStyle,
-        modifier = styles.codeBlock.modifier
+        modifier = styles.codeBlock.modifier,
     )
 }
 
@@ -289,7 +289,7 @@ private fun UiHorizontalRule() {
 private fun UiUnparsedBlock(node: Node) {
     InteractiveText(
         text = "!${node.nodeName}!",
-        style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)
+        style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan),
     )
 }
 
@@ -299,8 +299,8 @@ private fun UiParagraph(paragraph: Paragraph) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = inlines.text,
+        style = styles.paragraph,
         inlineContent = inlines.inlineContent,
-        style = styles.paragraph
     )
 }
 
@@ -310,7 +310,6 @@ private fun UiHeading(header: Heading) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = inlines.text,
-        inlineContent = inlines.inlineContent,
         style = when (header.level) {
             1 -> styles.h1
             2 -> styles.h2
@@ -319,7 +318,8 @@ private fun UiHeading(header: Heading) {
             5 -> styles.h5
             6 -> styles.h6
             else -> styles.h1
-        }
+        },
+        inlineContent = inlines.inlineContent,
     )
 }
 

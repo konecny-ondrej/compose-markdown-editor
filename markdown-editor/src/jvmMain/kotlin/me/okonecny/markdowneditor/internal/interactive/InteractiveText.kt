@@ -9,13 +9,15 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 internal fun InteractiveText(
     text: AnnotatedString,
     style: TextStyle = LocalTextStyle.current,
     modifier: Modifier = Modifier,
-    inlineContent: Map<String, InlineTextContent> = mapOf()
+    inlineContent: Map<String, InlineTextContent> = mapOf(),
+    textAlign: TextAlign? = null
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     var interactiveModifier: Modifier = Modifier
@@ -50,6 +52,7 @@ internal fun InteractiveText(
         text = text,
         style = style,
         modifier = modifier.then(interactiveModifier),
+        textAlign = textAlign,
         inlineContent = inlineContent,
         onTextLayout = { layoutResult: TextLayoutResult ->
             textLayoutResult = layoutResult
@@ -61,5 +64,6 @@ internal fun InteractiveText(
 internal fun InteractiveText(
     text: String,
     style: TextStyle = LocalTextStyle.current,
-    modifier: Modifier = Modifier
-) = InteractiveText(AnnotatedString(text), style, modifier)
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null
+) = InteractiveText(AnnotatedString(text), style, modifier, mapOf(), textAlign)

@@ -18,10 +18,10 @@ class InteractiveScope(
     internal var containerCoordinates: LayoutCoordinates? = null
 
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
-    private val registeredComponents: MutableMap<InteractiveId, Interactive> = mutableMapOf()
-    private val interactiveComponents: MutableList<Interactive> = mutableListOf()
+    private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
+    private val interactiveComponents: MutableList<InteractiveComponent> = mutableListOf()
     private var sorted: Boolean = false
-    private val sortedInteractiveComponents: List<Interactive>
+    private val sortedInteractiveComponents: List<InteractiveComponent>
         get() = sortInteractiveComponentsVisually()
 
     /**
@@ -34,14 +34,14 @@ class InteractiveScope(
             currentId.getAndIncrement()
         }
 
-    fun register(component: Interactive) {
+    fun register(component: InteractiveComponent) {
         if (registeredComponents.contains(component.id)) return
         registeredComponents[component.id] = component
         interactiveComponents.add(component)
         sorted = false
     }
 
-    fun getComponent(id: InteractiveId): Interactive = registeredComponents[id]
+    fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 
     fun next(id: InteractiveId): InteractiveId {
@@ -62,7 +62,7 @@ class InteractiveScope(
         ].id
     }
 
-    private fun sortInteractiveComponentsVisually(): List<Interactive> {
+    private fun sortInteractiveComponentsVisually(): List<InteractiveComponent> {
         if (!sorted) {
             interactiveComponents.sortWith(::visualComparison)
             sorted = true
@@ -70,7 +70,7 @@ class InteractiveScope(
         return interactiveComponents
     }
 
-    private fun visualComparison(a: Interactive, b: Interactive): Int {
+    private fun visualComparison(a: InteractiveComponent, b: InteractiveComponent): Int {
         val layoutCoordinatesA = a.layoutCoordinates
         val layoutCoordinatesB = b.layoutCoordinates
         // TODO: check that both coordinates are attached.

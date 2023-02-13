@@ -28,24 +28,21 @@ internal fun InteractiveText(
         val interactiveId = interactiveScope.rememberInteractiveId()
         val cursorPosition by interactiveScope.cursorPosition
 
-        interactiveModifier = Modifier.cursorLine(
-            textLayoutResult,
-            cursorPosition.offset,
-            cursorPosition.componentId == interactiveId
-        ).onGloballyPositioned { layoutCoordinates ->
-            interactiveScope.register(
-                Interactive( // TODO unregister when removed from composition
-                    id = interactiveId,
-                    layoutCoordinates = layoutCoordinates,
-                    textRange = TextRange(0, text.length)
+        interactiveModifier = Modifier
+            .cursorLine(
+                textLayoutResult,
+                cursorPosition.offset,
+                cursorPosition.componentId == interactiveId
+            ).onGloballyPositioned { layoutCoordinates ->
+                interactiveScope.register(
+                    InteractiveComponent( // TODO unregister when removed from composition
+                        id = interactiveId,
+                        layoutCoordinates = layoutCoordinates,
+                        textRange = TextRange(0, text.length),
+                        textLayoutResult = textLayoutResult
+                    )
                 )
-            )
-
-        }
-
-        Text( // TODO: delete, used only for debugging
-            text = interactiveId.toString()
-        )
+            }
     }
 
     // TODO: cursor

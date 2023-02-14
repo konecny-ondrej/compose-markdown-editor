@@ -44,22 +44,22 @@ class InteractiveScope(
     fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 
-    fun next(id: InteractiveId): InteractiveId {
-        val thisInteractive = registeredComponents[id]
-            ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
-        val thisPosition = sortedInteractiveComponents.indexOf(thisInteractive)
+    fun nextTo(component: InteractiveComponent): InteractiveComponent {
+        val registeredComponent = registeredComponents[component.id]
+            ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
+        val registeredPosition = sortedInteractiveComponents.indexOf(registeredComponent)
         return sortedInteractiveComponents[
-            (thisPosition + 1).coerceAtMost(sortedInteractiveComponents.lastIndex)
-        ].id
+            (registeredPosition + 1).coerceAtMost(sortedInteractiveComponents.lastIndex)
+        ]
     }
 
-    fun prev(id: InteractiveId): InteractiveId {
-        val thisInteractive = registeredComponents[id]
-            ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
-        val thisPosition = sortedInteractiveComponents.indexOf(thisInteractive)
+    fun prevTo(component: InteractiveComponent): InteractiveComponent {
+        val registeredComponent = registeredComponents[component.id]
+            ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
+        val registeredPosition = sortedInteractiveComponents.indexOf(registeredComponent)
         return sortedInteractiveComponents[
-            (thisPosition - 1).coerceAtLeast(0)
-        ].id
+            (registeredPosition - 1).coerceAtLeast(0)
+        ]
     }
 
     private fun sortInteractiveComponentsVisually(): List<InteractiveComponent> {

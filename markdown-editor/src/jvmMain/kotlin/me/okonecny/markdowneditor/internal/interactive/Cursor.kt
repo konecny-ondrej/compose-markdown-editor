@@ -97,20 +97,18 @@ internal fun Modifier.cursorKeyboardInteraction(
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
     val oldPosition = scope.cursorPosition.value
-    val oldComponentId = oldPosition.componentId
-    val oldComponent = scope.getComponent(oldComponentId)
+    val oldComponent = scope.getComponent(oldPosition.componentId)
 
     // TODO: refactor
     when (keyEvent.key) {
         Key.DirectionLeft -> {
-            val newComponentId: InteractiveId = if (oldPosition.offset == oldComponent.textRange.start) {
-                scope.prev(oldComponentId)
+            val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.start) {
+                scope.prevTo(oldComponent)
             } else {
-                oldComponent.id
+                oldComponent
             }
-            val newComponent = scope.getComponent(newComponentId)
             val newOffset = if (oldPosition.offset == oldComponent.textRange.start) {
-                if (oldComponentId == newComponentId) {
+                if (oldComponent == newComponent) {
                     oldPosition.offset // TODO: onOverscroll callback to move the window further?
                 } else {
                     newComponent.textRange.end
@@ -118,19 +116,18 @@ internal fun Modifier.cursorKeyboardInteraction(
             } else {
                 oldPosition.offset - 1
             }
-            onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            onCursorPositionChanged(CursorPosition(newComponent.id, newOffset))
             true
         }
 
         Key.DirectionRight -> {
-            val newComponentId: InteractiveId = if (oldPosition.offset == oldComponent.textRange.end) {
-                scope.next(oldComponentId)
+            val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.end) {
+                scope.nextTo(oldComponent)
             } else {
-                oldComponent.id
+                oldComponent
             }
-            val newComponent = scope.getComponent(newComponentId)
             val newOffset = if (oldPosition.offset == oldComponent.textRange.end) {
-                if (oldComponentId == newComponentId) {
+                if (oldComponent == newComponent) {
                     oldPosition.offset // TODO: onOverscroll callback to move the window further?
                 } else {
                     newComponent.textRange.start
@@ -138,7 +135,7 @@ internal fun Modifier.cursorKeyboardInteraction(
             } else {
                 oldPosition.offset + 1
             }
-            onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            onCursorPositionChanged(CursorPosition(newComponent.id, newOffset))
             true
         }
 
@@ -147,7 +144,7 @@ internal fun Modifier.cursorKeyboardInteraction(
             if (oldTextLayout == null) {
                 onCursorPositionChanged(
                     CursorPosition(
-                        scope.next(oldComponentId),
+                        scope.nextTo(oldComponent).id,
                         0
                     )
                 ) // TODO: find component below the old one. Will be useful for tables.
@@ -155,12 +152,11 @@ internal fun Modifier.cursorKeyboardInteraction(
                 val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
                 val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
                 val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
-                val newComponentId = if (oldWasLastLine) {
-                    scope.next(oldComponentId) // TODO: find component below the old one. Will be useful for tables.
+                val newComponent: InteractiveComponent = if (oldWasLastLine) {
+                    scope.nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
                 } else {
-                    oldComponent.id
+                    oldComponent
                 }
-                val newComponent = scope.getComponent(newComponentId)
                 val newTextLayoutResult = newComponent.textLayoutResult
                 val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
                     0
@@ -172,7 +168,7 @@ internal fun Modifier.cursorKeyboardInteraction(
                         oldLineOffset
                     }
                 }
-                onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+                onCursorPositionChanged(CursorPosition(newComponent.id, newOffset))
             }
             true
         }
@@ -182,7 +178,7 @@ internal fun Modifier.cursorKeyboardInteraction(
             if (oldTextLayout == null) {
                 onCursorPositionChanged(
                     CursorPosition(
-                        scope.prev(oldComponentId),
+                        scope.prevTo(oldComponent).id,
                         0
                     )
                 ) // TODO: find component above the old one. Will be useful for tables.
@@ -190,12 +186,11 @@ internal fun Modifier.cursorKeyboardInteraction(
                 val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
                 val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
                 val oldWasFirstLine = oldLine == 0
-                val newComponentId = if (oldWasFirstLine) {
-                    scope.prev(oldComponentId) // TODO: find component above the old one. Will be useful for tables.
+                val newComponent: InteractiveComponent = if (oldWasFirstLine) {
+                    scope.prevTo(oldComponent) // TODO: find component above the old one. Will be useful for tables.
                 } else {
-                    oldComponent.id
+                    oldComponent
                 }
-                val newComponent = scope.getComponent(newComponentId)
                 val newTextLayoutResult = newComponent.textLayoutResult
                 val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
                     0
@@ -207,7 +202,7 @@ internal fun Modifier.cursorKeyboardInteraction(
                         oldLineOffset
                     }
                 }
-                onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+                onCursorPositionChanged(CursorPosition(newComponent.id, newOffset))
             }
             true
         }

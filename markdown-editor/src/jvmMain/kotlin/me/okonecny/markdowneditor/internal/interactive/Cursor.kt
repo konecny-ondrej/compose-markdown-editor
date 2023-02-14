@@ -141,6 +141,77 @@ internal fun Modifier.cursorKeyboardInteraction(
             onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
             true
         }
+
+        Key.DirectionDown -> {
+            val oldTextLayout = oldComponent.textLayoutResult
+            if (oldTextLayout == null) {
+                onCursorPositionChanged(
+                    CursorPosition(
+                        scope.next(oldComponentId),
+                        0
+                    )
+                ) // TODO: find component below the old one. Will be useful for tables.
+            } else {
+                val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
+                val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
+                val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
+                val newComponentId = if (oldWasLastLine) {
+                    scope.next(oldComponentId) // TODO: find component below the old one. Will be useful for tables.
+                } else {
+                    oldComponent.id
+                }
+                val newComponent = scope.getComponent(newComponentId)
+                val newTextLayoutResult = newComponent.textLayoutResult
+                val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
+                    0
+                } else {
+                    val lineEnd = newTextLayoutResult.getLineEnd(0, true)
+                    if (lineEnd < oldLineOffset) {
+                        lineEnd
+                    } else {
+                        oldLineOffset
+                    }
+                }
+                onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            }
+            true
+        }
+
+        Key.DirectionUp -> {
+            val oldTextLayout = oldComponent.textLayoutResult
+            if (oldTextLayout == null) {
+                onCursorPositionChanged(
+                    CursorPosition(
+                        scope.prev(oldComponentId),
+                        0
+                    )
+                ) // TODO: find component above the old one. Will be useful for tables.
+            } else {
+                val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
+                val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
+                val oldWasFirstLine = oldLine == 0
+                val newComponentId = if (oldWasFirstLine) {
+                    scope.prev(oldComponentId) // TODO: find component above the old one. Will be useful for tables.
+                } else {
+                    oldComponent.id
+                }
+                val newComponent = scope.getComponent(newComponentId)
+                val newTextLayoutResult = newComponent.textLayoutResult
+                val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
+                    0
+                } else {
+                    val lineEnd = newTextLayoutResult.getLineEnd(0, true)
+                    if (lineEnd < oldLineOffset) {
+                        lineEnd
+                    } else {
+                        oldLineOffset
+                    }
+                }
+                onCursorPositionChanged(CursorPosition(newComponentId, newOffset))
+            }
+            true
+        }
+
         // TODO: handle up and down keys, page up and page down, too.
         else -> false
     }

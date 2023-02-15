@@ -29,4 +29,15 @@ data class InteractiveComponent(
      * Used for cursor movement.
      */
     val textLayoutResult: TextLayoutResult?
-)
+) {
+    /**
+     * True if the component contains any text. False otherwise.
+     */
+    val hasText: Boolean get() = textLayoutResult != null && !textRange.collapsed
+
+    /**
+     * True if the text contained in this component has more than one line.
+     * False if the component has no text or the contained text is just one line.
+     */
+    val isMultiline: Boolean get() = hasText && textLayoutResult != null && textLayoutResult.lineCount > 1
+}

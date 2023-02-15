@@ -87,31 +87,35 @@ private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): Curso
 private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {
     val oldComponent = getComponent(oldPosition.componentId)
     val oldTextLayout = oldComponent.textLayoutResult
-    if (oldTextLayout == null) {
+
+    if (oldTextLayout == null || !oldComponent.hasText) {
         // TODO: find component below the old one. Will be useful for tables.
         return CursorPosition(nextTo(oldComponent).id, 0)
-    } else {
-        val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
-        val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
-        val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
-        val newComponent: InteractiveComponent = if (oldWasLastLine) {
-            nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
-        } else {
-            oldComponent
-        }
-        val newTextLayoutResult = newComponent.textLayoutResult
-        val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
-            0
-        } else {
-            val lineEnd = newTextLayoutResult.getLineEnd(0, true)
-            if (lineEnd < oldLineOffset) {
-                lineEnd
-            } else {
-                oldLineOffset
-            }
-        }
-        return CursorPosition(newComponent.id, newOffset)
     }
+
+    val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
+    val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
+    val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
+
+    val newComponent: InteractiveComponent = if (oldWasLastLine) {
+        nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
+    } else {
+        oldComponent
+    }
+    // TODO: Move to next line
+
+    val newTextLayoutResult = newComponent.textLayoutResult
+    val newOffset = if (newTextLayoutResult == null || newTextLayoutResult.lineCount < 1) {
+        0
+    } else {
+        val lineEnd = newTextLayoutResult.getLineEnd(0, true)
+        if (lineEnd < oldLineOffset) {
+            lineEnd
+        } else {
+            oldLineOffset
+        }
+    }
+    return CursorPosition(newComponent.id, newOffset)
 }
 
 private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {

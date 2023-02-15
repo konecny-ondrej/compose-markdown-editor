@@ -62,15 +62,23 @@ class InteractiveScope(
         ]
     }
 
+    fun above(component: InteractiveComponent): InteractiveComponent {
+        return component // TODO
+    }
+
+    fun below(component: InteractiveComponent): InteractiveComponent {
+        return component // TODO
+    }
+
     private fun sortInteractiveComponentsVisually(): List<InteractiveComponent> {
         if (!sorted) {
-            interactiveComponents.sortWith(::visualComparison)
+            interactiveComponents.sortWith(::linearComparison)
             sorted = true
         }
         return interactiveComponents
     }
 
-    private fun visualComparison(a: InteractiveComponent, b: InteractiveComponent): Int {
+    private fun linearComparison(a: InteractiveComponent, b: InteractiveComponent): Int {
         val layoutCoordinatesA = a.layoutCoordinates
         val layoutCoordinatesB = b.layoutCoordinates
         // TODO: check that both coordinates are attached.

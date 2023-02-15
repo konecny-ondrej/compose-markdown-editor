@@ -38,7 +38,7 @@ fun InteractiveContainer(
                 .onGloballyPositioned { layoutCoordinates ->
                     scope.containerCoordinates = layoutCoordinates
                 }
-                .cursorKeyboardInteraction(scope) { newCursorPosition ->
+                .keyboardCursorMovement(scope) { newCursorPosition ->
                     scope.cursorPosition.value = newCursorPosition
                 }
                 .clickable(

@@ -21,8 +21,8 @@ class InteractiveScope(
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
     private val interactiveComponents: MutableList<InteractiveComponent> = mutableListOf()
     private var sorted: Boolean = false
-    private val sortedInteractiveComponents: List<InteractiveComponent>
-        get() = sortInteractiveComponentsVisually()
+    private val componentsInLineOrder: List<InteractiveComponent> // TODO: Move to InteractiveComponentLayout
+        get() = sortInteractiveComponentsToLines()
 
     /**
      * Generates ID for interactive components.
@@ -47,30 +47,22 @@ class InteractiveScope(
     fun nextTo(component: InteractiveComponent): InteractiveComponent {
         val registeredComponent = registeredComponents[component.id]
             ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
-        val registeredPosition = sortedInteractiveComponents.indexOf(registeredComponent)
-        return sortedInteractiveComponents[
-            (registeredPosition + 1).coerceAtMost(sortedInteractiveComponents.lastIndex)
+        val registeredPosition = componentsInLineOrder.indexOf(registeredComponent)
+        return componentsInLineOrder[
+            (registeredPosition + 1).coerceAtMost(componentsInLineOrder.lastIndex)
         ]
     }
 
     fun prevTo(component: InteractiveComponent): InteractiveComponent {
         val registeredComponent = registeredComponents[component.id]
             ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
-        val registeredPosition = sortedInteractiveComponents.indexOf(registeredComponent)
-        return sortedInteractiveComponents[
+        val registeredPosition = componentsInLineOrder.indexOf(registeredComponent)
+        return componentsInLineOrder[
             (registeredPosition - 1).coerceAtLeast(0)
         ]
     }
 
-    fun above(component: InteractiveComponent): InteractiveComponent {
-        return component // TODO
-    }
-
-    fun below(component: InteractiveComponent): InteractiveComponent {
-        return component // TODO
-    }
-
-    private fun sortInteractiveComponentsVisually(): List<InteractiveComponent> {
+    private fun sortInteractiveComponentsToLines(): List<InteractiveComponent> {
         if (!sorted) {
             interactiveComponents.sortWith(::linearComparison)
             sorted = true

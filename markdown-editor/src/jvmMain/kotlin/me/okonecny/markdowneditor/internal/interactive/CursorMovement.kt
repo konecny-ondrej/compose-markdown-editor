@@ -38,7 +38,17 @@ internal fun Modifier.keyboardCursorMovement(
             true
         }
 
-        // TODO: handle home, end, page up and page down, too.
+        Key.MoveHome -> {
+            onCursorPositionChanged(scope.moveCursorHome(oldPosition))
+            true
+        }
+
+        Key.MoveEnd -> {
+            onCursorPositionChanged(scope.moveCursorToEnd(oldPosition))
+            true
+        }
+
+        // TODO: handle page up and page down, too.
         else -> false
     }
 }
@@ -63,7 +73,7 @@ private fun InteractiveScope.moveCursorByLine(cursorPosition: CursorPosition, li
     val positionOnLine = getOffsetFromLineStart(cursorPosition)
     val newLineStart = textLayout.getLineStart(newLine)
     val newCursorOffset = (newLineStart + positionOnLine)
-        .coerceAtMost(textLayout.getLineEnd(newLine))
+        .coerceAtMost(textLayout.getLineEnd(newLine, true))
         .coerceAtLeast(newLineStart)
     return CursorPosition(component.id, newCursorOffset)
 }
@@ -123,6 +133,27 @@ private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPo
     val newTextOffset = (newLastLineStart + getOffsetFromLineStart(oldPosition))
         .coerceAtMost(newTextLayout.getLineEnd(newLastLine))
     return CursorPosition(componentAbove.id, newTextOffset)
+}
+
+private fun InteractiveScope.moveCursorHome(oldPosition: CursorPosition): CursorPosition {
+    val offsetFromLineStart = getOffsetFromLineStart(oldPosition)
+    if (offsetFromLineStart > 0) return CursorPosition(
+        oldPosition.componentId,
+        oldPosition.offset - offsetFromLineStart
+    )
+    // Try to move to the leftmost component if we are already at the line start?
+    return oldPosition
+}
+
+private fun InteractiveScope.moveCursorToEnd(oldPosition: CursorPosition): CursorPosition {
+    val component = getComponent(oldPosition.componentId)
+    val textLayout = component.textLayoutResult
+    if (!component.hasText || textLayout == null) return oldPosition
+    // Try to move to the rightmost component if we are already at the line end?
+    return CursorPosition(
+        oldPosition.componentId,
+        (textLayout.getLineEnd(textLayout.getLineForOffset(oldPosition.offset), true))
+    )
 }
 
 private fun InteractiveScope.getOffsetFromLineStart(cursorPosition: CursorPosition): Int {

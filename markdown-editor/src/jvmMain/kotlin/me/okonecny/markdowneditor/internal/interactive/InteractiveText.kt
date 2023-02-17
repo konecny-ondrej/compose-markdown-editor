@@ -52,9 +52,6 @@ internal fun InteractiveText(
         }
     }
 
-    // TODO: cursor
-    // TODO: move the cursor on click, to the clicked space
-    // TODO: move cursor back and forth on arrow keys, also among components
     // TODO: selection
     // TODO: clickable links
 

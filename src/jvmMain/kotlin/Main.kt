@@ -6,6 +6,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -44,7 +45,15 @@ fun App() {
 
 fun main() = application {
     MainComponent::class.create()
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "WhoDoes",
+        icon = painterResource("/app-icon.svg")
+        /**
+         * Vectors and icons by <a href="https://dribbble.com/trianglesquad?ref=svgrepo.com" target="_blank">Trianglesquad</a>
+         * in CC Attribution License via <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>
+         */
+    ) {
         App()
     }
 }

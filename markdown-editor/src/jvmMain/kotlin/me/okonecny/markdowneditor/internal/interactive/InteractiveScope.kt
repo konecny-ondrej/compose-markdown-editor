@@ -10,9 +10,10 @@ import java.util.concurrent.atomic.AtomicLong
 internal typealias InteractiveId = Long
 
 internal const val firstInteractiveId: InteractiveId = 0
+internal const val invalidInteractiveId: InteractiveId = -1
 
 class InteractiveScope(
-    val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.home),
+    val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.invalid),
 ) {
     private var componentLayout: InteractiveComponentLayout? = null
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
@@ -24,7 +25,11 @@ class InteractiveScope(
     @Composable
     fun rememberInteractiveId(): InteractiveId =
         rememberSaveable(this, key = System.identityHashCode(this).toString()) {
-            currentId.getAndIncrement()
+            var newId = currentId.getAndIncrement()
+            while (newId == invalidInteractiveId) {
+                newId = currentId.getAndIncrement()
+            }
+            newId
         }
 
     internal fun requireComponentLayout(): InteractiveComponentLayout =

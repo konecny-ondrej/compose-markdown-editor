@@ -26,8 +26,10 @@ data class CursorPosition(
     val offset: Int
 ) {
     companion object {
-        val home = CursorPosition(firstInteractiveId, 0)
+        val invalid = CursorPosition(invalidInteractiveId, 0)
     }
+
+    val isValid: Boolean get() = componentId != invalidInteractiveId
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -46,8 +48,6 @@ data class CursorPosition(
         result = 31 * result + offset
         return result
     }
-
-
 }
 
 /**

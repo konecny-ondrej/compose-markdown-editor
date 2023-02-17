@@ -18,6 +18,7 @@ internal fun Modifier.keyboardCursorMovement(
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
     val oldPosition by scope.cursorPosition
+    if (!oldPosition.isValid) return@onKeyEvent false
     when (keyEvent.key) {
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionLeft -> {

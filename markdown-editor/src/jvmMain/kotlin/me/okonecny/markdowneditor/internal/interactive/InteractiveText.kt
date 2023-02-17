@@ -46,6 +46,8 @@ internal fun InteractiveText(
         DisposableEffect(interactiveScope) {
             onDispose {
                 interactiveScope.unregister(interactiveId)
+                if (cursorPosition.componentId != interactiveId) return@onDispose
+                interactiveScope.cursorPosition.value = CursorPosition.invalid
             }
         }
     }

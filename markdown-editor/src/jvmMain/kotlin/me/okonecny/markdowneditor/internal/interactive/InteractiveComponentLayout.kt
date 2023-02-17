@@ -50,11 +50,12 @@ internal class InteractiveComponentLayout(
     }
 
     /**
-     * Finds the component, whose center is the closest to the specified point.
+     * Finds the component, whose center is the closest to the specified point,
+     * preferring components horizontally adjacent.
      */
     fun componentClosestTo(visualOffset: Offset): InteractiveComponent {
         fun computeDistance(offset1: Offset, offset2: Offset): Float =
-            abs(offset1.x - offset2.x) + abs(offset1.y - offset2.y) // Use geometric instead of Manhattan metric?
+            abs(offset1.x - offset2.x) + (abs(offset1.y - offset2.y) * 5) // Use geometric instead of Manhattan metric?
 
         var closestComponent = requireFirstComponent()
         var closestDistance = computeDistance(

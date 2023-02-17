@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
 import kotlin.math.abs
+import kotlin.math.max
 
 internal class InteractiveComponentLayout(
     internal val containerCoordinates: LayoutCoordinates
@@ -106,11 +107,15 @@ internal class InteractiveComponentLayout(
      */
     fun componentAbove(visualOffset: Offset): InteractiveComponent =
         findClosestComponent(visualOffset) { componentBounds ->
-            if (componentBounds.bottom >= visualOffset.y) {
-                Float.MAX_VALUE
-            } else {
-                visualOffset.y - componentBounds.bottom
-            }
+            // Don't consider components below.
+            if (componentBounds.bottom >= visualOffset.y) return@findClosestComponent Float.MAX_VALUE
+            var disadvantage = 0f
+            // Prefer components in the vertical general direction.
+            disadvantage += max(
+                (visualOffset.x - componentBounds.right).coerceAtLeast(0f), // Disadvantage for components left of.
+                (componentBounds.left - visualOffset.x).coerceAtLeast(0f) // Disadvantage for components right of.
+            ) / 100f // It must not be better to skip a line.
+            visualOffset.y - componentBounds.bottom + disadvantage
         }
 
     /**
@@ -119,11 +124,15 @@ internal class InteractiveComponentLayout(
      */
     fun componentBelow(visualOffset: Offset): InteractiveComponent =
         findClosestComponent(visualOffset) { componentBounds ->
-            if (componentBounds.top <= visualOffset.y) {
-                Float.MAX_VALUE
-            } else {
-                componentBounds.top - visualOffset.y
-            }
+            // Don't consider components above.
+            if (componentBounds.top <= visualOffset.y) return@findClosestComponent Float.MAX_VALUE
+            var disadvantage = 0f
+            // Prefer components in the vertical general direction.
+            disadvantage += max(
+                (visualOffset.x - componentBounds.right).coerceAtLeast(0f), // Disadvantage for components left of.
+                (componentBounds.left - visualOffset.x).coerceAtLeast(0f) // Disadvantage for components right of.
+            ) / 100f // It must not be better to skip a line.
+            componentBounds.top - visualOffset.y + disadvantage
         }
 
     /**
@@ -132,11 +141,9 @@ internal class InteractiveComponentLayout(
      */
     fun componentLeftOf(visualOffset: Offset): InteractiveComponent =
         findClosestComponent(visualOffset) { componentBounds ->
-            if (componentBounds.right >= visualOffset.x) {
-                Float.MAX_VALUE
-            } else {
-                visualOffset.x - componentBounds.right
-            }
+            // Don't consider components right of this one.
+            if (componentBounds.right >= visualOffset.x) return@findClosestComponent Float.MAX_VALUE
+            visualOffset.x - componentBounds.right
         }
 
     /**
@@ -145,11 +152,9 @@ internal class InteractiveComponentLayout(
      */
     fun componentRightOf(visualOffset: Offset): InteractiveComponent =
         findClosestComponent(visualOffset) { componentBounds ->
-            if (componentBounds.left <= visualOffset.x) {
-                Float.MAX_VALUE
-            } else {
-                componentBounds.right - visualOffset.x
-            }
+            // Don't consider components left of this one.
+            if (componentBounds.left <= visualOffset.x) return@findClosestComponent Float.MAX_VALUE
+            componentBounds.right - visualOffset.x
         }
 
     fun componentNextOnLineTo(component: InteractiveComponent): InteractiveComponent {

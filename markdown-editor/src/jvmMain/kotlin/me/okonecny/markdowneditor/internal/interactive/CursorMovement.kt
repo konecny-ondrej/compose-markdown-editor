@@ -43,45 +43,34 @@ internal fun Modifier.keyboardCursorMovement(
     }
 }
 
+private fun InteractiveScope.moveCursorByChars(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
+    val component = getComponent(cursorPosition.componentId)
+    val newOffset = (cursorPosition.offset + charOffset)
+        .coerceAtMost(component.textRange.end)
+        .coerceAtLeast(component.textRange.start)
+    return CursorPosition(component.id, newOffset)
+}
 
 private fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition {
-    val oldComponent = getComponent(oldPosition.componentId)
+    val lineCursorPosition = moveCursorByChars(oldPosition, -1)
+    if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.start) {
-        requireComponentLayout().prevTo(oldComponent)
-    } else {
-        oldComponent
-    }
-    val newOffset = if (oldPosition.offset == oldComponent.textRange.start) {
-        if (oldComponent == newComponent) {
-            oldPosition.offset // TODO: onOverscroll callback to move the window further?
-        } else {
-            newComponent.textRange.end
-        }
-    } else {
-        oldPosition.offset - 1
-    }
-    return CursorPosition(newComponent.id, newOffset)
+    val oldComponent = getComponent(oldPosition.componentId)
+    val newComponent: InteractiveComponent = requireComponentLayout().componentPreviousOnLineFrom(oldComponent)
+    if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
+
+    return CursorPosition(newComponent.id, newComponent.textRange.end)
 }
 
 private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
-    val oldComponent = getComponent(oldPosition.componentId)
+    val lineCursorPosition = moveCursorByChars(oldPosition, 1)
+    if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.end) {
-        requireComponentLayout().nextTo(oldComponent)
-    } else {
-        oldComponent
-    }
-    val newOffset = if (oldPosition.offset == oldComponent.textRange.end) {
-        if (oldComponent == newComponent) {
-            oldPosition.offset // TODO: onOverscroll callback to move the window further?
-        } else {
-            newComponent.textRange.start
-        }
-    } else {
-        oldPosition.offset + 1
-    }
-    return CursorPosition(newComponent.id, newOffset)
+    val oldComponent = getComponent(oldPosition.componentId)
+    val newComponent: InteractiveComponent = requireComponentLayout().componentNextOnLineTo(oldComponent)
+    if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
+
+    return CursorPosition(newComponent.id, newComponent.textRange.start)
 }
 
 private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {
@@ -90,7 +79,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
 
     if (oldTextLayout == null || !oldComponent.hasText) {
         // TODO: find component below the old one. Will be useful for tables.
-        return CursorPosition(requireComponentLayout().nextTo(oldComponent).id, 0)
+        return CursorPosition(requireComponentLayout().componentNextOnLineTo(oldComponent).id, 0)
     }
 
     val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
@@ -98,7 +87,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
     val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
 
     val newComponent: InteractiveComponent = if (oldWasLastLine) {
-        requireComponentLayout().nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
+        requireComponentLayout().componentNextOnLineTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
     } else {
         oldComponent
     }
@@ -124,13 +113,13 @@ private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPo
     val oldTextLayout = oldComponent.textLayoutResult
     if (oldTextLayout == null) {
         // TODO: find component above the old one. Will be useful for tables.
-        return CursorPosition(requireComponentLayout().prevTo(oldComponent).id, 0)
+        return CursorPosition(requireComponentLayout().componentPreviousOnLineFrom(oldComponent).id, 0)
     } else {
         val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
         val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
         val oldWasFirstLine = oldLine == 0
         val newComponent: InteractiveComponent = if (oldWasFirstLine) {
-            requireComponentLayout().prevTo(oldComponent) // TODO: find component above the old one. Will be useful for tables.
+            requireComponentLayout().componentPreviousOnLineFrom(oldComponent) // TODO: find component above the old one. Will be useful for tables.
         } else {
             oldComponent
         }

@@ -28,6 +28,26 @@ data class CursorPosition(
     companion object {
         val home = CursorPosition(firstInteractiveId, 0)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CursorPosition
+
+        if (componentId != other.componentId) return false
+        if (offset != other.offset) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = componentId.hashCode()
+        result = 31 * result + offset
+        return result
+    }
+
+
 }
 
 /**

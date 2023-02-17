@@ -137,7 +137,7 @@ internal class InteractiveComponentLayout(
             }
         }
 
-    fun nextTo(component: InteractiveComponent): InteractiveComponent {
+    fun componentNextOnLineTo(component: InteractiveComponent): InteractiveComponent {
         val registeredComponent = registeredComponents[component.id]
             ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
         val registeredPosition = componentsInLineOrder.indexOf(registeredComponent)
@@ -146,7 +146,7 @@ internal class InteractiveComponentLayout(
         ]
     }
 
-    fun prevTo(component: InteractiveComponent): InteractiveComponent {
+    fun componentPreviousOnLineFrom(component: InteractiveComponent): InteractiveComponent {
         val registeredComponent = registeredComponents[component.id]
             ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
         val registeredPosition = componentsInLineOrder.indexOf(registeredComponent)

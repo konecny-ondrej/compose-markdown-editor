@@ -34,6 +34,19 @@ internal class InteractiveComponentLayout(
     }
 
     /**
+     * Find the visual position of the cursor in the layout.
+     */
+    fun cursorVisualOffset(cursorPosition: CursorPosition): Offset {
+        val component = getComponent(cursorPosition.componentId)
+        val componentTextLayout = component.textLayoutResult
+        if (!component.hasText || componentTextLayout == null) {
+            return containerCoordinates.localCenterPointOf(component)
+        }
+        val componentCursorRect = componentTextLayout.getCursorRect(cursorPosition.offset)
+        return containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
+    }
+
+    /**
      * Finds the component, whose center is the closest to the specified point.
      */
     fun componentClosestTo(visualOffset: Offset): InteractiveComponent {

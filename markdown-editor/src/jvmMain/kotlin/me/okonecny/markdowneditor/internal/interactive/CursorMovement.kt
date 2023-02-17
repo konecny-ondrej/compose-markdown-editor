@@ -70,7 +70,7 @@ internal fun Modifier.pointerCursorMovement(
         val tappedComponent = layout.componentAt(position)
         val textLayout = tappedComponent.textLayoutResult
         if (!tappedComponent.hasText || textLayout == null) {
-            CursorPosition(tappedComponent.id, 0)
+            onCursorPositionChanged(CursorPosition(tappedComponent.id, 0))
             return@detectTapGestures
         }
 

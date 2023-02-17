@@ -1,8 +1,6 @@
 package me.okonecny.markdowneditor.internal.interactive
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,11 +39,9 @@ fun InteractiveContainer(
                 .keyboardCursorMovement(scope) { newCursorPosition ->
                     scope.cursorPosition.value = newCursorPosition
                 }
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { // TODO: remove the effect on click.
+                .pointerCursorMovement(scope) { newCursorPosition ->
                     requester.requestFocus()
+                    scope.cursorPosition.value = newCursorPosition
                 }
         }
         Box(modifier = interactiveModifier) {

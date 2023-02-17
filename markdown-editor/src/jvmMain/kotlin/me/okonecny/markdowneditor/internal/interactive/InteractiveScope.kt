@@ -45,6 +45,8 @@ class InteractiveScope(
 
     fun unregister(componentId: InteractiveId) {
         componentLayout?.remove(componentId)
+        if (cursorPosition.value.componentId != componentId) return
+        cursorPosition.value = CursorPosition.invalid
     }
 
     fun getComponent(id: InteractiveId): InteractiveComponent = requireComponentLayout().getComponent(id)

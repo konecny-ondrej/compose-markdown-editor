@@ -48,7 +48,7 @@ private fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): Cursor
     val oldComponent = getComponent(oldPosition.componentId)
 
     val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.start) {
-        prevTo(oldComponent)
+        requireComponentLayout().prevTo(oldComponent)
     } else {
         oldComponent
     }
@@ -68,7 +68,7 @@ private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): Curso
     val oldComponent = getComponent(oldPosition.componentId)
 
     val newComponent: InteractiveComponent = if (oldPosition.offset == oldComponent.textRange.end) {
-        nextTo(oldComponent)
+        requireComponentLayout().nextTo(oldComponent)
     } else {
         oldComponent
     }
@@ -90,7 +90,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
 
     if (oldTextLayout == null || !oldComponent.hasText) {
         // TODO: find component below the old one. Will be useful for tables.
-        return CursorPosition(nextTo(oldComponent).id, 0)
+        return CursorPosition(requireComponentLayout().nextTo(oldComponent).id, 0)
     }
 
     val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
@@ -98,7 +98,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
     val oldWasLastLine = oldLine == oldTextLayout.lineCount - 1
 
     val newComponent: InteractiveComponent = if (oldWasLastLine) {
-        nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
+        requireComponentLayout().nextTo(oldComponent) // TODO: find component below the old one. Will be useful for tables.
     } else {
         oldComponent
     }
@@ -124,13 +124,13 @@ private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPo
     val oldTextLayout = oldComponent.textLayoutResult
     if (oldTextLayout == null) {
         // TODO: find component above the old one. Will be useful for tables.
-        return CursorPosition(prevTo(oldComponent).id, 0)
+        return CursorPosition(requireComponentLayout().prevTo(oldComponent).id, 0)
     } else {
         val oldLine = oldTextLayout.getLineForOffset(oldPosition.offset)
         val oldLineOffset = oldPosition.offset - oldTextLayout.getLineStart(oldLine)
         val oldWasFirstLine = oldLine == 0
         val newComponent: InteractiveComponent = if (oldWasFirstLine) {
-            prevTo(oldComponent) // TODO: find component above the old one. Will be useful for tables.
+            requireComponentLayout().prevTo(oldComponent) // TODO: find component above the old one. Will be useful for tables.
         } else {
             oldComponent
         }

@@ -36,7 +36,7 @@ fun InteractiveContainer(
                 .focusRequester(requester)
                 .focusable()
                 .onGloballyPositioned { layoutCoordinates ->
-                    scope.containerCoordinates = layoutCoordinates
+                    scope.place(layoutCoordinates)
                 }
                 .keyboardCursorMovement(scope) { newCursorPosition ->
                     scope.cursorPosition.value = newCursorPosition

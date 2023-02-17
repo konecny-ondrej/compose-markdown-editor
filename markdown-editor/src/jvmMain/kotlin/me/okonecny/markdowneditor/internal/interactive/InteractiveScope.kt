@@ -38,7 +38,9 @@ class InteractiveScope(
         requireComponentLayout().add(component)
     }
 
-    // TODO: unregister component
+    fun unregister(componentId: InteractiveId) {
+        componentLayout?.remove(componentId)
+    }
 
     fun getComponent(id: InteractiveId): InteractiveComponent = requireComponentLayout().getComponent(id)
 }

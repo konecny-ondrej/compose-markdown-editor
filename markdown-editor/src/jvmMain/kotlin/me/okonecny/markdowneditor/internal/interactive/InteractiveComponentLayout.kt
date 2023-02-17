@@ -9,7 +9,7 @@ internal class InteractiveComponentLayout(
     internal val containerCoordinates: LayoutCoordinates
 ) {
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
-    private val components: MutableList<InteractiveComponent> = mutableListOf()
+    private val orderedComponents: MutableList<InteractiveComponent> = mutableListOf()
     private var sortedInLineOrder: Boolean = true
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = sortInteractiveComponentsToLines()
@@ -17,20 +17,22 @@ internal class InteractiveComponentLayout(
     fun add(component: InteractiveComponent) {
         if (registeredComponents.contains(component.id)) return
         registeredComponents[component.id] = component
-        components.add(component)
+        orderedComponents.add(component)
         sortedInLineOrder = false
     }
 
     fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 
-    fun remove(component: InteractiveComponent) {
-        components.remove(component)
+    fun remove(componentId: InteractiveId) {
+        registeredComponents.remove(componentId)?.let { removedComponent ->
+            orderedComponents.remove(removedComponent)
+        }
     }
 
     private fun requireFirstComponent(): InteractiveComponent {
-        if (components.isEmpty()) throw IllegalStateException("You need to register at least one interactive component.")
-        return components.first()
+        if (orderedComponents.isEmpty()) throw IllegalStateException("You need to register at least one interactive component.")
+        return orderedComponents.first()
     }
 
     /**
@@ -58,7 +60,7 @@ internal class InteractiveComponentLayout(
             visualOffset,
             containerCoordinates.localCenterPointOf(closestComponent)
         )
-        for (component in components) {
+        for (component in orderedComponents) {
             val distance = computeDistance(visualOffset, containerCoordinates.localCenterPointOf(component))
             if (distance < closestDistance) {
                 closestComponent = component
@@ -74,7 +76,7 @@ internal class InteractiveComponentLayout(
      * If there is no such component, returns the component closest to the specified point.
      */
     fun componentAt(visualOffset: Offset): InteractiveComponent {
-        for (component in components) {
+        for (component in orderedComponents) {
             if (containerCoordinates.localBoundingBoxOf(component).contains(visualOffset)) return component
         }
         return componentClosestTo(visualOffset)
@@ -86,7 +88,7 @@ internal class InteractiveComponentLayout(
     ): InteractiveComponent {
         var bestComponent: InteractiveComponent? = null
         var bestDistance = Float.MAX_VALUE
-        for (component in components) {
+        for (component in orderedComponents) {
             val componentBounds = containerCoordinates.localBoundingBoxOf(component)
             val distance = computeDistance(componentBounds)
             if (distance < bestDistance) {
@@ -170,10 +172,10 @@ internal class InteractiveComponentLayout(
 
     private fun sortInteractiveComponentsToLines(): List<InteractiveComponent> {
         if (!sortedInLineOrder) {
-            components.sortWith(::textLineComparison)
+            orderedComponents.sortWith(::textLineComparison)
             sortedInLineOrder = true
         }
-        return components
+        return orderedComponents
     }
 
     private fun textLineComparison(a: InteractiveComponent, b: InteractiveComponent): Int {

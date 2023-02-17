@@ -35,7 +35,7 @@ internal fun InteractiveText(
                 cursorPosition.componentId == interactiveId
             ).onGloballyPositioned { layoutCoordinates ->
                 interactiveScope.register(
-                    InteractiveComponent( // TODO unregister when removed from composition
+                    InteractiveComponent(
                         id = interactiveId,
                         layoutCoordinates = layoutCoordinates,
                         textRange = TextRange(0, text.length),
@@ -43,6 +43,11 @@ internal fun InteractiveText(
                     )
                 )
             }
+        DisposableEffect(interactiveScope) {
+            onDispose {
+                interactiveScope.unregister(interactiveId)
+            }
+        }
     }
 
     // TODO: cursor

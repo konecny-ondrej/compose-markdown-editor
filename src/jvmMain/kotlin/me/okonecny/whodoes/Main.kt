@@ -1,3 +1,5 @@
+package me.okonecny.whodoes
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -48,7 +50,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "WhoDoes",
-        icon = painterResource("/app-icon.svg")
+        icon = painterResource("/app-icon.xml")
         /**
          * Vectors and icons by <a href="https://dribbble.com/trianglesquad?ref=svgrepo.com" target="_blank">Trianglesquad</a>
          * in CC Attribution License via <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>

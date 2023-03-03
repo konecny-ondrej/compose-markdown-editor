@@ -14,6 +14,8 @@ internal const val invalidInteractiveId: InteractiveId = -1
 
 class InteractiveScope(
     val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.invalid),
+    val selection: MutableState<Selection> = mutableStateOf(Selection.empty)
+    // TODO: EditingBuffer?
 ) {
     private var componentLayout: InteractiveComponentLayout? = null
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
@@ -34,6 +36,8 @@ class InteractiveScope(
 
     internal fun requireComponentLayout(): InteractiveComponentLayout =
         componentLayout ?: throw IllegalStateException("You must place the interactive scope first.")
+
+    val isPlaced: Boolean get() = componentLayout != null
 
     internal fun place(containerLayoutCoordinates: LayoutCoordinates) {
         componentLayout = InteractiveComponentLayout(containerLayoutCoordinates)

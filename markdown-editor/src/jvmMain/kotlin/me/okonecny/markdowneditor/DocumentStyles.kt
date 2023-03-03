@@ -126,6 +126,9 @@ data class DocumentStyles(
     ),
     val strikethrough: TextStyle = TextStyle(
         textDecoration = TextDecoration.LineThrough
+    ),
+    val selection: TextStyle = TextStyle(
+        background = Color.Cyan.copy(alpha = 0.5f)
     )
 )
 

@@ -246,6 +246,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
             InteractiveText(
                 text = code,
                 style = styles.codeBlock.textStyle,
+                selectionStyle = styles.selection,
                 modifier = styles.codeBlock.modifier,
             )
         } else {
@@ -300,6 +301,7 @@ private fun UiParagraph(paragraph: Paragraph) {
     InteractiveText(
         text = inlines.text,
         style = styles.paragraph,
+        selectionStyle = styles.selection,
         inlineContent = inlines.inlineContent,
     )
 }
@@ -319,6 +321,7 @@ private fun UiHeading(header: Heading) {
             6 -> styles.h6
             else -> styles.h1
         },
+        selectionStyle = styles.selection,
         inlineContent = inlines.inlineContent,
     )
 }

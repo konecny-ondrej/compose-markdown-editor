@@ -95,6 +95,7 @@ internal fun UiTable(
     rows: @Composable TableScope.() -> Unit
 ) {
     val tableStyle: TableStyle = DocumentTheme.current.styles.table
+    val selectionStyle = DocumentTheme.current.styles.selection
     val tableScope: TableScope = TableScopeImpl()
     tableScope.rows()
     val computedWeights: List<Float> = columnWeights ?: computeWeights(tableScope)
@@ -108,6 +109,7 @@ internal fun UiTable(
                     text = cell.text,
                     textAlign = cell.textAlign,
                     style = cellStyle.textStyle,
+                    selectionStyle = selectionStyle,
                     modifier = cellStyle.modifier
                         .weight(weight = computedWeights[columnIndex])
                         .fillMaxHeight()

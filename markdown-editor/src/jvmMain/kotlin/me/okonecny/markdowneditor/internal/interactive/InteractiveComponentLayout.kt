@@ -50,6 +50,21 @@ internal class InteractiveComponentLayout(
     }
 
     /**
+     * Check if the component is a part of the range (including both).
+     */
+    fun isComponentBetweenOrAt(componentId: InteractiveId, start: InteractiveId, end: InteractiveId): Boolean {
+        if (
+            !registeredComponents.containsKey(componentId) ||
+            !registeredComponents.containsKey(start) ||
+            !registeredComponents.containsKey(end)
+        ) return false
+        val starPos = componentsInLineOrder.indexOf(getComponent(start))
+        val endPos = componentsInLineOrder.indexOf(getComponent(end))
+        val componentPos = componentsInLineOrder.indexOf(getComponent(componentId))
+        return componentPos in starPos..endPos
+    }
+
+    /**
      * Finds the component, whose center is the closest to the specified point,
      * preferring components horizontally adjacent.
      */

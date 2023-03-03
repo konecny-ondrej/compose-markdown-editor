@@ -1,9 +1,11 @@
 package me.okonecny.markdowneditor.internal.interactive
 
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.*
 
@@ -24,22 +26,27 @@ internal fun Modifier.keyboardCursorMovement(
         Key.DirectionLeft -> {
             onCursorPositionChanged(scope.moveCursorLeft(oldPosition))
         }
+
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionRight -> {
             onCursorPositionChanged(scope.moveCursorRight(oldPosition))
         }
+
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionDown -> {
             onCursorPositionChanged(scope.moveCursorDown(oldPosition))
         }
+
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionUp -> {
             onCursorPositionChanged(scope.moveCursorUp(oldPosition))
         }
+
         @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveHome -> {
             onCursorPositionChanged(scope.moveCursorHome(oldPosition))
         }
+
         @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveEnd -> {
             onCursorPositionChanged(scope.moveCursorToEnd(oldPosition))
@@ -49,30 +56,33 @@ internal fun Modifier.keyboardCursorMovement(
     false
 }
 
+private fun moveCursor(scope: InteractiveScope, position: Offset, isDrag: Boolean, onCursorPositionChanged: (CursorPosition, Boolean) -> Unit) {
+    val layout = scope.requireComponentLayout()
+    val tappedComponent = layout.componentAt(position)
+    val textLayout = tappedComponent.textLayoutResult
+    if (!tappedComponent.hasText || textLayout == null) {
+        onCursorPositionChanged(CursorPosition(tappedComponent.id, 0), isDrag)
+        return
+    }
+
+    val localOffset = tappedComponent.layoutCoordinates.localPositionOf(
+        layout.containerCoordinates,
+        position
+    )
+    val textOffset = textLayout.getOffsetForPosition(localOffset)
+
+    onCursorPositionChanged(CursorPosition(tappedComponent.id, textOffset), isDrag)
+}
 
 internal fun Modifier.pointerCursorMovement(
     scope: InteractiveScope,
-    onCursorPositionChanged: (CursorPosition) -> Unit
-): Modifier = pointerInput(scope) {
-    detectTapGestures(onPress = { position ->
-        val layout = scope.requireComponentLayout()
-        val tappedComponent = layout.componentAt(position)
-        val textLayout = tappedComponent.textLayoutResult
-        if (!tappedComponent.hasText || textLayout == null) {
-            onCursorPositionChanged(CursorPosition(tappedComponent.id, 0))
-            return@detectTapGestures
-        }
-
-        val localOffset = tappedComponent.layoutCoordinates.localPositionOf(
-            layout.containerCoordinates,
-            position
-        )
-        val textOffset = textLayout.getOffsetForPosition(localOffset)
-
-
-        onCursorPositionChanged(CursorPosition(tappedComponent.id, textOffset))
-    })
-}.pointerHoverIcon(@OptIn(ExperimentalComposeUiApi::class) PointerIconDefaults.Text)
+    onCursorPositionChanged: (CursorPosition, Boolean) -> Unit
+): Modifier =
+    pointerInput(scope) {
+        detectTapGestures(onPress = { position -> moveCursor(scope, position, false, onCursorPositionChanged) })
+    }.pointerInput(scope) {
+        detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
+    }.pointerHoverIcon(@OptIn(ExperimentalComposeUiApi::class) PointerIconDefaults.Text)
 
 private fun InteractiveScope.moveCursorByChars(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
     val component = getComponent(cursorPosition.componentId)

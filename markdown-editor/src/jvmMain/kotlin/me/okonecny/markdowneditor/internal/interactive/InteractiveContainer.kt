@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor.internal.interactive
 
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -9,6 +10,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 
@@ -54,10 +56,10 @@ fun InteractiveContainer(
                     )
                     cursorPosition = newCursorPosition
                 }
-                .pointerCursorMovement(scope) { newCursorPosition ->
+                .pointerCursorMovement(scope) { newCursorPosition, isDrag ->
                     requester.requestFocus()
                     selection = updateSelection(
-                        shouldResetSelection,
+                        !isDrag,
                         selection,
                         cursorPosition,
                         newCursorPosition,
@@ -78,6 +80,7 @@ fun InteractiveContainer(
                     }
                     false
                 }
+            // TODO: select word on double click
         }
         Box(modifier = interactiveModifier) {
             interactiveContent()

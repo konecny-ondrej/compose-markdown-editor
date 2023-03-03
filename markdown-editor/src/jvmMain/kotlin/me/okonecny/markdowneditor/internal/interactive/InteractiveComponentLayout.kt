@@ -65,6 +65,19 @@ internal class InteractiveComponentLayout(
     }
 
     /**
+     * Check if the component, identified by componentId, is before the component identified by the anchorId.
+     */
+    fun isComponentBefore(componentId: InteractiveId, anchorId: InteractiveId): Boolean {
+        if (
+            !registeredComponents.containsKey(componentId) ||
+            !registeredComponents.containsKey(anchorId)
+        ) return false
+        val componentPos = componentsInLineOrder.indexOf(getComponent(componentId))
+        val anchorPos = componentsInLineOrder.indexOf(getComponent(anchorId))
+        return componentPos < anchorPos
+    }
+
+    /**
      * Finds the component, whose center is the closest to the specified point,
      * preferring components horizontally adjacent.
      */
@@ -219,4 +232,9 @@ internal class InteractiveComponentLayout(
 
     private fun LayoutCoordinates.localCenterPointOf(component: InteractiveComponent): Offset =
         localBoundingBoxOf(component).center
+}
+
+internal fun CursorPosition.isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {
+    if (componentId == other.componentId) return offset < other.offset
+    return layout.isComponentBefore(componentId, other.componentId)
 }

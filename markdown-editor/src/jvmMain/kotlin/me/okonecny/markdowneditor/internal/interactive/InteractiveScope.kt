@@ -51,6 +51,7 @@ class InteractiveScope(
         componentLayout?.remove(componentId)
         if (cursorPosition.value.componentId != componentId) return
         cursorPosition.value = CursorPosition.invalid
+        selection.value = Selection.empty
     }
 
     fun getComponent(id: InteractiveId): InteractiveComponent = requireComponentLayout().getComponent(id)

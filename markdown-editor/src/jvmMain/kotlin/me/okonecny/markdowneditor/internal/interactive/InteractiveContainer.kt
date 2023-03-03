@@ -2,14 +2,13 @@ package me.okonecny.markdowneditor.internal.interactive
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 
@@ -36,6 +35,9 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = remember { FocusRequester() }
+            var shouldResetSelection = false
+            var selection by scope.selection
+            var cursorPosition by scope.cursorPosition
             Modifier
                 .focusRequester(requester)
                 .focusable()
@@ -43,11 +45,38 @@ fun InteractiveContainer(
                     scope.place(layoutCoordinates)
                 }
                 .keyboardCursorMovement(scope) { newCursorPosition ->
-                    scope.cursorPosition.value = newCursorPosition
+                    selection = updateSelection(
+                        shouldResetSelection,
+                        selection,
+                        cursorPosition,
+                        newCursorPosition,
+                        scope.requireComponentLayout()
+                    )
+                    cursorPosition = newCursorPosition
                 }
                 .pointerCursorMovement(scope) { newCursorPosition ->
                     requester.requestFocus()
-                    scope.cursorPosition.value = newCursorPosition
+                    selection = updateSelection(
+                        shouldResetSelection,
+                        selection,
+                        cursorPosition,
+                        newCursorPosition,
+                        scope.requireComponentLayout()
+                    )
+                    cursorPosition = newCursorPosition
+                }
+                .onKeyEvent { keyEvent: KeyEvent ->
+                    shouldResetSelection = !keyEvent.isShiftPressed
+                    if (keyEvent.key == @OptIn(ExperimentalComposeUiApi::class) Key.Escape) {
+                        selection = updateSelection(
+                            true,
+                            selection,
+                            CursorPosition.invalid,
+                            CursorPosition.invalid,
+                            scope.requireComponentLayout()
+                        )
+                    }
+                    false
                 }
         }
         Box(modifier = interactiveModifier) {

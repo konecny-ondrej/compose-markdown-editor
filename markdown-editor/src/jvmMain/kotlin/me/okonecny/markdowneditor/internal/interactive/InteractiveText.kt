@@ -5,18 +5,16 @@ import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
 
-val defaultSelectionStyle = TextStyle(color = Color.Cyan.copy(alpha = 0.5f))
 
 @Composable
 internal fun InteractiveText(
     text: AnnotatedString,
     style: TextStyle = LocalTextStyle.current,
-    selectionStyle: TextStyle = defaultSelectionStyle,
+    selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
     textAlign: TextAlign? = null
@@ -102,7 +100,7 @@ private fun paintSelection(
 internal fun InteractiveText(
     text: String,
     style: TextStyle = LocalTextStyle.current,
-    selectionStyle: TextStyle = defaultSelectionStyle,
+    selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     textAlign: TextAlign? = null
 ) = InteractiveText(AnnotatedString(text), style, selectionStyle, modifier, mapOf(), textAlign)

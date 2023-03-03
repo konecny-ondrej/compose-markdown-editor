@@ -27,6 +27,11 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = kotlinJvmTarget
         }
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            kotlinOptions {
+                jvmTarget = kotlinJvmTarget
+            }
+        }
         withJava()
     }
     sourceSets {

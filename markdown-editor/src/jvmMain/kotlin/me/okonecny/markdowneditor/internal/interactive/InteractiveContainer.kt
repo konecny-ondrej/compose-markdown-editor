@@ -35,7 +35,7 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = remember { FocusRequester() }
-            var shouldResetSelection = false
+            var shouldResetSelection = true
             var selection by scope.selection
             var cursorPosition by scope.cursorPosition
             Modifier

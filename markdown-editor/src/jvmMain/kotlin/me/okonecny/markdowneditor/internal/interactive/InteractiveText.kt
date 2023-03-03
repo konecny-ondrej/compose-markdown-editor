@@ -82,7 +82,7 @@ private fun paintSelection(
 ): AnnotatedString {
     if (selection.isEmpty) return text
     if (!interactiveScope.isPlaced) return text
-    if (!interactiveScope.requireComponentLayout().isComponentBetweenOrAt(
+    if (!interactiveScope.requireComponentLayout().isComponentBetween(
             interactiveId,
             selection.start.componentId,
             selection.end.componentId

@@ -52,7 +52,7 @@ internal class InteractiveComponentLayout(
     /**
      * Check if the component is a part of the range (including both).
      */
-    fun isComponentBetweenOrAt(componentId: InteractiveId, start: InteractiveId, end: InteractiveId): Boolean {
+    fun isComponentBetween(componentId: InteractiveId, start: InteractiveId, end: InteractiveId): Boolean {
         if (
             !registeredComponents.containsKey(componentId) ||
             !registeredComponents.containsKey(start) ||

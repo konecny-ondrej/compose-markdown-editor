@@ -23,42 +23,30 @@ internal fun Modifier.keyboardCursorMovement(
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionLeft -> {
             onCursorPositionChanged(scope.moveCursorLeft(oldPosition))
-            true
         }
-
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionRight -> {
             onCursorPositionChanged(scope.moveCursorRight(oldPosition))
-            true
         }
-
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionDown -> {
             onCursorPositionChanged(scope.moveCursorDown(oldPosition))
-            true
         }
-
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionUp -> {
             onCursorPositionChanged(scope.moveCursorUp(oldPosition))
-            true
         }
-
         @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveHome -> {
             onCursorPositionChanged(scope.moveCursorHome(oldPosition))
-            true
         }
-
         @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveEnd -> {
             onCursorPositionChanged(scope.moveCursorToEnd(oldPosition))
-            true
         }
-
         // TODO: handle page up and page down, too.
-        else -> false
     }
+    false
 }
 
 

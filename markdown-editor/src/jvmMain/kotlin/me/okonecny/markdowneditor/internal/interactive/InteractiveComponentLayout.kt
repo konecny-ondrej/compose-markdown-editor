@@ -37,19 +37,6 @@ internal class InteractiveComponentLayout(
     }
 
     /**
-     * Find the visual position of the cursor in the layout.
-     */
-    fun cursorVisualOffset(cursorPosition: CursorPosition): Offset {
-        val component = getComponent(cursorPosition.componentId)
-        val componentTextLayout = component.textLayoutResult
-        if (!component.hasText || componentTextLayout == null) {
-            return containerCoordinates.localCenterPointOf(component)
-        }
-        val componentCursorRect = componentTextLayout.getCursorRect(cursorPosition.offset)
-        return containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
-    }
-
-    /**
      * Check if the component is a part of the range (including both).
      */
     fun isComponentBetween(componentId: InteractiveId, start: InteractiveId, end: InteractiveId): Boolean {
@@ -226,15 +213,10 @@ internal class InteractiveComponentLayout(
             compareValues(positionA.y, positionB.y)
         }
     }
-
-    private fun LayoutCoordinates.localBoundingBoxOf(component: InteractiveComponent): Rect =
-        localBoundingBoxOf(component.layoutCoordinates, false)
-
-    private fun LayoutCoordinates.localCenterPointOf(component: InteractiveComponent): Offset =
-        localBoundingBoxOf(component).center
 }
 
-internal fun CursorPosition.isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {
-    if (componentId == other.componentId) return offset < other.offset
-    return layout.isComponentBefore(componentId, other.componentId)
-}
+private fun LayoutCoordinates.localBoundingBoxOf(component: InteractiveComponent): Rect =
+    localBoundingBoxOf(component.layoutCoordinates, false)
+
+internal fun LayoutCoordinates.localCenterPointOf(component: InteractiveComponent): Offset =
+    localBoundingBoxOf(component).center

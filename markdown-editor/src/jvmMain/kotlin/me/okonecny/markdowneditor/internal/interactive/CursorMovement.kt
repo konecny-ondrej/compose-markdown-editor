@@ -126,7 +126,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val componentLayout = requireComponentLayout()
-    val cursorVisualOffset = componentLayout.cursorVisualOffset(oldPosition)
+    val cursorVisualOffset = oldPosition.visualOffset(componentLayout)
     val componentBelow = componentLayout.componentBelow(cursorVisualOffset)
 
     val newTextLayout = componentBelow.textLayoutResult
@@ -143,7 +143,7 @@ private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPo
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val componentLayout = requireComponentLayout()
-    val cursorVisualOffset = componentLayout.cursorVisualOffset(oldPosition)
+    val cursorVisualOffset = oldPosition.visualOffset(componentLayout)
     val componentAbove = componentLayout.componentAbove(cursorVisualOffset)
 
     val newTextLayout = componentAbove.textLayoutResult

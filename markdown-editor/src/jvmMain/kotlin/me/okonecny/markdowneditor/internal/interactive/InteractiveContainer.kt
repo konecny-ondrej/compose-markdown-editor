@@ -1,16 +1,15 @@
 package me.okonecny.markdowneditor.internal.interactive
 
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 
@@ -37,11 +36,15 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = remember { FocusRequester() }
+            var isFocused by remember { mutableStateOf(false) }
             var shouldResetSelection = true
             var selection by scope.selection
             var cursorPosition by scope.cursorPosition
             Modifier
                 .focusRequester(requester)
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.hasFocus
+                }
                 .focusable()
                 .onGloballyPositioned { layoutCoordinates ->
                     scope.place(layoutCoordinates)
@@ -80,6 +83,7 @@ fun InteractiveContainer(
                     }
                     false
                 }
+                .textInput(enabled = isFocused)
             // TODO: select word on double click
         }
         Box(modifier = interactiveModifier) {

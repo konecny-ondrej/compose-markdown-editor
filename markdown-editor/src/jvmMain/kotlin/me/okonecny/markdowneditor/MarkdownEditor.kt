@@ -48,7 +48,10 @@ fun MarkdownEditor(
         } else {
             null
         },
-        selectionStyle = documentTheme.styles.selection
+        selectionStyle = documentTheme.styles.selection,
+        onInput = { textInputCommand ->
+            System.err.println(textInputCommand)
+        }
     ) {
         CompositionLocalProvider(
             LocalDocumentTheme provides documentTheme,

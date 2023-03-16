@@ -5,20 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.utf16CodePoint
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalTextInputService
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.ImeOptions
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TextInputSession
+import androidx.compose.ui.text.input.*
 
-internal fun Modifier.textInput (
-    enabled: Boolean
+internal fun Modifier.textInput(
+    enabled: Boolean,
+    onInput: (TextInputCommand) -> Unit
 ): Modifier = composed {
     var textInputSession by remember { mutableStateOf<TextInputSession?>(null) }
     val textInputService = LocalTextInputService.current
@@ -26,14 +22,18 @@ internal fun Modifier.textInput (
     if (textInputSession == null && textInputService != null && enabled) {
         System.err.println("start input")
         textInputSession = textInputService.startInput(
-            value = TextFieldValue(AnnotatedString(""), TextRange(0,1)),
+            value = TextFieldValue(""),
             imeOptions = ImeOptions.Default,
             onEditCommand = { editCommands ->
-                System.err.println(editCommands)
+                editCommands.forEach { command: EditCommand ->
+                    when (command) {
+                        is CommitTextCommand -> onInput(Type(command.text))
+                        is BackspaceCommand -> onInput(Delete(Delete.Direction.BEFORE_CURSOR, Delete.Size.LETTER))
+                        // Is any other command relevant? See subclasses of EditCommand.
+                    }
+                }
             },
-            onImeActionPerformed = { imeAction ->
-                System.err.println(imeAction)
-            }
+            onImeActionPerformed = { _ -> }
         )
     }
     val session = textInputSession
@@ -45,9 +45,60 @@ internal fun Modifier.textInput (
 
     return@composed onKeyEvent { keyEvent: KeyEvent ->
         if (keyEvent.isTypedEvent) {
-            val letter = StringBuilder().appendCodePoint(keyEvent.utf16CodePoint).toString() // TODO decode UTF-16 properly
-            System.err.println(letter)
+            onInput(Type(StringBuilder().appendCodePoint(keyEvent.utf16CodePoint).toString()))
+        } else if (keyEvent.type == KeyEventType.KeyDown) {
+            when (keyEvent.key) {
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.Backspace -> onInput(
+                    Delete(
+                        Delete.Direction.BEFORE_CURSOR,
+                        if (keyEvent.isCtrlPressed) {
+                            Delete.Size.WORD
+                        } else {
+                            Delete.Size.LETTER
+                        }
+                    )
+                )
+
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.Delete -> onInput(
+                    Delete(
+                        Delete.Direction.AFTER_CURSOR,
+                        if (keyEvent.isCtrlPressed) {
+                            Delete.Size.WORD
+                        } else {
+                            Delete.Size.LETTER
+                        }
+                    )
+                )
+
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.Enter -> onInput(NewLine)
+
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.C -> if (keyEvent.isCtrlPressed) onInput(Copy)
+
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.V -> if (keyEvent.isCtrlPressed) onInput(Paste)
+            }
         }
-        false
+        return@onKeyEvent false
     }
 }
+
+sealed interface TextInputCommand
+data class Type(val text: String) : TextInputCommand
+data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
+    enum class Direction {
+        BEFORE_CURSOR, AFTER_CURSOR
+    }
+
+    enum class Size {
+        LETTER, WORD
+    }
+
+}
+
+object NewLine : TextInputCommand
+object Copy : TextInputCommand
+object Paste : TextInputCommand

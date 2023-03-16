@@ -26,6 +26,7 @@ internal val LocalSelectionStyle = compositionLocalOf { defaultSelectionStyle }
 fun InteractiveContainer(
     scope: InteractiveScope? = rememberInteractiveScope(),
     selectionStyle: TextStyle = defaultSelectionStyle,
+    onInput: (TextInputCommand) -> Unit = {},
     interactiveContent: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
@@ -83,7 +84,7 @@ fun InteractiveContainer(
                     }
                     false
                 }
-                .textInput(enabled = isFocused)
+                .textInput(enabled = isFocused, onInput = onInput)
             // TODO: select word on double click
         }
         Box(modifier = interactiveModifier) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
@@ -50,7 +51,7 @@ fun MarkdownEditor(
         },
         selectionStyle = documentTheme.styles.selection,
         onInput = { textInputCommand ->
-            System.err.println(textInputCommand)
+            Logger.d(textInputCommand.toString())
         }
     ) {
         CompositionLocalProvider(

@@ -11,6 +11,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.text.input.*
+import co.touchlab.kermit.Logger
 
 internal fun Modifier.textInput(
     enabled: Boolean,
@@ -20,7 +21,7 @@ internal fun Modifier.textInput(
     val textInputService = LocalTextInputService.current
 
     if (textInputSession == null && textInputService != null && enabled) {
-        System.err.println("start input")
+        Logger.d("Start text input.")
         textInputSession = textInputService.startInput(
             value = TextFieldValue(""),
             imeOptions = ImeOptions.Default,
@@ -38,7 +39,7 @@ internal fun Modifier.textInput(
     }
     val session = textInputSession
     if (session != null && !enabled && textInputService != null) {
-        System.err.println("stop input")
+        Logger.d("Stop text input.")
         textInputService.stopInput(session)
         textInputSession = null
     }

@@ -27,6 +27,11 @@ kotlin {
         withJava()
     }
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation("co.touchlab:kermit:2.0.0-RC3")
+            }
+        }
         val jvmMain by getting {
             kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {

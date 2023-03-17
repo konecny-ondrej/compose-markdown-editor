@@ -15,7 +15,6 @@ internal const val invalidInteractiveId: InteractiveId = -1
 class InteractiveScope(
     val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.invalid),
     val selection: MutableState<Selection> = mutableStateOf(Selection.empty)
-    // TODO: EditingBuffer?
 ) {
     private var componentLayout: InteractiveComponentLayout? = null
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)

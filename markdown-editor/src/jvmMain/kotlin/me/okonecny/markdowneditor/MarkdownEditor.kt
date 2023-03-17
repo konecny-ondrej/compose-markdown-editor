@@ -35,7 +35,7 @@ import me.okonecny.markdowneditor.internal.interactive.rememberInteractiveScope
 fun MarkdownEditor(
     sourceText: String,
     documentTheme: DocumentTheme = DocumentTheme.default,
-    scrollable: Boolean = true,
+    interactive: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
@@ -43,22 +43,29 @@ fun MarkdownEditor(
     val document = parser.parse(sourceText)
     // TODO: make the source or the AST be state so we can edit.
 
-    InteractiveContainer(
-        scope = if (scrollable) {
-            rememberInteractiveScope(sourceText)
-        } else {
-            null
-        },
-        selectionStyle = documentTheme.styles.selection,
-        onInput = { textInputCommand ->
-            Logger.d(textInputCommand.toString(), tag = "onInput")
-        }
-    ) {
+    @Composable
+    fun renderDocument() {
         CompositionLocalProvider(
             LocalDocumentTheme provides documentTheme,
             CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
         ) {
-            UiMdDocument(document.ast, scrollable)
+            UiMdDocument(document.ast, interactive)
+        }
+    }
+
+    if (interactive) {
+        InteractiveContainer(
+            scope = rememberInteractiveScope(sourceText),
+            selectionStyle = documentTheme.styles.selection,
+            onInput = { textInputCommand ->
+                Logger.d(textInputCommand.toString(), tag = "onInput")
+            }
+        ) {
+            renderDocument()
+        }
+    } else {
+        InteractiveContainer(scope = null) {
+            renderDocument()
         }
     }
 }

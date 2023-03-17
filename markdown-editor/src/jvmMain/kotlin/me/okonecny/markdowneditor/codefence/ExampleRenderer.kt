@@ -47,7 +47,7 @@ class ExampleRenderer : CodeFenceRenderer {
                         .fillMaxHeight()
                         .background(Color(0xAAAAAAFF))
                 ) {
-                    MarkdownEditor(markdownCode, scrollable = false)
+                    MarkdownEditor(markdownCode, interactive = false)
                 }
                 Text(
                     text = output,

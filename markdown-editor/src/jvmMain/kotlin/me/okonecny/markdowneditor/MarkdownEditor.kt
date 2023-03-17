@@ -51,7 +51,7 @@ fun MarkdownEditor(
         },
         selectionStyle = documentTheme.styles.selection,
         onInput = { textInputCommand ->
-            Logger.d(textInputCommand.toString())
+            Logger.d(textInputCommand.toString(), tag = "onInput")
         }
     ) {
         CompositionLocalProvider(

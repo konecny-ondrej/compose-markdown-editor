@@ -56,7 +56,12 @@ internal fun Modifier.keyboardCursorMovement(
     false
 }
 
-private fun moveCursor(scope: InteractiveScope, position: Offset, isDrag: Boolean, onCursorPositionChanged: (CursorPosition, Boolean) -> Unit) {
+private fun moveCursor(
+    scope: InteractiveScope,
+    position: Offset,
+    isDrag: Boolean,
+    onCursorPositionChanged: (CursorPosition, Boolean) -> Unit
+) {
     val layout = scope.requireComponentLayout()
     val tappedComponent = layout.componentAt(position)
     val textLayout = tappedComponent.textLayoutResult
@@ -87,8 +92,8 @@ internal fun Modifier.pointerCursorMovement(
 private fun InteractiveScope.moveCursorByChars(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
     val component = getComponent(cursorPosition.componentId)
     val newOffset = (cursorPosition.offset + charOffset)
-        .coerceAtMost(component.textRange.end)
-        .coerceAtLeast(component.textRange.start)
+        .coerceAtMost(component.visualTextRange.end)
+        .coerceAtLeast(component.visualTextRange.start)
     return CursorPosition(component.id, newOffset)
 }
 
@@ -117,7 +122,7 @@ private fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): Cursor
     val newComponent: InteractiveComponent = requireComponentLayout().componentPreviousOnLineFrom(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
-    return CursorPosition(newComponent.id, newComponent.textRange.end)
+    return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
 }
 
 private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
@@ -128,7 +133,7 @@ private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): Curso
     val newComponent: InteractiveComponent = requireComponentLayout().componentNextOnLineTo(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
-    return CursorPosition(newComponent.id, newComponent.textRange.start)
+    return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
 }
 
 private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {

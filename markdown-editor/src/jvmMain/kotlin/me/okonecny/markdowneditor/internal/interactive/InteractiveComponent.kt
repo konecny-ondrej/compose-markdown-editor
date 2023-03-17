@@ -20,10 +20,10 @@ data class InteractiveComponent(
      */
     val layoutCoordinates: LayoutCoordinates,
     /**
-     * Text range if the represented component is a component displaying text.
+     * Text range of the displayed text if the represented component is a component displaying text.
      * @see androidx.compose.ui.text.TextRange
      */
-    val textRange: TextRange,
+    val visualTextRange: TextRange,
     /**
      * Result of laying out the text if this is a component displaying text.
      * Used for cursor movement.
@@ -33,7 +33,7 @@ data class InteractiveComponent(
     /**
      * True if the component contains any text. False otherwise.
      */
-    val hasText: Boolean get() = textLayoutResult != null && !textRange.collapsed
+    val hasText: Boolean get() = textLayoutResult != null && !visualTextRange.collapsed
 
     /**
      * True if the text contained in this component has more than one line.

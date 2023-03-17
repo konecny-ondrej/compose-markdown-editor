@@ -39,7 +39,7 @@ internal fun InteractiveText(
                     InteractiveComponent(
                         id = interactiveId,
                         layoutCoordinates = layoutCoordinates,
-                        textRange = TextRange(0, text.length),
+                        visualTextRange = TextRange(0, text.length),
                         textLayoutResult = textLayoutResult
                     )
                 )

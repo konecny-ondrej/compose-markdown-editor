@@ -74,7 +74,9 @@ internal fun Modifier.textInput(
                 )
 
                 @OptIn(ExperimentalComposeUiApi::class)
-                Key.Enter -> onInput(NewLine)
+                Key.Enter,
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.NumPadEnter -> onInput(NewLine)
 
                 @OptIn(ExperimentalComposeUiApi::class)
                 Key.C -> if (keyEvent.isCtrlPressed) onInput(Copy)

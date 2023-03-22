@@ -91,7 +91,7 @@ internal fun Modifier.pointerCursorMovement(
 
 private fun InteractiveScope.moveCursorByChars(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
     val component = getComponent(cursorPosition.componentId)
-    val newOffset = (cursorPosition.offset + charOffset)
+    val newOffset = (cursorPosition.visualOffset + charOffset)
         .coerceAtMost(component.visualTextRange.end)
         .coerceAtLeast(component.visualTextRange.start)
     return CursorPosition(component.id, newOffset)
@@ -102,7 +102,7 @@ private fun InteractiveScope.moveCursorByLine(cursorPosition: CursorPosition, li
     val textLayout = component.textLayoutResult
     if (!component.hasText || textLayout == null) return cursorPosition
 
-    val currentLine = textLayout.getLineForOffset(cursorPosition.offset)
+    val currentLine = textLayout.getLineForOffset(cursorPosition.visualOffset)
     val newLine = currentLine + lineOffset
     if (newLine < 0 || newLine >= textLayout.lineCount) return cursorPosition
 
@@ -175,7 +175,7 @@ private fun InteractiveScope.moveCursorHome(oldPosition: CursorPosition): Cursor
     val offsetFromLineStart = getOffsetFromLineStart(oldPosition)
     if (offsetFromLineStart > 0) return CursorPosition(
         oldPosition.componentId,
-        oldPosition.offset - offsetFromLineStart
+        oldPosition.visualOffset - offsetFromLineStart
     )
     // Try to move to the leftmost component if we are already at the line start?
     return oldPosition
@@ -188,7 +188,7 @@ private fun InteractiveScope.moveCursorToEnd(oldPosition: CursorPosition): Curso
     // Try to move to the rightmost component if we are already at the line end?
     return CursorPosition(
         oldPosition.componentId,
-        (textLayout.getLineEnd(textLayout.getLineForOffset(oldPosition.offset), true))
+        (textLayout.getLineEnd(textLayout.getLineForOffset(oldPosition.visualOffset), true))
     )
 }
 
@@ -196,7 +196,7 @@ private fun InteractiveScope.getOffsetFromLineStart(cursorPosition: CursorPositi
     val component = getComponent(cursorPosition.componentId)
     val textLayoutResult = component.textLayoutResult
     if (!component.hasText || textLayoutResult == null) return 0
-    val offset = cursorPosition.offset
+    val offset = cursorPosition.visualOffset
     val line = textLayoutResult.getLineForOffset(offset)
     val start = textLayoutResult.getLineStart(line)
     return offset - start

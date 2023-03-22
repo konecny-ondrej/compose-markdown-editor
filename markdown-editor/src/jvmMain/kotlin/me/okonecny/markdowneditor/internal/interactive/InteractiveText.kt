@@ -32,7 +32,7 @@ internal fun InteractiveText(
         interactiveModifier = Modifier
             .cursorLine(
                 textLayoutResult,
-                cursorPosition.offset,
+                cursorPosition.visualOffset,
                 cursorPosition.componentId == interactiveId
             ).onGloballyPositioned { layoutCoordinates ->
                 interactiveScope.register(
@@ -90,8 +90,8 @@ private fun paintSelection(
         append(text)
         addStyle(
             selectionStyle.toSpanStyle(),
-            if (selection.start.componentId == interactiveId) selection.start.offset else 0,
-            if (selection.end.componentId == interactiveId) selection.end.offset else text.length
+            if (selection.start.componentId == interactiveId) selection.start.visualOffset else 0,
+            if (selection.end.componentId == interactiveId) selection.end.visualOffset else text.length
         )
     }
 }

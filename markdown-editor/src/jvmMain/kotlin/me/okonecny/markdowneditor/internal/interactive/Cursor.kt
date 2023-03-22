@@ -23,7 +23,7 @@ import kotlin.math.floor
  */
 data class CursorPosition(
     val componentId: InteractiveId,
-    val offset: Int
+    val visualOffset: Int
 ) {
     companion object {
         val invalid = CursorPosition(invalidInteractiveId, 0)
@@ -40,12 +40,12 @@ data class CursorPosition(
         if (!component.hasText || componentTextLayout == null) {
             return layout.containerCoordinates.localCenterPointOf(component)
         }
-        val componentCursorRect = componentTextLayout.getCursorRect(offset)
+        val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
         return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
     }
 
     internal fun isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {
-        if (componentId == other.componentId) return offset < other.offset
+        if (componentId == other.componentId) return visualOffset < other.visualOffset
         return layout.isComponentBefore(componentId, other.componentId)
     }
 
@@ -56,14 +56,14 @@ data class CursorPosition(
         other as CursorPosition
 
         if (componentId != other.componentId) return false
-        if (offset != other.offset) return false
+        if (visualOffset != other.visualOffset) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = componentId.hashCode()
-        result = 31 * result + offset
+        result = 31 * result + visualOffset
         return result
     }
 }

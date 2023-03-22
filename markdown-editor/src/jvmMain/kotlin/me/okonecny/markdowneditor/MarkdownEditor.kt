@@ -20,11 +20,11 @@ import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
+import me.okonecny.interactivetext.DisabledInteractiveContainer
+import me.okonecny.interactivetext.InteractiveContainer
+import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.internal.*
-import me.okonecny.markdowneditor.internal.interactive.DisabledInteractiveContainer
-import me.okonecny.markdowneditor.internal.interactive.InteractiveContainer
-import me.okonecny.markdowneditor.internal.interactive.InteractiveText
-import me.okonecny.markdowneditor.internal.interactive.rememberInteractiveScope
 
 /**
  * A simple WYSIWYG editor for Markdown.

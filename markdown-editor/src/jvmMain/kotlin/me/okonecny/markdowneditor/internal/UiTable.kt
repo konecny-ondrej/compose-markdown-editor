@@ -5,10 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.BlockStyle
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.TableStyle
-import me.okonecny.markdowneditor.internal.interactive.InteractiveText
 
 internal data class Cell(
     val text: AnnotatedString,

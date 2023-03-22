@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.internal.interactive
+package me.okonecny.interactivetext
 
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.LocalTextStyle
@@ -11,7 +11,7 @@ import androidx.compose.ui.text.style.TextAlign
 
 
 @Composable
-internal fun InteractiveText(
+fun InteractiveText(
     text: AnnotatedString,
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
@@ -97,7 +97,7 @@ private fun paintSelection(
 }
 
 @Composable
-internal fun InteractiveText(
+fun InteractiveText(
     text: String,
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,

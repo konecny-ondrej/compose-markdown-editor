@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.internal.interactive
+package me.okonecny.interactivetext
 
 data class Selection(
     val start: CursorPosition,

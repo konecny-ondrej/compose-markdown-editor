@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.internal.interactive
+package me.okonecny.interactivetext
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures

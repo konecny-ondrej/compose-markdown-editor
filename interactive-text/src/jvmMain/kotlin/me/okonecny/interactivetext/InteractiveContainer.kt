@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.internal.interactive
+package me.okonecny.interactivetext
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box

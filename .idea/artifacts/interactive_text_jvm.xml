@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="interactive-text-jvm">
+    <output-path>$PROJECT_DIR$/interactive-text/build/libs</output-path>
+    <root id="archive" name="interactive-text-jvm.jar">
+      <element id="module-output" name="whodoes.interactive-text.jvmMain" />
+    </root>
+  </artifact>
+</component>

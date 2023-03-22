@@ -1,7 +1,6 @@
 val kotlinInjectVersion: String by project
 val kotlinJvmTarget: String by project
 val kermitVersion: String by project
-val flexmarkVersion: String by project
 
 plugins {
     kotlin("multiplatform")
@@ -39,8 +38,6 @@ kotlin {
             dependencies {
                 api(compose.desktop.currentOs)
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
-                implementation("com.vladsch.flexmark:flexmark-all:${flexmarkVersion}")
-                implementation(project(":interactive-text"))
             }
         }
         val jvmTest by getting {

@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Checkbox
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -24,6 +21,7 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import me.okonecny.markdowneditor.internal.*
+import me.okonecny.markdowneditor.internal.interactive.DisabledInteractiveContainer
 import me.okonecny.markdowneditor.internal.interactive.InteractiveContainer
 import me.okonecny.markdowneditor.internal.interactive.InteractiveText
 import me.okonecny.markdowneditor.internal.interactive.rememberInteractiveScope
@@ -54,17 +52,21 @@ fun MarkdownEditor(
     }
 
     if (interactive) {
+        val interactiveScope = rememberInteractiveScope(sourceText)
         InteractiveContainer(
-            scope = rememberInteractiveScope(sourceText),
+            scope = interactiveScope,
             selectionStyle = documentTheme.styles.selection,
             onInput = { textInputCommand ->
+                val selection by interactiveScope.selection
+                val layout = interactiveScope.requireComponentLayout()
+// TODO: actually edit something.
                 Logger.d(textInputCommand.toString(), tag = "onInput")
             }
         ) {
             renderDocument()
         }
     } else {
-        InteractiveContainer(scope = null) {
+        DisabledInteractiveContainer {
             renderDocument()
         }
     }

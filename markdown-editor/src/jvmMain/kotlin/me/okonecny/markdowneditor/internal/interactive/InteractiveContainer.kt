@@ -95,3 +95,10 @@ fun InteractiveContainer(
 
 @Composable
 fun rememberInteractiveScope(vararg keys: Any?) = remember(keys) { InteractiveScope() }
+
+/**
+ * Delimits a region where interaction is disabled.
+ */
+@Composable
+fun DisabledInteractiveContainer(interactiveContent: @Composable () -> Unit) =
+    InteractiveContainer(scope = null, interactiveContent = interactiveContent)

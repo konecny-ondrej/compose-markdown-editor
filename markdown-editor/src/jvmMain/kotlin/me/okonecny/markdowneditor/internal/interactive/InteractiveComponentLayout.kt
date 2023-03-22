@@ -15,21 +15,21 @@ class InteractiveComponentLayout(
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = sortInteractiveComponentsToLines()
 
-    fun add(component: InteractiveComponent) {
+    internal fun add(component: InteractiveComponent) {
         if (registeredComponents.contains(component.id)) return
         registeredComponents[component.id] = component
         orderedComponents.add(component)
         sortedInLineOrder = false
     }
 
-    fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
-        ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
-
-    fun remove(componentId: InteractiveId) {
+    internal fun remove(componentId: InteractiveId) {
         registeredComponents.remove(componentId)?.let { removedComponent ->
             orderedComponents.remove(removedComponent)
         }
     }
+
+    fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
+        ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 
     private fun requireFirstComponent(): InteractiveComponent {
         if (orderedComponents.isEmpty()) throw IllegalStateException("You need to register at least one interactive component.")

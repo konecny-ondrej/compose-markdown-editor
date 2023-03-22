@@ -6,7 +6,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import kotlin.math.abs
 import kotlin.math.max
 
-internal class InteractiveComponentLayout(
+class InteractiveComponentLayout(
     internal val containerCoordinates: LayoutCoordinates
 ) {
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()

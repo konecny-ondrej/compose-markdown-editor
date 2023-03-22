@@ -33,7 +33,7 @@ class InteractiveScope(
             newId
         }
 
-    internal fun requireComponentLayout(): InteractiveComponentLayout =
+    fun requireComponentLayout(): InteractiveComponentLayout =
         componentLayout ?: throw IllegalStateException("You must place the interactive scope first.")
 
     val isPlaced: Boolean get() = componentLayout != null

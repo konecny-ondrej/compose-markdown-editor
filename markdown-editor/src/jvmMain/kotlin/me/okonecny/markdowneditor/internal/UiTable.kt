@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.markdowneditor.BlockStyle
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.TableStyle
@@ -106,6 +107,7 @@ internal fun UiTable(
             row.forEachIndexed { columnIndex, cell ->
                 InteractiveText(
                     text = cell.text,
+                    textMapping = ZeroTextMapping, // TODO: replace with real TextMapping.
                     textAlign = cell.textAlign,
                     style = cellStyle.textStyle,
                     modifier = cellStyle.modifier

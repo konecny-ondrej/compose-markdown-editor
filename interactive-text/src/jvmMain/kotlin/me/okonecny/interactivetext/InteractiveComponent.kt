@@ -25,6 +25,10 @@ data class InteractiveComponent(
      */
     val visualTextRange: TextRange,
     /**
+     * Maps ranges of displayed text to ranges of source text and vice-versa. Useful for writing editors.
+     */
+    val textMapping: TextMapping,
+    /**
      * Result of laying out the text if this is a component displaying text.
      * Used for cursor movement.
      */

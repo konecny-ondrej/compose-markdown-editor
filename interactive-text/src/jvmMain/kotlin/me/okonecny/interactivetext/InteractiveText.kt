@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 @Composable
 fun InteractiveText(
     text: AnnotatedString,
+    textMapping: TextMapping,
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
@@ -40,6 +41,7 @@ fun InteractiveText(
                         id = interactiveId,
                         layoutCoordinates = layoutCoordinates,
                         visualTextRange = TextRange(0, text.length),
+                        textMapping = textMapping,
                         textLayoutResult = textLayoutResult
                     )
                 )
@@ -99,8 +101,9 @@ private fun paintSelection(
 @Composable
 fun InteractiveText(
     text: String,
+    textMapping: TextMapping,
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     textAlign: TextAlign? = null
-) = InteractiveText(AnnotatedString(text), style, selectionStyle, modifier, mapOf(), textAlign)
+) = InteractiveText(AnnotatedString(text), textMapping, style, selectionStyle, modifier, mapOf(), textAlign)

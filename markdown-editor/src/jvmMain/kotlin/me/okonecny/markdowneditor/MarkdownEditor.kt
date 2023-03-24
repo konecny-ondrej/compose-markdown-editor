@@ -3,13 +3,13 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import co.touchlab.kermit.Logger
@@ -20,10 +20,7 @@ import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
-import me.okonecny.interactivetext.DisabledInteractiveContainer
-import me.okonecny.interactivetext.InteractiveContainer
-import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.rememberInteractiveScope
+import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -162,6 +159,7 @@ private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String
             } else {
                 bulletOrDelimiter
             },
+            textMapping = ZeroTextMapping, // TODO: text mapping for the list item bullet.
             style = styles.listNumber,
         )
         Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = null)
@@ -184,6 +182,7 @@ private fun UiBulletList(unorderedList: BulletList) {
                 is BulletListItem -> Row {
                     InteractiveText(
                         text = bullet,
+                        textMapping = ZeroTextMapping, // TODO: text mapping for the list item bullet.
                         style = styles.listNumber,
                     )
                     Column {
@@ -216,6 +215,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
                 is OrderedListItem -> Row {
                     InteractiveText(
                         text = (computedNumber++).toString() + orderedList.delimiter,
+                        textMapping = ZeroTextMapping, // TODO: text mapping for the list item number and delimiter.
                         style = styles.listNumber,
                     )
                     Column {
@@ -237,6 +237,7 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
+        textMapping = ZeroTextMapping, // TODO: replace all ZeroTextMapping with something useful.
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier,
     )
@@ -259,6 +260,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
         if (codeFenceRenderer == null) {
             InteractiveText(
                 text = code,
+                textMapping = ZeroTextMapping, // TODO
                 style = styles.codeBlock.textStyle,
                 modifier = styles.codeBlock.modifier,
             )
@@ -273,6 +275,7 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = indentedCodeBlock.contentLines.joinToString(System.lineSeparator()),
+        textMapping = ZeroTextMapping,
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier,
     )
@@ -301,8 +304,13 @@ private fun UiHorizontalRule() {
 
 @Composable
 private fun UiUnparsedBlock(node: Node) {
+    val text = "!${node.nodeName}!"
     InteractiveText(
-        text = "!${node.nodeName}!",
+        text = text,
+        textMapping = ConstantTextMapping(
+            TextRange(node.startOffset, node.endOffset), // TODO +1?
+            TextRange(0, text.length)
+        ),
         style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan),
     )
 }
@@ -313,8 +321,8 @@ private fun UiParagraph(paragraph: Paragraph) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = inlines.text,
+        textMapping = inlines.textMapping,
         style = styles.paragraph,
-        inlineContent = inlines.inlineContent,
     )
 }
 
@@ -324,6 +332,7 @@ private fun UiHeading(header: Heading) {
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = inlines.text,
+        textMapping = inlines.textMapping,
         style = when (header.level) {
             1 -> styles.h1
             2 -> styles.h2
@@ -332,8 +341,7 @@ private fun UiHeading(header: Heading) {
             5 -> styles.h5
             6 -> styles.h6
             else -> styles.h1
-        },
-        inlineContent = inlines.inlineContent,
+        }
     )
 }
 
@@ -341,12 +349,13 @@ private fun UiHeading(header: Heading) {
 
 private data class ParsedInlines(
     val text: AnnotatedString,
-    val inlineContent: Map<String, InlineTextContent>
+    val textMapping: TextMapping
 )
 
 @Composable
 private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
     val styles = DocumentTheme.current.styles
+    val mappings = mutableListOf<TextRange>() // TODO: Collect text ranges while collecting text.
     return ParsedInlines(
         text = buildAnnotatedString {
             inlines.forEach { inline ->
@@ -370,7 +379,7 @@ private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
                 }
             }
         },
-        inlineContent = mapOf()
+        textMapping = ChunkedSourceTextMapping(mappings)
     )
 }
 

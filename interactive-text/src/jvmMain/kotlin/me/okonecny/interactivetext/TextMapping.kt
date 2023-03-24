@@ -7,6 +7,12 @@ interface TextMapping {
     fun toVisual(sourceTextRange: TextRange): TextRange
 }
 
+object ZeroTextMapping : TextMapping {
+    override fun toSource(visualTextRange: TextRange): TextRange = TextRange.Zero
+
+    override fun toVisual(sourceTextRange: TextRange): TextRange = TextRange.Zero
+}
+
 class ConstantTextMapping(
     private val sourceTextRange: TextRange,
     private val visualTextRange: TextRange = TextRange.Zero
@@ -38,4 +44,24 @@ class SourcePaddedTextMapping(
         return TextRange(start, end)
     }
 // TODO: -1 / +1 anywhere?
+}
+
+/**
+ * Each char from the visual text is represented by a range of source code.
+ * @param sourceRanges One source text range per each visual character. Ordered by visual line text flow.
+ */
+class ChunkedSourceTextMapping(
+    private val sourceRanges: List<TextRange>
+): TextMapping {
+    override fun toSource(visualTextRange: TextRange): TextRange = TextRange(
+        sourceRanges[visualTextRange.start].start,
+        sourceRanges[visualTextRange.end].end
+    )
+
+    override fun toVisual(sourceTextRange: TextRange): TextRange {
+        val start = sourceRanges.indexOfFirst(sourceTextRange::intersects)
+        val end = sourceRanges.indexOfLast(sourceTextRange::intersects)
+        if (start == -1 || end == -1) return TextRange.Zero
+        return TextRange(start, end + 1)
+    }
 }

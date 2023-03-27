@@ -4,7 +4,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Checkbox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -12,7 +15,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
@@ -31,56 +33,18 @@ import me.okonecny.markdowneditor.internal.*
 fun MarkdownEditor(
     sourceText: String,
     documentTheme: DocumentTheme = DocumentTheme.default,
-    interactive: Boolean = true,
-    codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
-    onInput: (String) -> Unit = {}
+    scrollable: Boolean = true,
+    codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
     val parser = remember { markdown.documentParser }
     val document = parser.parse(sourceText)
-    // TODO: make the source or the AST be state so we can edit.
 
-    @Composable
-    fun renderDocument() {
-        CompositionLocalProvider(
-            LocalDocumentTheme provides documentTheme,
-            CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
-        ) {
-            UiMdDocument(document.ast, interactive)
-        }
-    }
-
-    if (interactive) {
-        val interactiveScope = rememberInteractiveScope(sourceText)
-        InteractiveContainer(
-            scope = interactiveScope,
-            selectionStyle = documentTheme.styles.selection,
-            onInput = { textInputCommand ->
-                val cursor by interactiveScope.cursorPosition
-                val selection by interactiveScope.selection
-                val layout = interactiveScope.requireComponentLayout()
-// TODO: actually edit something.
-                val mapping = layout.getComponent(cursor.componentId).textMapping
-                val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset)).start
-                Logger.d("$cursor", tag = "Cursor")
-                Logger.d("$textInputCommand@$sourceCursorPos '${sourceText[sourceCursorPos]}'", tag = "onInput")
-                when(textInputCommand) {
-                    Copy -> TODO()
-                    is Delete -> TODO()
-                    NewLine -> TODO()
-                    Paste -> TODO()
-                    is Type -> {
-                        onInput(sourceText.substring(0, sourceCursorPos) + textInputCommand.text + sourceText.substring(sourceCursorPos))
-                    }
-                }
-            }
-        ) {
-            renderDocument()
-        }
-    } else {
-        DisabledInteractiveContainer {
-            renderDocument()
-        }
+    CompositionLocalProvider(
+        LocalDocumentTheme provides documentTheme,
+        CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
+    ) {
+        UiMdDocument(document.ast, scrollable)
     }
 }
 

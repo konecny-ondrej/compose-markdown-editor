@@ -38,9 +38,9 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
                 api(compose.desktop.currentOs)
+                api(project(":interactive-text"))
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
                 implementation("com.vladsch.flexmark:flexmark-all:${flexmarkVersion}")
-                implementation(project(":interactive-text"))
             }
         }
         val jvmTest by getting {

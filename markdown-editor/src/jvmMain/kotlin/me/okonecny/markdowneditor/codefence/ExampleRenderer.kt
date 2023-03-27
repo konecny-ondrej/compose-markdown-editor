@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import me.okonecny.interactivetext.DisabledInteractiveContainer
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
@@ -47,7 +48,9 @@ class ExampleRenderer : CodeFenceRenderer {
                         .fillMaxHeight()
                         .background(Color(0xAAAAAAFF))
                 ) {
-                    MarkdownEditor(markdownCode, interactive = false)
+                    DisabledInteractiveContainer {
+                        MarkdownEditor(markdownCode, scrollable = false)
+                    }
                 }
                 Text(
                     text = output,

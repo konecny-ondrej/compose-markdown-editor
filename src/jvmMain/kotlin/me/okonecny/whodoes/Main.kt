@@ -34,12 +34,17 @@ fun App() {
                 Text(if (isLong) "GFM Spec" else "Short demo")
             }
             val filename = if (isLong) longFilename else shortFilename
-            val markdownSource = useResource(filename) { md ->
-                md.bufferedReader().readText()
+            var markdownSource by remember {
+                mutableStateOf(useResource(filename) { md ->
+                    md.bufferedReader().readText()
+                })
             }
             MarkdownEditor(
                 markdownSource,
-                codeFenceRenderers = listOf(ExampleRenderer())
+                codeFenceRenderers = listOf(ExampleRenderer()),
+                onInput = { newSource ->
+                    markdownSource = newSource
+                }
             )
         }
     }

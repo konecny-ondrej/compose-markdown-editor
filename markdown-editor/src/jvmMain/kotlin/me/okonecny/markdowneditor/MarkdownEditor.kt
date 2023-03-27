@@ -20,6 +20,7 @@ import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
+import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.internal.*
 
@@ -31,7 +32,8 @@ fun MarkdownEditor(
     sourceText: String,
     documentTheme: DocumentTheme = DocumentTheme.default,
     interactive: Boolean = true,
-    codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
+    codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
+    onInput: (String) -> Unit = {}
 ) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
     val parser = remember { markdown.documentParser }
@@ -54,10 +56,23 @@ fun MarkdownEditor(
             scope = interactiveScope,
             selectionStyle = documentTheme.styles.selection,
             onInput = { textInputCommand ->
+                val cursor by interactiveScope.cursorPosition
                 val selection by interactiveScope.selection
                 val layout = interactiveScope.requireComponentLayout()
 // TODO: actually edit something.
-                Logger.d(textInputCommand.toString(), tag = "onInput")
+                val mapping = layout.getComponent(cursor.componentId).textMapping
+                val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset)).start
+                Logger.d("$cursor", tag = "Cursor")
+                Logger.d("$textInputCommand@$sourceCursorPos '${sourceText[sourceCursorPos]}'", tag = "onInput")
+                when(textInputCommand) {
+                    Copy -> TODO()
+                    is Delete -> TODO()
+                    NewLine -> TODO()
+                    Paste -> TODO()
+                    is Type -> {
+                        onInput(sourceText.substring(0, sourceCursorPos) + textInputCommand.text + sourceText.substring(sourceCursorPos))
+                    }
+                }
             }
         ) {
             renderDocument()
@@ -347,30 +362,45 @@ private fun UiHeading(header: Heading) {
 
 // region inlines
 
-private data class ParsedInlines(
+private data class MappedText(
     val text: AnnotatedString,
     val textMapping: TextMapping
 )
 
 @Composable
-private fun parseInlines(inlines: Iterable<Node>): ParsedInlines {
+private fun parseInlines(inlines: Iterable<Node>): MappedText {
     val styles = DocumentTheme.current.styles
-    val mappings = mutableListOf<TextRange>() // TODO: Collect text ranges while collecting text.
-    return ParsedInlines(
+    val mappings = mutableListOf<TextMapping>()
+    return MappedText(
         text = buildAnnotatedString {
             inlines.forEach { inline ->
                 when (inline) {
-                    is Text -> append(inline.text())
+                    is Text -> {
+                        val parsedText = inline.text(startOffset = length)
+                        append(parsedText.text)
+                        mappings.add(parsedText.textMapping)
+                    }
+
                     is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                     is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
-                    is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
-                    is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
+                    is Emphasis -> {
+                        val parsedText = inline.text(startOffset = length)
+                        appendStyled(parsedText.text, styles.emphasis.toSpanStyle())
+                        mappings.add(parsedText.textMapping)
+                    }
+
+                    is StrongEmphasis -> {
+                        val parsedText = inline.text(startOffset = length)
+                        appendStyled(parsedText.text, styles.strong.toSpanStyle())
+                        mappings.add(parsedText.textMapping) // TODO: make all sections like this
+                    }
+
                     is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                     is HardLineBreak -> append(System.lineSeparator())
                     is Link -> appendLink(inline)
                     is AutoLink -> appendLink(inline)
                     is LinkRef -> appendLinkRef(inline)
-                    is HtmlEntity -> append(inline.text())
+                    is HtmlEntity -> append(inline.text(length).text) // TODO: mapping
 //                    // TODO: proper parsing
                     is MailLink -> appendUnparsed(inline)
                     is HtmlInlineBase -> appendUnparsed(inline)
@@ -415,15 +445,42 @@ private fun AnnotatedString.Builder.appendStyled(annotatedString: AnnotatedStrin
 }
 
 private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    append(AnnotatedString(inlineNode.text(), style))
+    append(AnnotatedString(inlineNode.text(length).text.text, style))
 }
 
 /**
  * Collects the node text, resolving all escapes.
  */
-private fun Node.text(): String {
+private fun Node.text(startOffset: Int): MappedText {
     val builder = TextCollectingVisitor()
-    return builder.collectAndGetText(this)
+    builder.collect(this)
+    val text = builder.text
+    return MappedText(
+        text = AnnotatedString(builder.text),
+        textMapping = SequenceTextMapping(
+            TextRange(startOffset, startOffset + text.length),
+            builder.sequence
+        )
+    )
+}
+
+private class SequenceTextMapping(
+    private val coveredVisualRange: TextRange,
+    private val sequence: BasedSequence
+) : TextMapping {
+    override fun toSource(visualTextRange: TextRange): TextRange {
+        val baseOffset = coveredVisualRange.start
+        val shiftedStart = visualTextRange.start - baseOffset
+        val shiftedEnd = visualTextRange.end - baseOffset
+        if (shiftedStart < 0 || shiftedEnd > sequence.lastIndex) return TextRange.Zero
+        val sourceRange = sequence.subSequence(shiftedStart, shiftedEnd).sourceRange
+        return TextRange(sourceRange.start, sourceRange.end)
+    }
+
+    override fun toVisual(sourceTextRange: TextRange): TextRange {
+        TODO("Not yet implemented")
+    }
+
 }
 
 /**

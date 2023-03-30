@@ -114,7 +114,7 @@ private fun InteractiveScope.moveCursorByLine(cursorPosition: CursorPosition, li
     return CursorPosition(component.id, newCursorOffset)
 }
 
-private fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByChars(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
@@ -125,7 +125,7 @@ private fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): Cursor
     return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
 }
 
-private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByChars(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
@@ -136,7 +136,7 @@ private fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): Curso
     return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
 }
 
-private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByLine(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
@@ -153,7 +153,7 @@ private fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): Cursor
     )
 }
 
-private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByLine(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
@@ -171,7 +171,7 @@ private fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPo
     return CursorPosition(componentAbove.id, newTextOffset)
 }
 
-private fun InteractiveScope.moveCursorHome(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorHome(oldPosition: CursorPosition): CursorPosition {
     val offsetFromLineStart = getOffsetFromLineStart(oldPosition)
     if (offsetFromLineStart > 0) return CursorPosition(
         oldPosition.componentId,
@@ -181,7 +181,7 @@ private fun InteractiveScope.moveCursorHome(oldPosition: CursorPosition): Cursor
     return oldPosition
 }
 
-private fun InteractiveScope.moveCursorToEnd(oldPosition: CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorToEnd(oldPosition: CursorPosition): CursorPosition {
     val component = getComponent(oldPosition.componentId)
     val textLayout = component.textLayoutResult
     if (!component.hasText || textLayout == null) return oldPosition

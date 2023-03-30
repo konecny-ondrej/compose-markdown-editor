@@ -48,23 +48,24 @@ fun App() {
                 scope = interactiveScope,
                 selectionStyle = documentTheme.styles.selection,
                 onInput = { textInputCommand ->
-                    val cursor by interactiveScope.cursorPosition
+                    var cursor by interactiveScope.cursorPosition
                     val selection by interactiveScope.selection
                     val layout = interactiveScope.requireComponentLayout()
 
                     val mapping = layout.getComponent(cursor.componentId).textMapping
-                    val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset)).start
+                    val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset))
                     Logger.d("$cursor", tag = "Cursor")
-                    Logger.d("$textInputCommand@$sourceCursorPos '${markdownSource[sourceCursorPos]}'", tag = "onInput")
+                    Logger.d("$textInputCommand@$sourceCursorPos '${markdownSource[sourceCursorPos.start]}'", tag = "onInput")
                     when (textInputCommand) {
                         Copy -> TODO()
                         is Delete -> TODO()
                         NewLine -> TODO()
                         Paste -> TODO()
                         is Type -> {
-                            markdownSource = markdownSource.substring(0, sourceCursorPos) +
+                            markdownSource = markdownSource.substring(0, sourceCursorPos.start) +
                                     textInputCommand.text +
-                                    markdownSource.substring(sourceCursorPos)
+                                    markdownSource.substring(sourceCursorPos.end)
+                            cursor = interactiveScope.moveCursorRight(cursor)
                         }
                     }
                 }

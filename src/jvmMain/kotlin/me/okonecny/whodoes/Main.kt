@@ -43,7 +43,7 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
-            val interactiveScope = rememberInteractiveScope(markdownSource)
+            val interactiveScope = rememberInteractiveScope()
             InteractiveContainer(
                 scope = interactiveScope,
                 selectionStyle = documentTheme.styles.selection,

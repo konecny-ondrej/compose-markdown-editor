@@ -10,14 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import co.touchlab.kermit.Logger
-import me.okonecny.interactivetext.*
+import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MarkdownView
+import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.tatarka.inject.annotations.Component
 
@@ -31,6 +29,7 @@ fun App() {
     var markdownSource by mutableStateOf(useResource(filename) { md ->
         md.bufferedReader().readText()
     })
+    val interactiveScope = rememberInteractiveScope()
 
     MaterialTheme {
         Column(
@@ -43,42 +42,17 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
-            val interactiveScope = rememberInteractiveScope()
-            InteractiveContainer(
-                scope = interactiveScope,
-                selectionStyle = documentTheme.styles.selection,
-                onInput = { textInputCommand ->
-                    var cursor by interactiveScope.cursorPosition
-                    val selection by interactiveScope.selection
-                    val layout = interactiveScope.requireComponentLayout()
-
-                    val mapping = layout.getComponent(cursor.componentId).textMapping
-                    val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset))
-                    Logger.d("$cursor", tag = "Cursor")
-                    Logger.d(
-                        "$textInputCommand@$sourceCursorPos '${markdownSource[sourceCursorPos.start]}'",
-                        tag = "onInput"
-                    )
-                    when (textInputCommand) {
-                        Copy -> TODO()
-                        is Delete -> TODO()
-                        NewLine -> TODO()
-                        Paste -> TODO()
-                        is Type -> {
-                            markdownSource = markdownSource.substring(0, sourceCursorPos.start) +
-                                    textInputCommand.text +
-                                    markdownSource.substring(sourceCursorPos.end)
-                            cursor = interactiveScope.moveCursorRight(cursor)
-                        }
-                    }
+            MarkdownEditor(
+                sourceText = markdownSource,
+                interactiveScope = interactiveScope,
+                documentTheme = documentTheme,
+                codeFenceRenderers = listOf(ExampleRenderer()),
+                onChange = { newSource, newCursor, newSelection ->
+                    markdownSource = newSource
+                    interactiveScope.cursorPosition.value = newCursor
+                    interactiveScope.selection.value = newSelection
                 }
-            ) {
-                MarkdownView(
-                    markdownSource,
-                    documentTheme = documentTheme,
-                    codeFenceRenderers = listOf(ExampleRenderer())
-                )
-            }
+            )
         }
     }
 }

@@ -27,7 +27,7 @@ import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.internal.*
 
 /**
- * A simple WYSIWYG editor for Markdown.
+ * Renders a Markdown document nicely.
  */
 @Composable
 fun MarkdownView(

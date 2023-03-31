@@ -17,7 +17,7 @@ import androidx.compose.ui.window.application
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MarkdownEditor
+import me.okonecny.markdowneditor.MarkdownView
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.tatarka.inject.annotations.Component
 
@@ -55,7 +55,10 @@ fun App() {
                     val mapping = layout.getComponent(cursor.componentId).textMapping
                     val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset))
                     Logger.d("$cursor", tag = "Cursor")
-                    Logger.d("$textInputCommand@$sourceCursorPos '${markdownSource[sourceCursorPos.start]}'", tag = "onInput")
+                    Logger.d(
+                        "$textInputCommand@$sourceCursorPos '${markdownSource[sourceCursorPos.start]}'",
+                        tag = "onInput"
+                    )
                     when (textInputCommand) {
                         Copy -> TODO()
                         is Delete -> TODO()
@@ -70,7 +73,7 @@ fun App() {
                     }
                 }
             ) {
-                MarkdownEditor(
+                MarkdownView(
                     markdownSource,
                     documentTheme = documentTheme,
                     codeFenceRenderers = listOf(ExampleRenderer())

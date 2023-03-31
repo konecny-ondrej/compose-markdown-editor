@@ -30,7 +30,7 @@ import me.okonecny.markdowneditor.internal.*
  * A simple WYSIWYG editor for Markdown.
  */
 @Composable
-fun MarkdownEditor(
+fun MarkdownView(
     sourceText: String,
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
@@ -38,7 +38,7 @@ fun MarkdownEditor(
 ) {
     val markdown = remember { MarkdownEditorComponent::class.create() }
     val parser = remember { markdown.documentParser }
-    val document = parser.parse(sourceText)
+    val document = remember(sourceText) { parser.parse(sourceText) }
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,

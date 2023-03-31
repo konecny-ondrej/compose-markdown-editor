@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.DisabledInteractiveContainer
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MarkdownEditor
+import me.okonecny.markdowneditor.MarkdownView
 
 /**
  * Renders "example" fenced code block from commonMarkSpec.md.
@@ -49,7 +49,7 @@ class ExampleRenderer : CodeFenceRenderer {
                         .background(Color(0xAAAAAAFF))
                 ) {
                     DisabledInteractiveContainer {
-                        MarkdownEditor(markdownCode, scrollable = false)
+                        MarkdownView(markdownCode, scrollable = false)
                     }
                 }
                 Text(

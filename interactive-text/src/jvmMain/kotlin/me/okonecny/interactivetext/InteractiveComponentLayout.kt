@@ -15,9 +15,9 @@ class InteractiveComponentLayout(
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = sortInteractiveComponentsToLines()
 
-    internal fun add(component: InteractiveComponent) {
-        if (registeredComponents.contains(component.id)) return
+    internal fun put(component: InteractiveComponent) {
         registeredComponents[component.id] = component
+        orderedComponents.removeIf { component.id == it.id }
         orderedComponents.add(component)
         sortedInLineOrder = false
     }

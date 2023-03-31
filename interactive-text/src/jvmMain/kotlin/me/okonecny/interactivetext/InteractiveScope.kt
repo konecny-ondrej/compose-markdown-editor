@@ -43,7 +43,7 @@ class InteractiveScope(
     }
 
     fun register(component: InteractiveComponent) {
-        requireComponentLayout().add(component)
+        requireComponentLayout().put(component)
     }
 
     fun unregister(componentId: InteractiveId) {

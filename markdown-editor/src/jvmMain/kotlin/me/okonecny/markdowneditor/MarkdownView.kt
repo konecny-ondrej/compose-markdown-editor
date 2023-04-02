@@ -436,7 +436,7 @@ private class SequenceTextMapping(
         val baseOffset = coveredVisualRange.start
         val shiftedStart = visualTextRange.start - baseOffset
         val shiftedEnd = visualTextRange.end - baseOffset
-        if (shiftedStart < 0 || shiftedEnd > sequence.lastIndex) return TextRange.Zero
+        if (shiftedStart < 0 || shiftedEnd > sequence.length) return TextRange.Zero
         val sourceRange = sequence.subSequence(shiftedStart, shiftedEnd).sourceRange
         return TextRange(sourceRange.start, sourceRange.end)
     }

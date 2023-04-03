@@ -47,10 +47,8 @@ fun App() {
                 interactiveScope = interactiveScope,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),
-                onChange = { newSource, newCursor, newSelection ->
+                onChange = { newSource ->
                     markdownSource = newSource
-                    interactiveScope.cursorPosition.value = newCursor
-                    interactiveScope.selection.value = newSelection
                 }
             )
         }

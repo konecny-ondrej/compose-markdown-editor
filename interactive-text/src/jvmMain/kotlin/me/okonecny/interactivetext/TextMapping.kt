@@ -60,4 +60,8 @@ class ChunkedSourceTextMapping(
             .map { mapping -> mapping.toVisual(sourceTextRange) }
             .firstOrNull { range -> range != TextRange.Zero } ?: TextRange.Zero
     }
+
+    override fun toString(): String {
+        return "ChunkedSourceTextMapping(${chunks})"
+    }
 }

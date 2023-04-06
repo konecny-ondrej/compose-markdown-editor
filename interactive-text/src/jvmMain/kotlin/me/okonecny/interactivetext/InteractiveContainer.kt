@@ -27,6 +27,7 @@ fun InteractiveContainer(
     scope: InteractiveScope? = rememberInteractiveScope(),
     selectionStyle: TextStyle = defaultSelectionStyle,
     onInput: (TextInputCommand) -> Unit = {},
+    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition?.value = it},
     interactiveContent: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
@@ -40,7 +41,7 @@ fun InteractiveContainer(
             var isFocused by remember { mutableStateOf(false) }
             var shouldResetSelection = true
             var selection by scope.selection
-            var cursorPosition by scope.cursorPosition
+            val cursorPosition by scope.cursorPosition
             Modifier
                 .focusRequester(requester)
                 .onFocusChanged { focusState ->
@@ -58,7 +59,7 @@ fun InteractiveContainer(
                         newCursorPosition,
                         scope.requireComponentLayout()
                     )
-                    cursorPosition = newCursorPosition
+                    onCursorMovement(newCursorPosition)
                 }
                 .pointerCursorMovement(scope) { newCursorPosition, isDrag ->
                     requester.requestFocus()
@@ -69,7 +70,7 @@ fun InteractiveContainer(
                         newCursorPosition,
                         scope.requireComponentLayout()
                     )
-                    cursorPosition = newCursorPosition
+                    onCursorMovement(newCursorPosition)
                 }
                 .onKeyEvent { keyEvent: KeyEvent ->
                     shouldResetSelection = !keyEvent.isShiftPressed

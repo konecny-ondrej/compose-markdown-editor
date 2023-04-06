@@ -44,4 +44,9 @@ data class InteractiveComponent(
      * False if the component has no text or the contained text is just one line.
      */
     val isMultiline: Boolean get() = hasText && textLayoutResult != null && textLayoutResult.lineCount > 1
+
+    /**
+     * Area of the source code covered by this component.
+     */
+    val sourceTextRange: TextRange by lazy { textMapping.toSource(visualTextRange) }
 }

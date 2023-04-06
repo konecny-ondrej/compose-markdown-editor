@@ -445,6 +445,9 @@ private class SequenceTextMapping(
         TODO("Not yet implemented")
     }
 
+    override fun toString(): String {
+        return "SequenceTextMapping(S:${sequence.sourceRange}, V:${coveredVisualRange}"
+    }
 }
 
 /**

@@ -7,6 +7,11 @@ import androidx.compose.ui.text.TextRange
  */
 interface TextMapping {
     /**
+     * Range of the source code covered by this mapping.
+     */
+    val sourceTextRange: TextRange
+
+    /**
      * Compute the source text range corresponding to the rendered text.
      * @return Range of the source text. A collapsed TextMapping, if there is no source representing the rendered text.
      */
@@ -20,31 +25,43 @@ interface TextMapping {
 }
 
 object ZeroTextMapping : TextMapping {
+    override val sourceTextRange: TextRange = TextRange.Zero
+
     override fun toSource(visualTextRange: TextRange): TextRange = TextRange.Zero
 
     override fun toVisual(sourceTextRange: TextRange): TextRange = TextRange.Zero
 }
 
 class ConstantTextMapping(
-    private val sourceTextRange: TextRange,
+    override val sourceTextRange: TextRange,
     private val visualTextRange: TextRange = TextRange.Zero
 ) : TextMapping {
-    override fun toSource(visualTextRange: TextRange): TextRange = if (this.visualTextRange.intersects(visualTextRange)) {
-        sourceTextRange
-    } else {
-        TextRange.Zero
-    }
+    override fun toSource(visualTextRange: TextRange): TextRange =
+        if (this.visualTextRange.intersects(visualTextRange)) {
+            sourceTextRange
+        } else {
+            TextRange.Zero
+        }
 
-    override fun toVisual(sourceTextRange: TextRange): TextRange = if (this.sourceTextRange.intersects(sourceTextRange)) {
-        visualTextRange
-    } else {
-        TextRange.Zero
-    }
+    override fun toVisual(sourceTextRange: TextRange): TextRange =
+        if (this.sourceTextRange.intersects(sourceTextRange)) {
+            visualTextRange
+        } else {
+            TextRange.Zero
+        }
 }
 
 class ChunkedSourceTextMapping(
     private val chunks: List<TextMapping>
 ) : TextMapping {
+    override val sourceTextRange: TextRange by lazy {
+        val mappedRanges = chunks.map { textMapping -> textMapping.sourceTextRange }
+        val start = mappedRanges.minOfOrNull(TextRange::min)
+        val end = mappedRanges.maxOfOrNull(TextRange::max)
+        if (start == null || end == null) return@lazy TextRange.Zero
+        return@lazy TextRange(start, end)
+    }
+
     override fun toSource(visualTextRange: TextRange): TextRange {
         val mappedRanges = chunks
             .map { mapping -> mapping.toSource(visualTextRange) }

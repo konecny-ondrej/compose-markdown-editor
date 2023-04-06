@@ -432,6 +432,11 @@ private class SequenceTextMapping(
     private val coveredVisualRange: TextRange,
     private val sequence: BasedSequence
 ) : TextMapping {
+    override val sourceTextRange: TextRange by lazy {
+        val sourceRange = sequence.sourceRange
+        TextRange(sourceRange.start, sourceRange.end)
+    }
+
     override fun toSource(visualTextRange: TextRange): TextRange {
         val baseOffset = coveredVisualRange.start
         val shiftedStart = visualTextRange.start - baseOffset

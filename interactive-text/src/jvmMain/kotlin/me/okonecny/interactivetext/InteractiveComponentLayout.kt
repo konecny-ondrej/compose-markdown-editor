@@ -3,6 +3,7 @@ package me.okonecny.interactivetext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.text.TextRange
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -189,6 +190,14 @@ class InteractiveComponentLayout(
         return componentsInLineOrder[
             (registeredPosition - 1).coerceAtLeast(0)
         ]
+    }
+
+    fun componentsForSource(sourcePos: Int): List<InteractiveComponent> = componentsForSource(TextRange(sourcePos))
+
+    fun componentsForSource(sourceTextRange: TextRange): List<InteractiveComponent> {
+        return componentsInLineOrder.filter { component ->
+            component.sourceTextRange.intersects(sourceTextRange)
+        }
     }
 
     private fun sortInteractiveComponentsToLines(): List<InteractiveComponent> {

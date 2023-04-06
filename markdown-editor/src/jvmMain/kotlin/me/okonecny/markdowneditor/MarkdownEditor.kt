@@ -19,17 +19,18 @@ fun MarkdownEditor(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     onChange: (String) -> Unit
 ) {
+    var visualCursor by interactiveScope.cursorPosition
+    val selection by interactiveScope.selection
+
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
         onInput = { textInputCommand ->
-            var visualCursor by interactiveScope.cursorPosition
             if (!visualCursor.isValid) return@InteractiveContainer
+            val componentUnderCursor = interactiveScope.getComponent(visualCursor.componentId)
+            val mapping = componentUnderCursor.textMapping
 
-            val selection by interactiveScope.selection
             val layout = interactiveScope.requireComponentLayout()
-            val component = layout.getComponent(visualCursor.componentId)
-            val mapping = component.textMapping
             val sourceCursor = mapping.toSource(TextRange(visualCursor.visualOffset))
             Logger.d("$visualCursor", tag = "Cursor")
             Logger.d(

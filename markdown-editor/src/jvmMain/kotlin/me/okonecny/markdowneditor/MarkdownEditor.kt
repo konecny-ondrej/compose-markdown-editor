@@ -21,17 +21,25 @@ fun MarkdownEditor(
 ) {
     var visualCursor by interactiveScope.cursorPosition
     val selection by interactiveScope.selection
+    var sourceCursor by remember { mutableStateOf(TextRange(0)) }
+
+    fun CursorPosition.componentUnderCursor(): InteractiveComponent = interactiveScope.getComponent(componentId)
 
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
+        onCursorMovement = { newVisualCursor ->
+            visualCursor = newVisualCursor
+            if (!newVisualCursor.isValid) return@InteractiveContainer
+            val componentUnderCursor = newVisualCursor.componentUnderCursor()
+            sourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
+        },
         onInput = { textInputCommand ->
             if (!visualCursor.isValid) return@InteractiveContainer
-            val componentUnderCursor = interactiveScope.getComponent(visualCursor.componentId)
+            val componentUnderCursor = visualCursor.componentUnderCursor()
             val mapping = componentUnderCursor.textMapping
 
             val layout = interactiveScope.requireComponentLayout()
-            val sourceCursor = mapping.toSource(TextRange(visualCursor.visualOffset))
             Logger.d("$visualCursor", tag = "Cursor")
             Logger.d(
                 "$textInputCommand@$sourceCursor '${sourceText[sourceCursor.start]}'",
@@ -66,7 +74,8 @@ fun MarkdownEditor(
 
                     if (textInputCommand.direction == Delete.Direction.BEFORE_CURSOR) {
                         cursorRequest = {
-                            for (i in 1..size) visualCursor = interactiveScope.moveCursorLeft(visualCursor)
+                            sourceCursor = TextRange((sourceCursor.start - size).coerceAtLeast(0))
+//                            for (i in 1..size) visualCursor = interactiveScope.moveCursorLeft(visualCursor)
                         }
                     }
                     // TODO Delete selection if there is some.
@@ -79,7 +88,8 @@ fun MarkdownEditor(
                             sourceText.substring(sourceCursor.end)
                     onChange(newSourceText)
                     cursorRequest = {
-                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
+                        sourceCursor = TextRange(sourceCursor.start + 2)
+//                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
 
@@ -90,7 +100,8 @@ fun MarkdownEditor(
                             sourceText.substring(sourceCursor.start) // Typing intentionally replaces just one character.
                     onChange(newSourceText)
                     cursorRequest = {
-                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
+                        sourceCursor = TextRange(sourceCursor.start + 1)
+//                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
             }

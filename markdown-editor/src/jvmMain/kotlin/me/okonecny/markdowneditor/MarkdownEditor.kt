@@ -23,17 +23,17 @@ fun MarkdownEditor(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
         onInput = { textInputCommand ->
-            var cursor by interactiveScope.cursorPosition
-            if (!cursor.isValid) return@InteractiveContainer
+            var visualCursor by interactiveScope.cursorPosition
+            if (!visualCursor.isValid) return@InteractiveContainer
 
             val selection by interactiveScope.selection
             val layout = interactiveScope.requireComponentLayout()
-            val component = layout.getComponent(cursor.componentId)
+            val component = layout.getComponent(visualCursor.componentId)
             val mapping = component.textMapping
-            val sourceCursorPos = mapping.toSource(TextRange(cursor.visualOffset))
-            Logger.d("$cursor", tag = "Cursor")
+            val sourceCursor = mapping.toSource(TextRange(visualCursor.visualOffset))
+            Logger.d("$visualCursor", tag = "Cursor")
             Logger.d(
-                "$textInputCommand@$sourceCursorPos '${sourceText[sourceCursorPos.start]}'",
+                "$textInputCommand@$sourceCursor '${sourceText[sourceCursor.start]}'",
                 tag = "onInput"
             )
             when (textInputCommand) {
@@ -43,29 +43,29 @@ fun MarkdownEditor(
                         Delete.Size.LETTER -> 1
                         Delete.Size.WORD -> when (textInputCommand.direction) {
                             Delete.Direction.BEFORE_CURSOR -> ("\\s".toRegex()
-                                .find(sourceText.substring(0, sourceCursorPos.start).reversed())?.range?.first
-                                ?: sourceCursorPos.end) + 1
+                                .find(sourceText.substring(0, sourceCursor.start).reversed())?.range?.first
+                                ?: sourceCursor.end) + 1
 
                             Delete.Direction.AFTER_CURSOR -> ("\\s".toRegex()
-                                .find(sourceText, sourceCursorPos.end + 1)?.range?.first
-                                ?: sourceText.length) - sourceCursorPos.start
+                                .find(sourceText, sourceCursor.end + 1)?.range?.first
+                                ?: sourceText.length) - sourceCursor.start
                         }
                     }
                     val newSourceText: String = when (textInputCommand.direction) {
                         Delete.Direction.BEFORE_CURSOR -> sourceText.substring(
                             0,
-                            (sourceCursorPos.start - size).coerceAtLeast(0)
-                        ) + sourceText.substring(sourceCursorPos.end)
+                            (sourceCursor.start - size).coerceAtLeast(0)
+                        ) + sourceText.substring(sourceCursor.end)
 
                         Delete.Direction.AFTER_CURSOR -> sourceText.substring(
                             0,
-                            sourceCursorPos.start
-                        ) + sourceText.substring(sourceCursorPos.start + size)
+                            sourceCursor.start
+                        ) + sourceText.substring(sourceCursor.start + size)
                     }
 
                     if (textInputCommand.direction == Delete.Direction.BEFORE_CURSOR) {
                         cursorRequest = {
-                            for (i in 1..size) cursor = interactiveScope.moveCursorLeft(cursor)
+                            for (i in 1..size) visualCursor = interactiveScope.moveCursorLeft(visualCursor)
                         }
                     }
                     // TODO Delete selection if there is some.
@@ -73,23 +73,23 @@ fun MarkdownEditor(
                 }
 
                 NewLine -> {
-                    val newSourceText = sourceText.substring(0, sourceCursorPos.start) +
+                    val newSourceText = sourceText.substring(0, sourceCursor.start) +
                             System.lineSeparator() + System.lineSeparator() +
-                            sourceText.substring(sourceCursorPos.end)
+                            sourceText.substring(sourceCursor.end)
                     onChange(newSourceText)
                     cursorRequest = {
-                        cursor = interactiveScope.moveCursorRight(cursor)
+                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
 
                 Paste -> TODO()
                 is Type -> {
-                    val newSourceText = sourceText.substring(0, sourceCursorPos.start) +
+                    val newSourceText = sourceText.substring(0, sourceCursor.start) +
                             textInputCommand.text +
-                            sourceText.substring(sourceCursorPos.start) // Typing intentionally replaces just one character.
+                            sourceText.substring(sourceCursor.start) // Typing intentionally replaces just one character.
                     onChange(newSourceText)
                     cursorRequest = {
-                        cursor = interactiveScope.moveCursorRight(cursor)
+                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
             }

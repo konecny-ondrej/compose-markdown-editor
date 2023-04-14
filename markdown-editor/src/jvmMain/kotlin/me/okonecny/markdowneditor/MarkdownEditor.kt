@@ -23,23 +23,17 @@ fun MarkdownEditor(
     val selection by interactiveScope.selection
     var sourceCursor by remember { mutableStateOf(TextRange(0)) }
 
-    fun CursorPosition.componentUnderCursor(): InteractiveComponent = interactiveScope.getComponent(componentId)
-
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
-            val componentUnderCursor = newVisualCursor.componentUnderCursor()
+            val componentUnderCursor = interactiveScope.getComponent(newVisualCursor.componentId)
             sourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
         },
         onInput = { textInputCommand ->
             if (!visualCursor.isValid) return@InteractiveContainer
-            val componentUnderCursor = visualCursor.componentUnderCursor()
-            val mapping = componentUnderCursor.textMapping
-
-            val layout = interactiveScope.requireComponentLayout()
             Logger.d("$visualCursor", tag = "Cursor")
             Logger.d(
                 "$textInputCommand@$sourceCursor '${sourceText[sourceCursor.start]}'",
@@ -75,7 +69,6 @@ fun MarkdownEditor(
                     if (textInputCommand.direction == Delete.Direction.BEFORE_CURSOR) {
                         cursorRequest = {
                             sourceCursor = TextRange((sourceCursor.start - size).coerceAtLeast(0))
-//                            for (i in 1..size) visualCursor = interactiveScope.moveCursorLeft(visualCursor)
                         }
                     }
                     // TODO Delete selection if there is some.
@@ -89,7 +82,6 @@ fun MarkdownEditor(
                     onChange(newSourceText)
                     cursorRequest = {
                         sourceCursor = TextRange(sourceCursor.start + 2)
-//                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
 
@@ -101,7 +93,6 @@ fun MarkdownEditor(
                     onChange(newSourceText)
                     cursorRequest = {
                         sourceCursor = TextRange(sourceCursor.start + 1)
-//                        visualCursor = interactiveScope.moveCursorRight(visualCursor)
                     }
                 }
             }
@@ -109,10 +100,17 @@ fun MarkdownEditor(
     ) {
         MarkdownView(sourceText, documentTheme, scrollable, codeFenceRenderers)
         if (interactiveScope.isPlaced) {
-            LaunchedEffect(interactiveScope.requireComponentLayout()) {
+            val layout = interactiveScope.requireComponentLayout()
+            LaunchedEffect(layout) {
                 cursorRequest?.invoke()
                 cursorRequest = null
+                visualCursor = layout.computeVisualCursor(sourceCursor)
             }
         }
     }
+}
+
+private fun InteractiveComponentLayout.computeVisualCursor(sourceCursor: TextRange): CursorPosition {
+    val interactiveComponent = componentAtSource(sourceCursor.start)
+    return CursorPosition(interactiveComponent.id, interactiveComponent.textMapping.toVisual(sourceCursor).start)
 }

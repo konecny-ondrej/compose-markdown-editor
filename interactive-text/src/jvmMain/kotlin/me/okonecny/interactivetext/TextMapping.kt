@@ -73,9 +73,13 @@ class ChunkedSourceTextMapping(
     }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange {
-        return chunks
+        val visualRanges = chunks
             .map { mapping -> mapping.toVisual(sourceTextRange) }
-            .firstOrNull { range -> range != TextRange.Zero } ?: TextRange.Zero
+            .filter { range -> range != TextRange.Zero }
+        if (visualRanges.isEmpty()) return TextRange.Zero
+        return visualRanges.minWith { r1, r2 ->
+            r1.length.compareTo(r2.length)
+        }
     }
 
     override fun toString(): String {

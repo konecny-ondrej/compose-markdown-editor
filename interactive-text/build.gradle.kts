@@ -30,7 +30,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("co.touchlab:kermit:${kermitVersion}")
+                implementation("co.touchlab:kermit:${kermitVersion}") {
+                    exclude("org.jetbrains.kotlin", "kotlin-test-junit")
+                }
             }
         }
         val jvmMain by getting {

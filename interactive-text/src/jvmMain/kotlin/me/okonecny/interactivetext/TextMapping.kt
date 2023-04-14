@@ -9,7 +9,7 @@ interface TextMapping {
     /**
      * Range of the source code covered by this mapping.
      */
-    val sourceTextRange: TextRange
+    val coveredSourceRange: TextRange
 
     /**
      * Compute the source text range corresponding to the rendered text.
@@ -25,7 +25,7 @@ interface TextMapping {
 }
 
 object ZeroTextMapping : TextMapping {
-    override val sourceTextRange: TextRange = TextRange.Zero
+    override val coveredSourceRange: TextRange = TextRange.Zero
 
     override fun toSource(visualTextRange: TextRange): TextRange = TextRange.Zero
 
@@ -33,18 +33,18 @@ object ZeroTextMapping : TextMapping {
 }
 
 class ConstantTextMapping(
-    override val sourceTextRange: TextRange,
+    override val coveredSourceRange: TextRange,
     private val visualTextRange: TextRange = TextRange.Zero
 ) : TextMapping {
     override fun toSource(visualTextRange: TextRange): TextRange =
         if (this.visualTextRange.intersects(visualTextRange)) {
-            sourceTextRange
+            coveredSourceRange
         } else {
             TextRange.Zero
         }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange =
-        if (this.sourceTextRange.intersects(sourceTextRange)) {
+        if (this.coveredSourceRange.intersects(sourceTextRange)) {
             visualTextRange
         } else {
             TextRange.Zero
@@ -54,8 +54,8 @@ class ConstantTextMapping(
 class ChunkedSourceTextMapping(
     private val chunks: List<TextMapping>
 ) : TextMapping {
-    override val sourceTextRange: TextRange by lazy {
-        val mappedRanges = chunks.map { textMapping -> textMapping.sourceTextRange }
+    override val coveredSourceRange: TextRange by lazy {
+        val mappedRanges = chunks.map { textMapping -> textMapping.coveredSourceRange }
         val start = mappedRanges.minOfOrNull(TextRange::min)
         val end = mappedRanges.maxOfOrNull(TextRange::max)
         if (start == null || end == null) return@lazy TextRange.Zero

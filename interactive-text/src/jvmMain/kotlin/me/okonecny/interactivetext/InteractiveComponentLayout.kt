@@ -193,7 +193,7 @@ class InteractiveComponentLayout(
 
     fun componentAtSource(sourcePos: Int): InteractiveComponent {
         val directComponent = registeredComponents.values.find { component ->
-            component.textMapping.sourceTextRange.contains(sourcePos)
+            component.textMapping.coveredSourceRange.contains(sourcePos)
         }
         if (directComponent != null) return directComponent
 
@@ -201,7 +201,7 @@ class InteractiveComponentLayout(
             ?: throw IllegalStateException("At least one interactive component must be registered.")
         var closestDiff = Int.MAX_VALUE
         for (component in registeredComponents.values) {
-            val sourceRange = component.textMapping.sourceTextRange
+            val sourceRange = component.textMapping.coveredSourceRange
             val startDiff = abs(sourceRange.start - sourcePos)
             val endDiff = abs(sourceRange.end - sourcePos)
             for (diff in listOf(startDiff, endDiff)) {

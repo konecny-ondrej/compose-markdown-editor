@@ -432,7 +432,7 @@ private class SequenceTextMapping(
     private val coveredVisualRange: TextRange,
     private val sequence: BasedSequence
 ) : TextMapping {
-    override val sourceTextRange: TextRange by lazy {
+    override val coveredSourceRange: TextRange by lazy {
         val sourceRange = sequence.sourceRange
         TextRange(sourceRange.start, sourceRange.end)
     }
@@ -447,9 +447,9 @@ private class SequenceTextMapping(
     }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange {
-        if (!sourceTextRange.intersects(this.sourceTextRange) && !this.sourceTextRange.contains(sourceTextRange))
+        if (!sourceTextRange.intersects(this.coveredSourceRange) && !this.coveredSourceRange.contains(sourceTextRange))
             return TextRange.Zero
-        val sourceBase = this.sourceTextRange.start
+        val sourceBase = this.coveredSourceRange.start
         val visualBase = coveredVisualRange.start
         return TextRange(
             sourceTextRange.start - sourceBase + visualBase,

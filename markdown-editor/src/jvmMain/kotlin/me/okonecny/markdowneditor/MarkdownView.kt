@@ -447,7 +447,13 @@ private class SequenceTextMapping(
     }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange {
-        TODO("Not yet implemented")
+        if (!sourceTextRange.intersects(this.sourceTextRange)) return TextRange.Zero
+        val sourceBase = this.sourceTextRange.start
+        val visualBase = coveredVisualRange.start
+        return TextRange(
+            sourceTextRange.start - sourceBase + visualBase,
+            (sourceTextRange.end - sourceBase + visualBase).coerceAtMost(coveredVisualRange.end)
+        )
     }
 
     override fun toString(): String {

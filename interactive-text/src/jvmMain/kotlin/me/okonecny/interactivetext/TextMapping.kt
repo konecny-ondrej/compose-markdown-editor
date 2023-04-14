@@ -9,74 +9,70 @@ interface TextMapping {
     /**
      * Range of the source code covered by this mapping.
      */
-    val coveredSourceRange: TextRange
+    val coveredSourceRange: TextRange?
 
     /**
      * Compute the source text range corresponding to the rendered text.
-     * @return Range of the source text. A collapsed TextMapping, if there is no source representing the rendered text.
+     * @return Range of the source text. Null, if there is no source representing the rendered text.
      */
-    fun toSource(visualTextRange: TextRange): TextRange
+    fun toSource(visualTextRange: TextRange): TextRange?
 
     /**
      * Compute the rendered text range corresponding to the source text range.
-     * @return Range of the rendered text in a UI component. A collapsed TextMapping, if the source is not rendered.
+     * @return Range of the rendered text in a UI component. Null, if the source is not rendered.
      */
-    fun toVisual(sourceTextRange: TextRange): TextRange
+    fun toVisual(sourceTextRange: TextRange): TextRange?
 }
 
 object ZeroTextMapping : TextMapping {
-    override val coveredSourceRange: TextRange = TextRange.Zero
+    override val coveredSourceRange: TextRange? = null
 
-    override fun toSource(visualTextRange: TextRange): TextRange = TextRange.Zero
+    override fun toSource(visualTextRange: TextRange): TextRange? = null
 
-    override fun toVisual(sourceTextRange: TextRange): TextRange = TextRange.Zero
+    override fun toVisual(sourceTextRange: TextRange): TextRange? = null
 }
 
 class ConstantTextMapping(
     override val coveredSourceRange: TextRange,
-    private val visualTextRange: TextRange = TextRange.Zero
+    private val visualTextRange: TextRange? = null
 ) : TextMapping {
-    override fun toSource(visualTextRange: TextRange): TextRange =
-        if (this.visualTextRange.intersects(visualTextRange)) {
+    override fun toSource(visualTextRange: TextRange): TextRange? =
+        if (this.visualTextRange?.intersects(visualTextRange) == true) {
             coveredSourceRange
         } else {
-            TextRange.Zero
+            null
         }
 
-    override fun toVisual(sourceTextRange: TextRange): TextRange =
+    override fun toVisual(sourceTextRange: TextRange): TextRange? =
         if (this.coveredSourceRange.intersects(sourceTextRange)) {
             visualTextRange
         } else {
-            TextRange.Zero
+            null
         }
 }
 
 class ChunkedSourceTextMapping(
     private val chunks: List<TextMapping>
 ) : TextMapping {
-    override val coveredSourceRange: TextRange by lazy {
-        val mappedRanges = chunks.map { textMapping -> textMapping.coveredSourceRange }
+    override val coveredSourceRange: TextRange? by lazy {
+        val mappedRanges = chunks.mapNotNull { textMapping -> textMapping.coveredSourceRange }
         val start = mappedRanges.minOfOrNull(TextRange::min)
         val end = mappedRanges.maxOfOrNull(TextRange::max)
-        if (start == null || end == null) return@lazy TextRange.Zero
+        if (start == null || end == null) return@lazy null
         return@lazy TextRange(start, end)
     }
 
-    override fun toSource(visualTextRange: TextRange): TextRange {
-        val mappedRanges = chunks
-            .map { mapping -> mapping.toSource(visualTextRange) }
-            .filter { range -> range != TextRange.Zero }
+    override fun toSource(visualTextRange: TextRange): TextRange? {
+        val mappedRanges = chunks.mapNotNull { mapping -> mapping.toSource(visualTextRange) }
         val start = mappedRanges.minOfOrNull(TextRange::min)
         val end = mappedRanges.maxOfOrNull(TextRange::max)
-        if (start == null || end == null) return TextRange.Zero
+        if (start == null || end == null) return null
         return TextRange(start, end)
     }
 
-    override fun toVisual(sourceTextRange: TextRange): TextRange {
-        val visualRanges = chunks
-            .map { mapping -> mapping.toVisual(sourceTextRange) }
-            .filter { range -> range != TextRange.Zero }
-        if (visualRanges.isEmpty()) return TextRange.Zero
+    override fun toVisual(sourceTextRange: TextRange): TextRange? {
+        val visualRanges = chunks.mapNotNull { mapping -> mapping.toVisual(sourceTextRange) }
+        if (visualRanges.isEmpty()) return null
         return visualRanges.minWith { r1, r2 ->
             r1.length.compareTo(r2.length)
         }

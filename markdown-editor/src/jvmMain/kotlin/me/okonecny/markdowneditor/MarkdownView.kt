@@ -437,18 +437,18 @@ private class SequenceTextMapping(
         TextRange(sourceRange.start, sourceRange.end)
     }
 
-    override fun toSource(visualTextRange: TextRange): TextRange {
+    override fun toSource(visualTextRange: TextRange): TextRange? {
         val baseOffset = coveredVisualRange.start
         val shiftedStart = visualTextRange.start - baseOffset
         val shiftedEnd = visualTextRange.end - baseOffset
-        if (shiftedStart < 0 || shiftedEnd > sequence.length) return TextRange.Zero
+        if (shiftedStart < 0 || shiftedEnd > sequence.length) return null
         val sourceRange = sequence.subSequence(shiftedStart, shiftedEnd).sourceRange
         return TextRange(sourceRange.start, sourceRange.end)
     }
 
-    override fun toVisual(sourceTextRange: TextRange): TextRange {
+    override fun toVisual(sourceTextRange: TextRange): TextRange? {
         if (!sourceTextRange.intersects(this.coveredSourceRange) && !this.coveredSourceRange.contains(sourceTextRange))
-            return TextRange.Zero
+            return null
         val sourceBase = this.coveredSourceRange.start
         val visualBase = coveredVisualRange.start
         return TextRange(

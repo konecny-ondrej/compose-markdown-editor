@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.text.TextRange
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
+import kotlin.math.abs
 
 var cursorRequest: (() -> Unit)? by mutableStateOf(null)
 
@@ -30,7 +31,8 @@ fun MarkdownEditor(
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
             val componentUnderCursor = interactiveScope.getComponent(newVisualCursor.componentId)
-            sourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
+            val newSourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
+            sourceCursor = newSourceCursor ?: sourceCursor
         },
         onInput = { textInputCommand ->
             if (!visualCursor.isValid) return@InteractiveContainer
@@ -110,6 +112,17 @@ fun MarkdownEditor(
 }
 
 private fun InteractiveComponentLayout.computeVisualCursor(sourceCursor: TextRange): CursorPosition {
-    val interactiveComponent = componentAtSource(sourceCursor.start)
-    return CursorPosition(interactiveComponent.id, interactiveComponent.textMapping.toVisual(sourceCursor).start)
+    val componentAtCursor = componentAtSource(sourceCursor.start)
+    val cursorVisualRange = componentAtCursor.textMapping.toVisual(sourceCursor)
+    if (cursorVisualRange != null) return CursorPosition(componentAtCursor.id, cursorVisualRange.start)
+
+    // TODO: try to wiggle with the sourceCursor to see if +1/-1 positions match?
+    val componentSourceRange = componentAtCursor.textMapping.coveredSourceRange ?: TextRange.Zero
+    val bestComponent =
+        if (abs(componentSourceRange.start - sourceCursor.start) <= abs(componentSourceRange.end - sourceCursor.end)) {
+            componentPreviousOnLineFrom(componentAtCursor)
+        } else {
+            componentNextOnLineTo(componentAtCursor)
+        }
+    return CursorPosition(bestComponent.id, bestComponent.visualTextRange.start)
 }

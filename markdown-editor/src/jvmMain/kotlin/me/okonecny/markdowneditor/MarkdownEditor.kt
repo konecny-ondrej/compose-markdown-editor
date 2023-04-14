@@ -99,12 +99,11 @@ fun MarkdownEditor(
         }
     ) {
         MarkdownView(sourceText, documentTheme, scrollable, codeFenceRenderers)
-        if (interactiveScope.isPlaced) {
-            val layout = interactiveScope.requireComponentLayout()
-            LaunchedEffect(layout) {
+        LaunchedEffect(sourceText) {
+            if (interactiveScope.isPlaced) {
                 cursorRequest?.invoke()
                 cursorRequest = null
-                visualCursor = layout.computeVisualCursor(sourceCursor)
+                visualCursor = interactiveScope.requireComponentLayout().computeVisualCursor(sourceCursor)
             }
         }
     }

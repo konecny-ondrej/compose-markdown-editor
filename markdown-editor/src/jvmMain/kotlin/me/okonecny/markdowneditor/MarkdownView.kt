@@ -447,7 +447,8 @@ private class SequenceTextMapping(
     }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange {
-        if (!sourceTextRange.intersects(this.sourceTextRange)) return TextRange.Zero
+        if (!sourceTextRange.intersects(this.sourceTextRange) && !this.sourceTextRange.contains(sourceTextRange))
+            return TextRange.Zero
         val sourceBase = this.sourceTextRange.start
         val visualBase = coveredVisualRange.start
         return TextRange(

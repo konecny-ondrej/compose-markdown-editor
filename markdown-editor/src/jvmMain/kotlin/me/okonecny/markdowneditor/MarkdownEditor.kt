@@ -116,7 +116,6 @@ private fun InteractiveComponentLayout.computeVisualCursor(sourceCursor: TextRan
     val cursorVisualRange = componentAtCursor.textMapping.toVisual(sourceCursor)
     if (cursorVisualRange != null) return CursorPosition(componentAtCursor.id, cursorVisualRange.start)
 
-    // TODO: try to wiggle with the sourceCursor to see if +1/-1 positions match?
     val componentSourceRange = componentAtCursor.textMapping.coveredSourceRange ?: TextRange.Zero
     val bestComponent =
         if (abs(componentSourceRange.start - sourceCursor.start) <= abs(componentSourceRange.end - sourceCursor.end)) {
@@ -124,5 +123,17 @@ private fun InteractiveComponentLayout.computeVisualCursor(sourceCursor: TextRan
         } else {
             componentNextOnLineTo(componentAtCursor)
         }
-    return CursorPosition(bestComponent.id, bestComponent.visualTextRange.start)
+
+    // Decide if start or end is closer to the source cursor pos.
+    val bestComponentSourceRange = bestComponent.textMapping.coveredSourceRange
+    val visualOffset = if (bestComponentSourceRange == null) {
+        bestComponent.visualTextRange.start
+    } else {
+        if (abs(bestComponentSourceRange.start - sourceCursor.start) <= abs(bestComponentSourceRange.end - sourceCursor.end)) {
+            bestComponent.visualTextRange.start
+        } else {
+            bestComponent.visualTextRange.end
+        }
+    }
+    return CursorPosition(bestComponent.id, visualOffset)
 }

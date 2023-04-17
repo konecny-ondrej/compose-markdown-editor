@@ -192,10 +192,13 @@ class InteractiveComponentLayout(
     }
 
     fun componentAtSource(sourcePos: Int): InteractiveComponent {
-        val directComponent = registeredComponents.values.find { component ->
+        val directComponents = registeredComponents.values.filter { component ->
             component.textMapping.coveredSourceRange?.contains(sourcePos) ?: false
         }
-        if (directComponent != null) return directComponent
+        // If multiple components are found, take the shortest.
+        if (directComponents.isNotEmpty()) return directComponents.minWith { cmp1, cmp2 ->
+            cmp1.visualTextRange.length.compareTo(cmp2.visualTextRange.length)
+        }
 
         var closestComponent: InteractiveComponent = registeredComponents.values.firstOrNull()
             ?: throw IllegalStateException("At least one interactive component must be registered.")

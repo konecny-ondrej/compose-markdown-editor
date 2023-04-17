@@ -103,9 +103,11 @@ fun MarkdownEditor(
         MarkdownView(sourceText, documentTheme, scrollable, codeFenceRenderers)
         LaunchedEffect(sourceText) {
             if (interactiveScope.isPlaced) {
-                cursorRequest?.invoke()
-                cursorRequest = null
-                visualCursor = interactiveScope.requireComponentLayout().computeVisualCursor(sourceCursor)
+                cursorRequest?.apply {
+                    invoke()
+                    cursorRequest = null
+                    visualCursor = interactiveScope.requireComponentLayout().computeVisualCursor(sourceCursor)
+                }
             }
         }
     }

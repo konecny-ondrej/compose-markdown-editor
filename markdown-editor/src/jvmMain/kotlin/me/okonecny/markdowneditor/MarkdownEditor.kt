@@ -6,7 +6,6 @@ import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
 import kotlin.math.abs
 
-var cursorRequest: (() -> Unit)? by mutableStateOf(null)
 
 /**
  * Just like MarkdownView, but editable.
@@ -23,6 +22,7 @@ fun MarkdownEditor(
     var visualCursor by interactiveScope.cursorPosition
     val selection by interactiveScope.selection
     var sourceCursor by remember { mutableStateOf(TextRange(0)) }
+    var cursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
 
     InteractiveContainer(
         scope = interactiveScope,

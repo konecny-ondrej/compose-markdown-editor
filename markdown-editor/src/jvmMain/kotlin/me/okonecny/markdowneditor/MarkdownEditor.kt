@@ -1,6 +1,9 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.TextRange
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
@@ -27,6 +30,7 @@ fun MarkdownEditor(
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
+        modifier = Modifier.onKeyEvent { keyEvent:KeyEvent -> Logger.d(keyEvent.toString()); false },
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer

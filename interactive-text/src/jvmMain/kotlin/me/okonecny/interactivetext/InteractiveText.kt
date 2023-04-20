@@ -93,7 +93,7 @@ private fun paintSelection(
         addStyle(
             selectionStyle.toSpanStyle(),
             if (selection.start.componentId == interactiveId) selection.start.visualOffset else 0,
-            if (selection.end.componentId == interactiveId) selection.end.visualOffset else text.length
+            if (selection.end.componentId == interactiveId) selection.end.visualOffset.coerceAtMost(text.length) else text.length
         )
     }
 }

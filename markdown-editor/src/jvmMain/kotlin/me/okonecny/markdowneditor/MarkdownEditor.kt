@@ -62,9 +62,9 @@ fun MarkdownEditor(
                 is Type -> sourceEditor.type(textInputCommand.text)
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
+                visualSelection = Selection.empty
                 cursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor
-                    visualSelection = Selection.empty
                 }
                 onChange(editedSourceEditor.sourceText)
             }

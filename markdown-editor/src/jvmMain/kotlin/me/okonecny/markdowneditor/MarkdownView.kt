@@ -213,12 +213,15 @@ private fun UiOrderedList(orderedList: OrderedList) {
 @Composable
 private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     val styles = DocumentTheme.current.styles
-    InteractiveText(
-        text = htmlBlock.contentLines.joinToString(System.lineSeparator()),
-        textMapping = ZeroTextMapping, // TODO: replace all ZeroTextMapping with something useful.
-        style = styles.codeBlock.textStyle,
-        modifier = styles.codeBlock.modifier,
-    )
+    Column(modifier = styles.codeBlock.modifier) {
+        htmlBlock.contentLines.forEach { line ->
+            InteractiveText(
+                text = line.toString(),
+                textMapping = SequenceTextMapping(TextRange(0, line.length), line),
+                style = styles.codeBlock.textStyle
+            )
+        }
+    }
 }
 
 @Composable
@@ -251,9 +254,12 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
 @Composable
 private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     val styles = DocumentTheme.current.styles
+    val lines = indentedCodeBlock.contentLines
     InteractiveText(
-        text = indentedCodeBlock.contentLines.joinToString(System.lineSeparator()),
-        textMapping = ZeroTextMapping,
+        text = lines.joinToString(System.lineSeparator()),
+        textMapping = ChunkedSourceTextMapping(lines.map { line ->
+            SequenceTextMapping(TextRange(0, line.length), line)
+        }),
         style = styles.codeBlock.textStyle,
         modifier = styles.codeBlock.modifier,
     )
@@ -331,7 +337,7 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
     return buildMappedString {
         inlines.forEach { inline ->
             when (inline) {
-                is Text -> if (inline.textLength > 0) append(inline.text(visualStartOffset = visualLength))
+                is Text -> append(inline.text(visualStartOffset = visualLength))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -339,7 +345,12 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
                 is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                 is HardLineBreak -> append(System.lineSeparator())
                 is Link -> appendLink(inline)
-                is AutoLink -> appendStyled(inline.text(visualLength), styles.link.toSpanStyle())
+                is AutoLink -> appendStyled(
+                    MappedText(
+                        inline.text.toString(),
+                        SequenceTextMapping(TextRange(visualLength, visualLength + inline.textLength), inline.text)
+                    ), styles.link.toSpanStyle()
+                )
 
                 is LinkRef -> appendLinkRef(inline)
                 is HtmlEntity -> appendStyled(inline, styles.inlineCode.toSpanStyle())
@@ -400,12 +411,23 @@ private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) 
 private fun Node.text(visualStartOffset: Int): MappedText {
     val builder = TextCollectingVisitor()
     builder.collect(this)
-    val text = builder.text
+
+    data class ST(
+        val sequence: BasedSequence,
+        val text: String
+    )
+
+    val (sequence, text) = if (builder.sequence.isNull) {
+        ST(chars, chars.toString())
+    } else {
+        ST(builder.sequence, builder.text)
+    }
+
     return MappedText(
         text = AnnotatedString(builder.text),
         textMapping = SequenceTextMapping(
             TextRange(visualStartOffset, visualStartOffset + text.length),
-            builder.sequence
+            sequence
         )
     )
 }

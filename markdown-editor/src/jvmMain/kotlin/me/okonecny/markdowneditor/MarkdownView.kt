@@ -22,10 +22,7 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
-import me.okonecny.interactivetext.ConstantTextMapping
-import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.TextMapping
-import me.okonecny.interactivetext.ZeroTextMapping
+import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -334,7 +331,7 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
     return buildMappedString {
         inlines.forEach { inline ->
             when (inline) {
-                is Text -> append(inline.text(visualStartOffset = visualLength))
+                is Text -> if (inline.textLength > 0) append(inline.text(visualStartOffset = visualLength))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -417,6 +414,12 @@ private class SequenceTextMapping(
     private val coveredVisualRange: TextRange,
     private val sequence: BasedSequence
 ) : TextMapping {
+    init {
+        if (sequence.isNull) {
+            throw IllegalArgumentException("Sequence cannot be a null sequence")
+        }
+    }
+
     override val coveredSourceRange: TextRange by lazy {
         val sourceRange = sequence.sourceRange
         // Include spaces to the covered source range, even though they are not rendered.

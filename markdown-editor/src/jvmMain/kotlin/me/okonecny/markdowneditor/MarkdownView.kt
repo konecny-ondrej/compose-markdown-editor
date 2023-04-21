@@ -439,7 +439,7 @@ private class SequenceTextMapping(
         val baseSequence = sequence.baseSequence
         val spacesCount = "[ \t]*".toRegex()
             .matchAt(baseSequence, sourceRange.end)?.range?.endInclusive
-            ?.minus((sourceRange.end - 1).coerceAtLeast(0))
+            ?.minus(sourceRange.end - 1)?.coerceAtLeast(0)
             ?: 0
         TextRange(sourceRange.start, sourceRange.end + spacesCount)
     }

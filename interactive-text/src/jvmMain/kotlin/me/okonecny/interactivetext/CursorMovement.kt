@@ -89,7 +89,7 @@ internal fun Modifier.pointerCursorMovement(
         detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
     }.pointerHoverIcon(@OptIn(ExperimentalComposeUiApi::class) PointerIconDefaults.Text)
 
-private fun InteractiveScope.moveCursorByChars(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
+private fun InteractiveScope.moveCursorByCharsInComponent(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
     val component = getComponent(cursorPosition.componentId)
     val newOffset = (cursorPosition.visualOffset + charOffset)
         .coerceAtMost(component.visualTextRange.end)
@@ -115,7 +115,7 @@ private fun InteractiveScope.moveCursorByLine(cursorPosition: CursorPosition, li
 }
 
 fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition {
-    val lineCursorPosition = moveCursorByChars(oldPosition, -1)
+    val lineCursorPosition = moveCursorByCharsInComponent(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
@@ -126,7 +126,7 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
 }
 
 fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
-    val lineCursorPosition = moveCursorByChars(oldPosition, 1)
+    val lineCursorPosition = moveCursorByCharsInComponent(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)

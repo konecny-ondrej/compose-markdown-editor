@@ -434,7 +434,14 @@ private class SequenceTextMapping(
 ) : TextMapping {
     override val coveredSourceRange: TextRange by lazy {
         val sourceRange = sequence.sourceRange
-        TextRange(sourceRange.start, sourceRange.end)
+        // Include spaces to the covered source range, even though they are not rendered.
+        // This mitigates "jumping cursor" when typing spaces at the end of a block.
+        val baseSequence = sequence.baseSequence
+        val spacesCount = "[ \t]*".toRegex()
+            .matchAt(baseSequence, sourceRange.end)?.range?.endInclusive
+            ?.minus((sourceRange.end - 1).coerceAtLeast(0))
+            ?: 0
+        TextRange(sourceRange.start, sourceRange.end + spacesCount)
     }
 
     override fun toSource(visualTextRange: TextRange): TextRange? {
@@ -452,7 +459,7 @@ private class SequenceTextMapping(
         val sourceBase = this.coveredSourceRange.start
         val visualBase = coveredVisualRange.start
         return TextRange(
-            sourceTextRange.start - sourceBase + visualBase,
+            (sourceTextRange.start - sourceBase + visualBase).coerceAtMost(coveredVisualRange.end),
             (sourceTextRange.end - sourceBase + visualBase).coerceAtMost(coveredVisualRange.end)
         )
     }

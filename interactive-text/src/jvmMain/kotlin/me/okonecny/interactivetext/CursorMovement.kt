@@ -7,7 +7,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 
 
 /**
@@ -24,12 +26,20 @@ internal fun Modifier.keyboardCursorMovement(
     when (keyEvent.key) {
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionLeft -> {
-            onCursorPositionChanged(scope.moveCursorLeft(oldPosition))
+            if (keyEvent.isCtrlPressed) {
+                onCursorPositionChanged(scope.moveCursorLeftByWord(oldPosition))
+            } else {
+                onCursorPositionChanged(scope.moveCursorLeft(oldPosition))
+            }
         }
 
         @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionRight -> {
-            onCursorPositionChanged(scope.moveCursorRight(oldPosition))
+            if (keyEvent.isCtrlPressed) {
+                onCursorPositionChanged(scope.moveCursorRightByWord(oldPosition))
+            } else {
+                onCursorPositionChanged(scope.moveCursorRight(oldPosition))
+            }
         }
 
         @OptIn(ExperimentalComposeUiApi::class)
@@ -89,7 +99,10 @@ internal fun Modifier.pointerCursorMovement(
         detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
     }.pointerHoverIcon(@OptIn(ExperimentalComposeUiApi::class) PointerIconDefaults.Text)
 
-private fun InteractiveScope.moveCursorByCharsInComponent(cursorPosition: CursorPosition, charOffset: Int): CursorPosition {
+private fun InteractiveScope.moveCursorByCharsInComponent(
+    cursorPosition: CursorPosition,
+    charOffset: Int
+): CursorPosition {
     val component = getComponent(cursorPosition.componentId)
     val newOffset = (cursorPosition.visualOffset + charOffset)
         .coerceAtMost(component.visualTextRange.end)
@@ -125,6 +138,9 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
     return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
 }
 
+fun InteractiveScope.moveCursorLeftByWord(oldPosition: CursorPosition): CursorPosition =
+    moveCursorByWord(oldPosition, ::moveCursorLeft)
+
 fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByCharsInComponent(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
@@ -134,6 +150,27 @@ fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPositio
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
+}
+
+fun InteractiveScope.moveCursorRightByWord(oldPosition: CursorPosition): CursorPosition =
+    moveCursorByWord(oldPosition, ::moveCursorRight)
+
+fun InteractiveScope.moveCursorByWord(oldPosition: CursorPosition, moveStep: (CursorPosition) -> CursorPosition): CursorPosition {
+    var prevPosition = oldPosition
+    var newPosition = moveStep(prevPosition)
+    if (prevPosition.componentId != newPosition.componentId) return newPosition // Skipping components is as good as stopping.
+    val stopChar = ' '
+
+    while (prevPosition != newPosition) {
+        val component = requireComponentLayout().getComponent(newPosition.componentId)
+        val text = component.textLayoutResult?.layoutInput?.text ?: stopChar.toString()
+        val currentChar = text[newPosition.visualOffset.coerceAtMost(text.lastIndex)]
+        if (currentChar == stopChar) break
+        prevPosition = newPosition
+        newPosition = moveStep(newPosition)
+        if (prevPosition.componentId != newPosition.componentId) return prevPosition
+    }
+    return newPosition
 }
 
 fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition {

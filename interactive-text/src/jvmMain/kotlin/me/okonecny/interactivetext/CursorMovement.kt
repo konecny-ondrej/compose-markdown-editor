@@ -73,6 +73,10 @@ private fun moveCursor(
     onCursorPositionChanged: (CursorPosition, Boolean) -> Unit
 ) {
     val layout = scope.requireComponentLayout()
+    if (!layout.hasAnyComponents) {
+        onCursorPositionChanged(CursorPosition.invalid, isDrag)
+        return
+    }
     val tappedComponent = layout.componentAt(position)
     val textLayout = tappedComponent.textLayoutResult
     if (!tappedComponent.hasText || textLayout == null) {

@@ -28,6 +28,8 @@ class InteractiveComponentLayout(
         }
     }
 
+    val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
+
     fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 

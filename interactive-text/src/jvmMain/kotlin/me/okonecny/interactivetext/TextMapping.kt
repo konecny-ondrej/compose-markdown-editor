@@ -54,6 +54,21 @@ class ConstantTextMapping(
 class ChunkedSourceTextMapping(
     private val chunks: List<TextMapping>
 ) : TextMapping {
+    companion object {
+        fun concat(mapping1: TextMapping, mapping2: TextMapping): TextMapping {
+            if (mapping1 is ChunkedSourceTextMapping && mapping2 is ChunkedSourceTextMapping) {
+                return ChunkedSourceTextMapping(mapping1.chunks + mapping2.chunks)
+            }
+            if (mapping1 is ChunkedSourceTextMapping) {
+                return ChunkedSourceTextMapping(mapping1.chunks + listOf(mapping2))
+            }
+            if (mapping2 is ChunkedSourceTextMapping) {
+                return ChunkedSourceTextMapping(listOf(mapping1) + mapping2.chunks)
+            }
+            return ChunkedSourceTextMapping(listOf(mapping1, mapping2))
+        }
+    }
+
     override val coveredSourceRange: TextRange? by lazy {
         val mappedRanges = chunks.mapNotNull { textMapping -> textMapping.coveredSourceRange }
         val start = mappedRanges.minOfOrNull(TextRange::min)

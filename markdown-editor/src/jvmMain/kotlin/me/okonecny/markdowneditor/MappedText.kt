@@ -12,11 +12,13 @@ internal data class MappedText(
     val text: AnnotatedString,
     val textMapping: TextMapping
 ) {
+    constructor(text: String, textMapping: TextMapping) : this(AnnotatedString(text), textMapping)
+
     companion object {
-        val empty: MappedText = MappedText(AnnotatedString(""), ZeroTextMapping)
+        val empty: MappedText = MappedText("", ZeroTextMapping)
     }
 
-    operator fun plus(other: MappedText): MappedText = if (this == empty) {
+    operator fun plus(other: MappedText): MappedText = if (this === empty) {
         other
     } else {
         MappedText(
@@ -31,14 +33,17 @@ internal data class MappedText(
         var mappedText: MappedText = text
             private set
 
+        val visualLength get() = mappedText.text.length
+
         fun append(text: MappedText) {
             mappedText += text
+        }
+
+        fun append(text: String) { // TODO: do we want to append text without mapping?
+            mappedText += MappedText(text, ZeroTextMapping)
         }
     }
 }
 
-internal fun buildMappedString(buildFn: MappedText.Builder.() -> Unit): MappedText {
-    val builder = MappedText.Builder()
-    builder.buildFn()
-    return builder.mappedText
-}
+internal inline fun buildMappedString(buildFn: MappedText.Builder.() -> Unit): MappedText =
+    MappedText.Builder().apply(buildFn).mappedText

@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
@@ -23,7 +22,10 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
-import me.okonecny.interactivetext.*
+import me.okonecny.interactivetext.ConstantTextMapping
+import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.interactivetext.TextMapping
+import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -226,7 +228,7 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
 private fun UiCodeFence(codeFence: FencedCodeBlock) {
     val styles = DocumentTheme.current.styles
     Column {
-        val code = buildAnnotatedString {
+        val code = buildMappedString {
             codeFence.children.forEach { child ->
                 when (child) {
                     is Text -> append(child.rawCode())
@@ -238,13 +240,13 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
         val codeFenceRenderer = CodeFenceRenderers.current[codeFenceType]
         if (codeFenceRenderer == null) {
             InteractiveText(
-                text = code,
-                textMapping = ZeroTextMapping, // TODO
+                text = code.text,
+                textMapping = code.textMapping,
                 style = styles.codeBlock.textStyle,
                 modifier = styles.codeBlock.modifier,
             )
         } else {
-            codeFenceRenderer.render(code.text)
+            codeFenceRenderer.render(code.text.text) // Pass the whole text with mapping?
         }
     }
 }
@@ -326,103 +328,86 @@ private fun UiHeading(header: Heading) {
 
 // region inlines
 
-private data class MappedText(
-    val text: AnnotatedString,
-    val textMapping: TextMapping
-)
-
 @Composable
 private fun parseInlines(inlines: Iterable<Node>): MappedText {
     val styles = DocumentTheme.current.styles
-    val mappings = mutableListOf<TextMapping>()
-    return MappedText(
-        text = buildAnnotatedString {
-            inlines.forEach { inline ->
-                when (inline) {
-                    is Text -> {
-                        val parsedText = inline.text(startOffset = length)
-                        append(parsedText.text)
-                        mappings.add(parsedText.textMapping)
-                    }
+    return buildMappedString {
+        inlines.forEach { inline ->
+            when (inline) {
+                is Text -> append(inline.text(visualStartOffset = visualLength))
+                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
+                is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
+                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
+                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
+                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
+                is HardLineBreak -> append(System.lineSeparator())
+                is Link -> appendLink(inline)
+                is AutoLink -> appendStyled(inline.text(visualLength), styles.link.toSpanStyle())
 
-                    is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
-                    is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
-                    is Emphasis -> {
-                        val parsedText = inline.text(startOffset = length)
-                        appendStyled(parsedText.text, styles.emphasis.toSpanStyle())
-                        mappings.add(parsedText.textMapping)
-                    }
-
-                    is StrongEmphasis -> {
-                        val parsedText = inline.text(startOffset = length)
-                        appendStyled(parsedText.text, styles.strong.toSpanStyle())
-                        mappings.add(parsedText.textMapping) // TODO: make all sections like this
-                    }
-
-                    is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
-                    is HardLineBreak -> append(System.lineSeparator())
-                    is Link -> appendLink(inline)
-                    is AutoLink -> appendLink(inline)
-                    is LinkRef -> appendLinkRef(inline)
-                    is HtmlEntity -> append(inline.text(length).text) // TODO: mapping
+                is LinkRef -> appendLinkRef(inline)
+                is HtmlEntity -> appendStyled(inline, styles.inlineCode.toSpanStyle())
 //                    // TODO: proper parsing
-                    is MailLink -> appendUnparsed(inline)
-                    is HtmlInlineBase -> appendUnparsed(inline)
-                    is Image -> appendUnparsed(inline)
-                    else -> appendUnparsed(inline)
-                }
+                is MailLink -> appendUnparsed(inline)
+                is HtmlInlineBase -> appendUnparsed(inline)
+                is Image -> appendUnparsed(inline)
+                else -> appendUnparsed(inline)
             }
-        },
-        textMapping = ChunkedSourceTextMapping(mappings)
+        }
+    }
+}
+
+@Composable
+private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
+    val reference = linkRef.text.ifEmpty { linkRef.reference }
+    appendStyled(
+        MappedText(
+            text = AnnotatedString(reference.toString()),
+            textMapping = SequenceTextMapping(
+                TextRange(visualLength, visualLength + reference.length),
+                reference
+            )
+        ), DocumentTheme.current.styles.link.toSpanStyle()
     )
 }
 
 @Composable
-private fun AnnotatedString.Builder.appendLinkRef(linkRef: LinkRef) {
-    append(AnnotatedString(linkRef.reference.toString(), DocumentTheme.current.styles.link.toSpanStyle()))
-}
-
-@Composable
-private fun AnnotatedString.Builder.appendLink(link: AutoLink) {
-    append(AnnotatedString(link.text.toString(), DocumentTheme.current.styles.link.toSpanStyle()))
-}
-
-@Composable
-private fun AnnotatedString.Builder.appendLink(link: Link) {
+private fun MappedText.Builder.appendLink(link: Link) {
     val parsedInlines = parseInlines(link.children)
-    appendStyled(parsedInlines.text, DocumentTheme.current.styles.link.toSpanStyle())
+    appendStyled(parsedInlines, DocumentTheme.current.styles.link.toSpanStyle())
 }
 
 @Composable
-private fun AnnotatedString.Builder.appendUnparsed(unparsedNode: Node) {
+private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
     appendStyled(
         unparsedNode,
         DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
+
+private fun MappedText.Builder.appendStyled(mappedText: MappedText, style: SpanStyle) {
+    append(
+        MappedText(
+            text = AnnotatedString(mappedText.text.text, style),
+            textMapping = mappedText.textMapping
+        )
+    )
 }
 
-private fun AnnotatedString.Builder.appendStyled(annotatedString: AnnotatedString, style: SpanStyle) {
-    val start = length
-    append(annotatedString)
-    val end = length
-    addStyle(style, start, end)
-}
-
-private fun AnnotatedString.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    append(AnnotatedString(inlineNode.text(length).text.text, style))
+private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
+    val parsedText = inlineNode.text(visualLength)
+    appendStyled(parsedText, style)
 }
 
 /**
  * Collects the node text, resolving all escapes.
  */
-private fun Node.text(startOffset: Int): MappedText {
+private fun Node.text(visualStartOffset: Int): MappedText {
     val builder = TextCollectingVisitor()
     builder.collect(this)
     val text = builder.text
     return MappedText(
         text = AnnotatedString(builder.text),
         textMapping = SequenceTextMapping(
-            TextRange(startOffset, startOffset + text.length),
+            TextRange(visualStartOffset, visualStartOffset + text.length),
             builder.sequence
         )
     )
@@ -437,7 +422,7 @@ private class SequenceTextMapping(
         // Include spaces to the covered source range, even though they are not rendered.
         // This mitigates "jumping cursor" when typing spaces at the end of a block.
         val baseSequence = sequence.baseSequence
-        val spacesCount = "[ \t]*".toRegex()
+        val spacesCount = if (sourceRange.end >= baseSequence.endOffset) 0 else "[ \t]*".toRegex()
             .matchAt(baseSequence, sourceRange.end)?.range?.endInclusive
             ?.minus(sourceRange.end - 1)?.coerceAtLeast(0)
             ?: 0

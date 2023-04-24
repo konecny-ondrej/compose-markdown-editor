@@ -93,12 +93,12 @@ private fun computeWeights(table: TableScope): List<Float> {
 internal fun UiTable(
     tableBlock: TableBlock,
     columnWeights: List<Float>? = null,
-    rows: @Composable TableScope.(Node) -> Unit
+    row: @Composable TableScope.(Node) -> Unit
 ) {
     val tableStyle: TableStyle = DocumentTheme.current.styles.table
     val tableScope: TableScope = TableScopeImpl()
     tableBlock.children.forEach { child ->
-        tableScope.rows(child)
+        tableScope.row(child)
     }
     val computedWeights: List<Float> = columnWeights ?: computeWeights(tableScope)
     // TODO: remember the weights so we don't recalculate all the time.

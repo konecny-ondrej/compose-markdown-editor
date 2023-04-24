@@ -5,25 +5,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import com.vladsch.flexmark.ext.tables.TableBlock
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.markdowneditor.BlockStyle
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.TableStyle
 
 internal data class Cell(
-    val text: AnnotatedString,
+    val text: MappedText,
     val textAlign: TextAlign
 )
 
 internal interface TableRowScope {
     val cells: List<Cell>
 
-    @Composable
     fun UiTableCell(text: String, textAlign: TextAlign)
 
-    @Composable
-    fun UiTableCell(text: AnnotatedString, textAlign: TextAlign)
+    fun UiTableCell(text: MappedText, textAlign: TextAlign)
 }
 
 internal enum class RowType {
@@ -57,13 +58,11 @@ private class TableScopeImpl : TableScope {
 private class TableRowScopeImpl : TableRowScope {
     override val cells: MutableList<Cell> = mutableListOf()
 
-    @Composable
     override fun UiTableCell(text: String, textAlign: TextAlign) {
-        cells.add(Cell(AnnotatedString(text), textAlign))
+        cells.add(Cell(MappedText(AnnotatedString(text), ZeroTextMapping), textAlign))
     }
 
-    @Composable
-    override fun UiTableCell(text: AnnotatedString, textAlign: TextAlign) {
+    override fun UiTableCell(text: MappedText, textAlign: TextAlign) {
         cells.add(Cell(text, textAlign))
     }
 }
@@ -80,7 +79,7 @@ private fun computeWeights(table: TableScope): List<Float> {
             }
         }
         row.forEachIndexed { columnIndex, column ->
-            maxSizes[columnIndex] = maxSizes[columnIndex].coerceAtLeast(column.text.length)
+            maxSizes[columnIndex] = maxSizes[columnIndex].coerceAtLeast(column.text.text.length)
         }
     }
     val totalMaxSize = maxSizes.sum().toFloat()
@@ -92,12 +91,15 @@ private fun computeWeights(table: TableScope): List<Float> {
 
 @Composable
 internal fun UiTable(
+    tableBlock: TableBlock,
     columnWeights: List<Float>? = null,
-    rows: @Composable TableScope.() -> Unit
+    rows: @Composable TableScope.(Node) -> Unit
 ) {
     val tableStyle: TableStyle = DocumentTheme.current.styles.table
     val tableScope: TableScope = TableScopeImpl()
-    tableScope.rows()
+    tableBlock.children.forEach { child ->
+        tableScope.rows(child)
+    }
     val computedWeights: List<Float> = columnWeights ?: computeWeights(tableScope)
     // TODO: remember the weights so we don't recalculate all the time.
 
@@ -106,8 +108,8 @@ internal fun UiTable(
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
             row.forEachIndexed { columnIndex, cell ->
                 InteractiveText(
-                    text = cell.text,
-                    textMapping = ZeroTextMapping, // TODO: replace with real TextMapping.
+                    text = cell.text.text,
+                    textMapping = cell.text.textMapping,
                     textAlign = cell.textAlign,
                     style = cellStyle.textStyle,
                     modifier = cellStyle.modifier

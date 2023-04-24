@@ -97,7 +97,7 @@ private fun TableScope.UiTableRowCells(rowType: RowType, tableSectionRows: Itera
                 tableRow.children.forEach { tableHeadCell ->
                     when (tableHeadCell) {
                         is TableCell -> UiTableCell(
-                            parseInlines(tableHeadCell.children).text,
+                            parseInlines(tableHeadCell.children),
                             textAlign = when (tableHeadCell.alignment) {
                                 TableCell.Alignment.RIGHT -> TextAlign.Right
                                 TableCell.Alignment.CENTER -> TextAlign.Center
@@ -118,14 +118,12 @@ private fun TableScope.UiTableRowCells(rowType: RowType, tableSectionRows: Itera
 
 @Composable
 private fun UiTableBlock(tableBlock: TableBlock) {
-    UiTable {
-        tableBlock.children.forEach { tableChild ->
-            when (tableChild) {
-                is TableHead -> UiTableRowCells(RowType.HEADER, tableChild.children)
-                is TableBody -> UiTableRowCells(RowType.BODY, tableChild.children)
-                is TableSeparator -> Unit // This is just a Markdown syntax to specify alignment of the columns.
-                else -> UiUnparsedBlock(tableChild)
-            }
+    UiTable(tableBlock) { tableChild ->
+        when (tableChild) {
+            is TableHead -> UiTableRowCells(RowType.HEADER, tableChild.children)
+            is TableBody -> UiTableRowCells(RowType.BODY, tableChild.children)
+            is TableSeparator -> Unit // This is just a Markdown syntax to specify alignment of the columns.
+            else -> UiUnparsedBlock(tableChild)
         }
     }
 }

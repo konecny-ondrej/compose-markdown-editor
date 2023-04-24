@@ -22,7 +22,10 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
-import me.okonecny.interactivetext.*
+import me.okonecny.interactivetext.ChunkedSourceTextMapping
+import me.okonecny.interactivetext.ConstantTextMapping
+import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.interactivetext.TextMapping
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -128,7 +131,12 @@ private fun UiTableBlock(tableBlock: TableBlock) {
 }
 
 @Composable
-private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String, number: Int? = null) {
+private fun UiTaskListItem(
+    taskListItem: TaskListItem,
+    bulletOrDelimiter: String,
+    openingMarker: BasedSequence,
+    number: Int? = null
+) {
     val styles = DocumentTheme.current.styles
     Row {
         InteractiveText(
@@ -137,7 +145,10 @@ private fun UiTaskListItem(taskListItem: TaskListItem, bulletOrDelimiter: String
             } else {
                 bulletOrDelimiter
             },
-            textMapping = ZeroTextMapping, // TODO: text mapping for the list item bullet.
+            textMapping = SequenceTextMapping(
+                coveredVisualRange = TextRange(0, 1),
+                sequence = openingMarker
+            ),
             style = styles.listNumber,
         )
         Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = null)
@@ -156,11 +167,14 @@ private fun UiBulletList(unorderedList: BulletList) {
     Column {
         unorderedList.children.forEach { child ->
             when (child) {
-                is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet)
+                is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet, child.openingMarker)
                 is BulletListItem -> Row {
                     InteractiveText(
                         text = bullet,
-                        textMapping = ZeroTextMapping, // TODO: text mapping for the list item bullet.
+                        textMapping = SequenceTextMapping(
+                            coveredVisualRange = TextRange(0, 1),
+                            sequence = child.openingMarker
+                        ),
                         style = styles.listNumber,
                     )
                     Column {
@@ -187,13 +201,17 @@ private fun UiOrderedList(orderedList: OrderedList) {
                 is TaskListItem -> UiTaskListItem(
                     child,
                     bulletOrDelimiter = orderedList.delimiter.toString(),
+                    openingMarker = child.openingMarker,
                     number = computedNumber++
                 )
 
                 is OrderedListItem -> Row {
                     InteractiveText(
                         text = (computedNumber++).toString() + orderedList.delimiter,
-                        textMapping = ZeroTextMapping, // TODO: text mapping for the list item number and delimiter.
+                        textMapping = SequenceTextMapping( // The displayed number generally is not the same as in the source code.
+                            coveredVisualRange = TextRange(0, computedNumber.toString().length + 1),
+                            sequence = child.openingMarker
+                        ),
                         style = styles.listNumber,
                     )
                     Column {

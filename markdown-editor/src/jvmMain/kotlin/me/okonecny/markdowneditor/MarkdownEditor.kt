@@ -4,6 +4,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
@@ -26,6 +28,7 @@ fun MarkdownEditor(
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
     var sourceCursor by remember { mutableStateOf(TextRange(0)) }
+    val clipboardManager = LocalClipboardManager.current
 
     InteractiveContainer(
         scope = interactiveScope,
@@ -44,8 +47,11 @@ fun MarkdownEditor(
             val sourceEditor = SourceEditor(sourceText, sourceCursor, sourceSelection)
 
             val editedSourceEditor = when (textInputCommand) {
-                Copy -> TODO()
-                Paste -> TODO()
+                Copy -> {
+                    clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
+                    sourceEditor
+                }
+                Paste -> sourceEditor.type(clipboardManager.getText()?.text ?: "")
                 is Delete -> {
                     when (textInputCommand.size) {
                         Delete.Size.LETTER -> when (textInputCommand.direction) {

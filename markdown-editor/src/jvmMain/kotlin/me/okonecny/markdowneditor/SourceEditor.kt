@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.substring
 
 internal data class SourceEditor(
     val sourceText: String, val sourceCursor: TextRange, private val sourceSelection: TextRange
@@ -11,6 +12,10 @@ internal data class SourceEditor(
         sourceCursor = TextRange(sourceSelection.start),
         sourceSelection = TextRange.Zero
     )
+
+    val selectedText by lazy {
+        if (sourceSelection.collapsed) "" else sourceText.substring(sourceSelection)
+    }
 
     fun insert(newText: String): SourceEditor {
         val newSourceText =

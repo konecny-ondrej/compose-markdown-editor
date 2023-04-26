@@ -101,7 +101,6 @@ internal fun UiTable(
         tableScope.row(child)
     }
     val computedWeights: List<Float> = columnWeights ?: computeWeights(tableScope)
-    // TODO: remember the weights so we don't recalculate all the time.
 
     @Composable
     fun renderRow(row: List<Cell>, cellStyle: BlockStyle) {

@@ -498,8 +498,9 @@ private class SequenceTextMapping(
 /**
  * Returns the unprocessed Markdown source code corresponding to the node.
  */
-private fun Node.rawCode(): String {
-    return this.chars.toString()
+private fun Node.rawCode(): MappedText {
+    val sequence = this.chars
+    return MappedText(chars.toString(), SequenceTextMapping(TextRange(0, sequence.length), sequence))
 }
 
 // endregion inlines

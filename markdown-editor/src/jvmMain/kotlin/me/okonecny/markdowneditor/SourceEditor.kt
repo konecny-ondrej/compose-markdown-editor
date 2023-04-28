@@ -26,7 +26,7 @@ internal data class SourceEditor(
 
     fun type(newText: String): SourceEditor = deleteSelection().insert(newText)
 
-    fun typeNewLine(): SourceEditor = type(System.lineSeparator() + System.lineSeparator())
+    fun typeNewLine(): SourceEditor = type(System.lineSeparator())
 
     fun deleteLetterBeforeCursor(): SourceEditor = deleteBeforeCursor(1)
     fun deleteWordBeforeCursor(): SourceEditor = deleteBeforeCursor(

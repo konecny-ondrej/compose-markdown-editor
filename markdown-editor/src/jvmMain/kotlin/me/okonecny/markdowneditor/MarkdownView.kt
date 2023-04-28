@@ -355,7 +355,7 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
             when (inline) {
                 is Text -> append(inline.text(visualStartOffset = visualLength))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
-                is SoftLineBreak -> append(" ") // TODO: squash with the following whitespace
+                is SoftLineBreak -> append(System.lineSeparator())
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
                 is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
                 is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())

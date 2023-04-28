@@ -7,7 +7,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 
@@ -101,7 +101,7 @@ internal fun Modifier.pointerCursorMovement(
         detectTapGestures(onPress = { position -> moveCursor(scope, position, false, onCursorPositionChanged) })
     }.pointerInput(scope) {
         detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
-    }.pointerHoverIcon(@OptIn(ExperimentalComposeUiApi::class) PointerIconDefaults.Text)
+    }.pointerHoverIcon(PointerIcon.Text)
 
 private fun InteractiveScope.moveCursorByCharsInComponent(
     cursorPosition: CursorPosition,
@@ -159,7 +159,10 @@ fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPositio
 fun InteractiveScope.moveCursorRightByWord(oldPosition: CursorPosition): CursorPosition =
     moveCursorByWord(oldPosition, ::moveCursorRight)
 
-fun InteractiveScope.moveCursorByWord(oldPosition: CursorPosition, moveStep: (CursorPosition) -> CursorPosition): CursorPosition {
+fun InteractiveScope.moveCursorByWord(
+    oldPosition: CursorPosition,
+    moveStep: (CursorPosition) -> CursorPosition
+): CursorPosition {
     var prevPosition = oldPosition
     var newPosition = moveStep(prevPosition)
     if (prevPosition.componentId != newPosition.componentId) return newPosition // Skipping components is as good as stopping.

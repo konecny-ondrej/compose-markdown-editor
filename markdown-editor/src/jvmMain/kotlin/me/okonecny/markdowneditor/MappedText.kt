@@ -8,7 +8,7 @@ import me.okonecny.interactivetext.ZeroTextMapping
 /**
  * Text, which carries information about what part of source text it came from.
  */
-internal data class MappedText(
+data class MappedText(
     val text: AnnotatedString,
     val textMapping: TextMapping
 ) {

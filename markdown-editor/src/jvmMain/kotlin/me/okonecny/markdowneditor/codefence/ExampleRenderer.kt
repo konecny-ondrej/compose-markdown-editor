@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.DisabledInteractiveContainer
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.MarkdownView
 
 /**
@@ -19,9 +20,9 @@ class ExampleRenderer : CodeFenceRenderer {
     override val codeFenceType: String = "example"
 
     @Composable
-    override fun render(code: String) {
+    override fun render(code: MappedText) {
         val styles = DocumentTheme.current.styles
-        val lines = code.lines()
+        val lines = code.text.text.lines()
         val splitterLineNo = lines.indexOfFirst { line -> line.trim() == "." }
         val markdownCode = lines
             .subList(0, splitterLineNo.coerceAtLeast(0))

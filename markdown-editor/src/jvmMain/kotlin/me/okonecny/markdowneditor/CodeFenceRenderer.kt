@@ -6,5 +6,5 @@ interface CodeFenceRenderer {
     val codeFenceType: String
 
     @Composable
-    fun render(code: String)
+    fun render(code: MappedText)
 }

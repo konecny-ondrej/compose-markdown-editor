@@ -262,7 +262,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
                 modifier = styles.codeBlock.modifier,
             )
         } else {
-            codeFenceRenderer.render(code.text.text) // Pass the whole text with mapping?
+            codeFenceRenderer.render(code)
         }
     }
 }

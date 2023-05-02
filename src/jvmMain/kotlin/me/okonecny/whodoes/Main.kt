@@ -8,11 +8,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
@@ -60,17 +62,23 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "WhoDoes",
+        state = rememberWindowState(
+            width = (800 * DetectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
+            height = (600 * DetectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
+        ),
         icon = painterResource("/app-icon.xml")
         /**
          * Vectors and icons by <a href="https://dribbble.com/trianglesquad?ref=svgrepo.com" target="_blank">Trianglesquad</a>
          * in CC Attribution License via <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>
          */
     ) {
-        App()
+        CompositionLocalProvider(
+            LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
+        ) {
+            App()
+        }
     }
 }
 
 @Component
-abstract class MainComponent {
-
-}
+abstract class MainComponent

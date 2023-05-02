@@ -56,8 +56,6 @@ fun InteractiveText(
         finalText = text
     }
 
-    // TODO: selection
-    // TODO: editing
     // TODO: clickable links
 
     Text( // TODO: use BasicText?

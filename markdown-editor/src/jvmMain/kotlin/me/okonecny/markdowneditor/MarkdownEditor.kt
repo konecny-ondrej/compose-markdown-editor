@@ -42,7 +42,7 @@ fun MarkdownEditor(
             sourceCursor = newSourceCursor ?: sourceCursor
         },
         onInput = { textInputCommand ->
-            if (!visualCursor.isValid) return@InteractiveContainer
+            if (!visualCursor.isValid && textInputCommand.needsValidCursor) return@InteractiveContainer
             val sourceSelection = computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
             val sourceEditor = SourceEditor(sourceText, sourceCursor, sourceSelection)
 

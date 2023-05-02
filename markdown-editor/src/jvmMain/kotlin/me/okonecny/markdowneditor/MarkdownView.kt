@@ -147,14 +147,17 @@ private fun UiTaskListItem(
             style = styles.listNumber,
         )
         val onInput = LocalInteractiveInputHandler.current
-        Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = { isChecked ->
-            val taskMarkerRange = TextRange(
-                taskListItem.markerSuffix.startOffset,
-                taskListItem.markerSuffix.endOffset,
-            )
-            val newMarker = if (isChecked) "[X]" else "[ ]"
-            onInput(ReplaceRange(taskMarkerRange, newMarker))
-        })
+        Checkbox(
+            modifier = styles.taskListCheckbox.modifier,
+            checked = taskListItem.isItemDoneMarker,
+            onCheckedChange = { isChecked ->
+                val taskMarkerRange = TextRange(
+                    taskListItem.markerSuffix.startOffset,
+                    taskListItem.markerSuffix.endOffset,
+                )
+                val newMarker = if (isChecked) "[X]" else "[ ]"
+                onInput(ReplaceRange(taskMarkerRange, newMarker))
+            })
         Column {
             taskListItem.children.forEach { listItemContent ->
                 UiBlock(listItemContent)

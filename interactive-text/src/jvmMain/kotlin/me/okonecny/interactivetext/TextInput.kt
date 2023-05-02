@@ -90,8 +90,14 @@ internal fun Modifier.textInput(
     }
 }
 
-sealed interface TextInputCommand
-data class Type(val text: String) : TextInputCommand
+sealed interface TextInputCommand {
+    val needsValidCursor: Boolean
+}
+
+data class Type(val text: String) : TextInputCommand {
+    override val needsValidCursor: Boolean = true
+}
+
 data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
     enum class Direction {
         BEFORE_CURSOR, AFTER_CURSOR
@@ -101,13 +107,24 @@ data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
         LETTER, WORD
     }
 
+    override val needsValidCursor: Boolean = true
 }
 
 data class ReplaceRange(
     val sourceRange: TextRange,
     val newSource: String
-) : TextInputCommand
+) : TextInputCommand {
+    override val needsValidCursor: Boolean = false
+}
 
-object NewLine : TextInputCommand
-object Copy : TextInputCommand
-object Paste : TextInputCommand
+object NewLine : TextInputCommand {
+    override val needsValidCursor: Boolean = true
+}
+
+object Copy : TextInputCommand {
+    override val needsValidCursor: Boolean = true
+}
+
+object Paste : TextInputCommand {
+    override val needsValidCursor: Boolean = true
+}

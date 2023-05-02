@@ -3,14 +3,20 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -59,13 +65,25 @@ data class DocumentStyles(
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp,
         letterSpacing = 0.5.sp,
-        textAlign = TextAlign.Justify
+        textAlign = TextAlign.Justify,
+        lineHeight = 20.sp
     ),
     val listNumber: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
         letterSpacing = 0.5.sp,
         textAlign = TextAlign.Left
+    ),
+    val taskListCheckbox: BoxStyle = BoxStyle(
+        modifier = Modifier.composed {
+            pointerHoverIcon(PointerIcon.Hand)
+                .height(with(LocalDensity.current) {
+                    paragraph.lineHeight.toDp() + paragraph.letterSpacing.toDp() * 2
+                })
+                .width(with(LocalDensity.current) {
+                    paragraph.lineHeight.toDp() * 1.4f
+                })
+        }
     ),
     val inlineCode: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,

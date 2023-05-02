@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.*
 import co.touchlab.kermit.Logger
 
@@ -101,6 +102,11 @@ data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
     }
 
 }
+
+data class ReplaceRange(
+    val sourceRange: TextRange,
+    val newSource: String
+) : TextInputCommand
 
 object NewLine : TextInputCommand
 object Copy : TextInputCommand

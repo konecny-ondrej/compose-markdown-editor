@@ -16,6 +16,7 @@ import androidx.compose.ui.text.TextStyle
 private val defaultSelectionStyle = TextStyle(color = Color.Cyan.copy(alpha = 0.5f))
 internal val LocalInteractiveScope = compositionLocalOf<InteractiveScope?> { null }
 internal val LocalSelectionStyle = compositionLocalOf { defaultSelectionStyle }
+val LocalInteractiveInputHandler = compositionLocalOf<(TextInputCommand) -> Unit> { {} }
 
 /**
  * Delimits region where all the interactive components will be considered parts of the same document.
@@ -28,12 +29,13 @@ fun InteractiveContainer(
     selectionStyle: TextStyle = defaultSelectionStyle,
     modifier: Modifier = Modifier,
     onInput: (TextInputCommand) -> Unit = {},
-    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition?.value = it},
+    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition?.value = it },
     interactiveContent: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
         LocalInteractiveScope provides scope,
-        LocalSelectionStyle provides selectionStyle
+        LocalSelectionStyle provides selectionStyle,
+        LocalInteractiveInputHandler provides onInput
     ) {
         val interactiveModifier = if (scope == null) {
             Modifier

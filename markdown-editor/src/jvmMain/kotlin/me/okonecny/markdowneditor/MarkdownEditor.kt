@@ -51,6 +51,7 @@ fun MarkdownEditor(
                     clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
                     sourceEditor
                 }
+
                 Paste -> sourceEditor.type(clipboardManager.getText()?.text ?: "")
                 is Delete -> {
                     when (textInputCommand.size) {
@@ -58,14 +59,17 @@ fun MarkdownEditor(
                             Delete.Direction.BEFORE_CURSOR -> sourceEditor.deleteLetterBeforeCursor()
                             Delete.Direction.AFTER_CURSOR -> sourceEditor.deleteLetterAfterCursor()
                         }
+
                         Delete.Size.WORD -> when (textInputCommand.direction) {
                             Delete.Direction.BEFORE_CURSOR -> sourceEditor.deleteWordBeforeCursor()
                             Delete.Direction.AFTER_CURSOR -> sourceEditor.deleteWordAfterCursor()
                         }
                     }
                 }
+
                 NewLine -> sourceEditor.typeNewLine()
                 is Type -> sourceEditor.type(textInputCommand.text)
+                is ReplaceRange -> sourceEditor.replaceRange(textInputCommand.sourceRange, textInputCommand.newSource)
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
                 visualSelection = Selection.empty
@@ -89,7 +93,10 @@ fun MarkdownEditor(
     }
 }
 
-private fun computeSourceSelection(selection: Selection, interactiveComponentLayout: InteractiveComponentLayout): TextRange {
+private fun computeSourceSelection(
+    selection: Selection,
+    interactiveComponentLayout: InteractiveComponentLayout
+): TextRange {
     if (selection.isEmpty) return TextRange.Zero
     val (startMapping, endMapping) = listOf(selection.start.componentId, selection.end.componentId)
         .map(interactiveComponentLayout::getComponent)

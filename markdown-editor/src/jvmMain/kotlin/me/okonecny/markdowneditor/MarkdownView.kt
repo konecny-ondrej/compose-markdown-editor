@@ -22,10 +22,7 @@ import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
-import me.okonecny.interactivetext.ChunkedSourceTextMapping
-import me.okonecny.interactivetext.ConstantTextMapping
-import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.TextMapping
+import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -149,7 +146,15 @@ private fun UiTaskListItem(
             ),
             style = styles.listNumber,
         )
-        Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = null)
+        val onInput = LocalInteractiveInputHandler.current
+        Checkbox(checked = taskListItem.isItemDoneMarker, onCheckedChange = { isChecked ->
+            val taskMarkerRange = TextRange(
+                taskListItem.markerSuffix.startOffset,
+                taskListItem.markerSuffix.endOffset,
+            )
+            val newMarker = if (isChecked) "[X]" else "[ ]"
+            onInput(ReplaceRange(taskMarkerRange, newMarker))
+        })
         Column {
             taskListItem.children.forEach { listItemContent ->
                 UiBlock(listItemContent)

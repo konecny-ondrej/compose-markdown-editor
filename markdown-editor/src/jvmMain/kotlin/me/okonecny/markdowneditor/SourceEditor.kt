@@ -24,6 +24,31 @@ internal data class SourceEditor(
         return SourceEditor(newSourceText, newSourceCursor, sourceSelection)
     }
 
+    fun replaceRange(range: TextRange, newSourceRangeContent: String): SourceEditor {
+        val newSource = sourceText.replaceRange(range.start until range.end, newSourceRangeContent)
+        if (range.length == newSourceRangeContent.length) {
+            return SourceEditor(newSource, sourceCursor, sourceSelection)
+        }
+
+        val newSelectionEnd = if (range.contains(sourceSelection.end)) {
+            sourceSelection.end.coerceAtMost(range.start + newSourceRangeContent.length)
+        } else {
+            sourceSelection.end
+        }
+        val newSelectionStart = if (range.contains(sourceSelection.start)) {
+            sourceSelection.start.coerceAtMost(newSelectionEnd)
+        } else {
+            sourceSelection.start
+        }
+
+        val newCursor = TextRange(
+            sourceCursor.start.coerceAtMost(newSource.length),
+            sourceCursor.end.coerceAtMost(newSource.length)
+        )
+
+        return SourceEditor(newSource, newCursor, TextRange(newSelectionStart, newSelectionEnd))
+    }
+
     fun type(newText: String): SourceEditor = deleteSelection().insert(newText)
 
     fun typeNewLine(): SourceEditor = type(System.lineSeparator())

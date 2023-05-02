@@ -51,6 +51,8 @@ class ConstantTextMapping(
         }
 }
 
+operator fun TextMapping.plus(other: TextMapping): TextMapping = ChunkedSourceTextMapping.concat(this, other)
+
 class ChunkedSourceTextMapping(
     private val chunks: List<TextMapping>
 ) : TextMapping {

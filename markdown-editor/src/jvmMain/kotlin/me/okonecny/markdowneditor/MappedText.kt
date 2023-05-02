@@ -1,9 +1,9 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.ui.text.AnnotatedString
-import me.okonecny.interactivetext.ChunkedSourceTextMapping
 import me.okonecny.interactivetext.TextMapping
 import me.okonecny.interactivetext.ZeroTextMapping
+import me.okonecny.interactivetext.plus
 
 /**
  * Text, which carries information about what part of source text it came from.
@@ -23,7 +23,7 @@ data class MappedText(
     } else {
         MappedText(
             text = text + other.text,
-            textMapping = ChunkedSourceTextMapping.concat(textMapping, other.textMapping)
+            textMapping = textMapping + other.textMapping
         )
     }
 

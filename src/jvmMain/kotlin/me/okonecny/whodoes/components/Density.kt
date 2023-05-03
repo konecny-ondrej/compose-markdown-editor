@@ -1,4 +1,4 @@
-package me.okonecny.whodoes.compose
+package me.okonecny.whodoes.components
 
 import androidx.compose.ui.unit.Density
 import java.awt.GraphicsEnvironment

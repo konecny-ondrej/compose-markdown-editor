@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import me.okonecny.whodoes.compose.DetectedDensity
-import me.okonecny.whodoes.compose.shadow
+import me.okonecny.whodoes.components.DetectedDensity
+import me.okonecny.whodoes.components.shadow
 import me.tatarka.inject.annotations.Component
 
 fun main() = application {

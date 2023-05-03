@@ -67,7 +67,7 @@ fun main() = application {
                             modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
                             style = TextStyle(
                                 color = Color.DarkGray,
-                                fontSize = 20.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )

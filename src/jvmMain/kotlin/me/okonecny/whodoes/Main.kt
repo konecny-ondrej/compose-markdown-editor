@@ -1,70 +1,43 @@
 package me.okonecny.whodoes
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.useResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import me.okonecny.interactivetext.rememberInteractiveScope
-import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MarkdownEditor
-import me.okonecny.markdowneditor.codefence.ExampleRenderer
+import me.okonecny.whodoes.compose.DetectedDensity
+import me.okonecny.whodoes.compose.shadow
 import me.tatarka.inject.annotations.Component
-
-@Composable
-@Preview
-fun App() {
-    var isLong by remember { mutableStateOf(false) }
-    val shortFilename = "/short.md"
-    val longFilename = "/gfmSpec.md"
-    val filename = if (isLong) longFilename else shortFilename
-    var markdownSource by mutableStateOf(useResource(filename) { md ->
-        md.bufferedReader().readText()
-    })
-    val interactiveScope = rememberInteractiveScope()
-
-    MaterialTheme {
-        Column(
-            modifier = Modifier.padding(15.dp)
-        ) {
-            Button(onClick = {
-                isLong = !isLong
-            }) {
-                Text(if (isLong) "GFM Spec" else "Short demo")
-            }
-
-            val documentTheme = DocumentTheme.default
-            MarkdownEditor(
-                sourceText = markdownSource,
-                interactiveScope = interactiveScope,
-                documentTheme = documentTheme,
-                codeFenceRenderers = listOf(ExampleRenderer()),
-                onChange = { newSource ->
-                    markdownSource = newSource
-                }
-            )
-        }
-    }
-}
 
 fun main() = application {
     MainComponent::class.create()
+    val appTitle = "WhoDoes"
     Window(
         onCloseRequest = ::exitApplication,
-        title = "WhoDoes",
+        title = appTitle,
+        undecorated = true,
+        transparent = true,
         state = rememberWindowState(
-            width = (800 * DetectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
-            height = (600 * DetectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
+            width = (1024 * DetectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
+            height = (768 * DetectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
         ),
         icon = painterResource("/app-icon.xml")
         /**
@@ -75,7 +48,36 @@ fun main() = application {
         CompositionLocalProvider(
             LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
         ) {
-            App()
+            Column(
+                Modifier
+                    .padding(11.dp)
+                    .shadow(color = Color.DarkGray, blurRadius = 10.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color.White)
+            ) {
+                WindowDraggableArea(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.LightGray)
+                        .padding(5.dp)
+                ) {
+                    Row {
+                        Text(
+                            appTitle,
+                            modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
+                            style = TextStyle(
+                                color = Color.DarkGray,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Button(onClick = { exitApplication() }) {
+                            Text("X")
+                        }
+                    }
+                }
+                App()
+            }
         }
     }
 }

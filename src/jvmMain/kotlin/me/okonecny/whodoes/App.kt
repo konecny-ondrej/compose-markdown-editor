@@ -28,9 +28,7 @@ fun App() {
     val interactiveScope = rememberInteractiveScope()
 
     MaterialTheme {
-        Column(
-            modifier = Modifier.padding(15.dp)
-        ) {
+        Column {
             Button(onClick = {
                 isLong = !isLong
             }) {

@@ -1,6 +1,7 @@
 package me.okonecny.whodoes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
@@ -60,6 +62,7 @@ fun main() = application {
                     Modifier
                         .padding(11.dp)
                         .shadow(color = Color.DarkGray, blurRadius = 10.dp)
+                        .border(Dp.Hairline, Color.DarkGray.copy(0.5f), RoundedCornerShape(5.dp))
                         .clip(RoundedCornerShape(5.dp))
                 }
                     .background(Color.White)
@@ -77,7 +80,7 @@ fun main() = application {
                             style = TextStyle(
                                 color = Color.DarkGray,
                                 fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+//                                fontWeight = FontWeight.Bold
                             )
                         )
                         WindowControls(

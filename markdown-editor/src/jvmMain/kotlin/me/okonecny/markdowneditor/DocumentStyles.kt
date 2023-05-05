@@ -3,14 +3,14 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
@@ -31,72 +31,67 @@ import androidx.compose.ui.unit.sp
 data class DocumentStyles(
     val defaultFontFamily: FontFamily = FontFamily.Default,
     val blockShape: Shape = RoundedCornerShape(5.dp),
+    val paragraph: TextStyle = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        letterSpacing = 0.5.sp,
+        textAlign = TextAlign.Justify,
+        lineHeight = 14.sp
+    ),
     val h1: TextStyle = TextStyle(
         fontWeight = FontWeight.Light,
-        fontSize = 96.sp,
+        fontSize = paragraph.fontSize * 3.5,
         letterSpacing = (-1.5).sp
     ),
     val h2: TextStyle = TextStyle(
         fontWeight = FontWeight.Light,
-        fontSize = 60.sp,
+        fontSize = paragraph.fontSize * 3,
         letterSpacing = (-0.5).sp
     ),
     val h3: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 48.sp,
+        fontSize = paragraph.fontSize * 2.5,
         letterSpacing = 0.sp
     ),
     val h4: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 34.sp,
+        fontSize = paragraph.fontSize * 2,
         letterSpacing = 0.25.sp
     ),
     val h5: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
+        fontSize = paragraph.fontSize * 1.7,
         letterSpacing = 0.sp
     ),
     val h6: TextStyle = TextStyle(
         fontWeight = FontWeight.Medium,
-        fontSize = 20.sp,
+        fontSize = paragraph.fontSize * 1.2,
         letterSpacing = 0.15.sp
-    ),
-    val paragraph: TextStyle = TextStyle(
-        fontWeight = FontWeight.Normal,
-        fontSize = 20.sp,
-        letterSpacing = 0.5.sp,
-        textAlign = TextAlign.Justify,
-        lineHeight = 20.sp
     ),
     val listNumber: TextStyle = TextStyle(
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        letterSpacing = 0.5.sp,
         textAlign = TextAlign.Left
     ),
     val taskListCheckbox: BoxStyle = BoxStyle(
         modifier = Modifier.composed {
-            pointerHoverIcon(PointerIcon.Hand)
-                .height(with(LocalDensity.current) {
-                    paragraph.lineHeight.toDp() + paragraph.letterSpacing.toDp() * 2
+            padding(2.dp, 0.dp, 4.dp, 0.dp)
+                .scale(0.8f)
+                .pointerHoverIcon(PointerIcon.Hand)
+                .size(with(LocalDensity.current) {
+                    paragraph.lineHeight.toDp()
                 })
-                .width(with(LocalDensity.current) {
-                    paragraph.lineHeight.toDp() * 1.4f
-                })
+
         }
     ),
     val inlineCode: TextStyle = TextStyle(
         fontWeight = FontWeight.Normal,
         fontFamily = FontFamily.Monospace,
-        fontSize = 20.sp,
-        letterSpacing = 0.5.sp,
         background = Color.LightGray
     ),
     val codeBlock: BlockStyle = BlockStyle(
         textStyle = inlineCode.copy(background = Color.Transparent),
         modifier = Modifier
             .padding(15.dp)
-//            .shadow(10.dp, blockShape, spotColor = Color.DarkGray)
             .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)
             .background(Color.LightGray, blockShape)
             .padding(10.dp, 5.dp)
@@ -132,7 +127,7 @@ data class DocumentStyles(
             .clip(blockShape)
             .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)
     ),
-    val link: TextStyle = paragraph.copy(
+    val link: TextStyle = TextStyle(
         color = Color.Blue,
         textDecoration = TextDecoration.Underline
     ),

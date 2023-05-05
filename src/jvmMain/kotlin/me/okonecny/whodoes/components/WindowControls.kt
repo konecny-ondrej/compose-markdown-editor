@@ -7,7 +7,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 
 /**
  * Window minimize/maximize/close buttons.
@@ -20,13 +22,17 @@ fun WindowControls(
     close: (() -> Unit)? = null
 ) {
     Row {
-        if (minimize != null) WindowBtn(Icons.Default.KeyboardArrowDown, minimize)
-        if (maximize != null) WindowBtn(if (isMaximized) Icons.Default.ArrowDropDown else Icons.Default.KeyboardArrowUp, maximize)
-        if (close != null) WindowBtn(Icons.Default.Close, close)
+        if (minimize != null) WindowBtn(painterResource("/minimize.svg"), "Minimize", minimize)
+        if (maximize != null) WindowBtn(
+            painterResource(if (isMaximized) "/unmaximize.svg" else "/maximize.svg"),
+            "Maximize",
+            maximize
+        )
+        if (close != null) WindowBtn(painterResource("/close.svg"), "Close", close)
     }
 }
 
 @Composable
-private fun WindowBtn(symbol: ImageVector, onClick: () -> Unit) {
-    Image(symbol, symbol.name, modifier = Modifier.clickable(onClick = onClick))
+private fun WindowBtn(symbol: Painter, buttonName: String, onClick: () -> Unit) {
+    Image(symbol, buttonName, modifier = Modifier.clickable(onClick = onClick))
 }

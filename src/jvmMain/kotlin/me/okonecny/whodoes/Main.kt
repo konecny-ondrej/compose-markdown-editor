@@ -1,7 +1,6 @@
 package me.okonecny.whodoes
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
@@ -26,12 +24,13 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import me.okonecny.whodoes.components.DetectedDensity
 import me.okonecny.whodoes.components.WindowControls
-import me.okonecny.whodoes.components.shadow
+import me.okonecny.whodoes.components.windowShadow
 import me.tatarka.inject.annotations.Component
 
 fun main() = application {
     MainComponent::class.create()
     val appTitle = "WhoDoes"
+    val drawCustomShadow = false
     var maximized by remember { mutableStateOf(false) }
 
     val windowState = WindowState(
@@ -42,8 +41,8 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = appTitle,
-        undecorated = true,
-        transparent = true,
+        undecorated = drawCustomShadow,
+        transparent = drawCustomShadow,
         state = windowState,
         icon = painterResource("/app-icon.xml")
         /**
@@ -55,39 +54,39 @@ fun main() = application {
             LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
         ) {
             Column(
-                if (maximized) {
+                if (maximized || !drawCustomShadow) {
                     Modifier
                 } else {
                     Modifier
-                        .padding(11.dp)
-                        .shadow(color = Color.DarkGray, blurRadius = 10.dp)
-                        .border(Dp.Hairline, Color.DarkGray.copy(0.5f), RoundedCornerShape(5.dp))
+                        .windowShadow(10.dp)
                         .clip(RoundedCornerShape(5.dp))
                 }
                     .background(Color.White)
             ) {
-                WindowDraggableArea(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-                        .padding(5.dp)
-                ) {
-                    Row {
-                        Text(
-                            appTitle,
-                            modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
-                            style = TextStyle(
-                                color = Color.DarkGray,
-                                fontSize = 15.sp,
+                if (drawCustomShadow) {
+                    WindowDraggableArea(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.LightGray)
+                            .padding(5.dp)
+                    ) {
+                        Row {
+                            Text(
+                                appTitle,
+                                modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
+                                style = TextStyle(
+                                    color = Color.DarkGray,
+                                    fontSize = 15.sp,
 //                                fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
-                        WindowControls(
-                            isMaximized = maximized,
-                            minimize = { windowState.isMinimized = true },
-                            maximize = { maximized = !maximized },
-                            close = { exitApplication() }
-                        )
+                            WindowControls(
+                                isMaximized = maximized,
+                                minimize = { windowState.isMinimized = true },
+                                maximize = { maximized = !maximized },
+                                close = { exitApplication() }
+                            )
+                        }
                     }
                 }
                 App()

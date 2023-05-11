@@ -55,7 +55,8 @@ compose.desktop {
     application {
         mainClass = "me.okonecny.whodoes.MainKt"
         jvmArgs(
-            "--add-exports=java.desktop/sun.java2d=ALL-UNNAMED" // For access to SunGraphicsEnvironment.
+            "--add-exports=java.desktop/sun.java2d=ALL-UNNAMED", // For access to SunGraphicsEnvironment.
+            "-Djava.net.useSystemProxies=true"
         )
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

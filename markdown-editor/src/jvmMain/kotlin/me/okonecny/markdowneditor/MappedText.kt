@@ -1,6 +1,8 @@
 package me.okonecny.markdowneditor
 
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import me.okonecny.interactivetext.TextMapping
 import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.interactivetext.plus
@@ -37,6 +39,15 @@ data class MappedText(
 
         fun append(text: MappedText) {
             mappedText += text
+        }
+
+        fun appendInlineContent(source: MappedText, inlineElementType: String) {
+            mappedText += MappedText(
+                text = buildAnnotatedString {
+                    appendInlineContent(inlineElementType, source.text.text)
+                },
+                textMapping = source.textMapping
+            )
         }
 
         fun append(text: String) { // TODO: do we want to append text without mapping?

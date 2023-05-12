@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -10,11 +11,13 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vladsch.flexmark.ast.*
+import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.tables.*
@@ -144,7 +147,7 @@ private fun UiTaskListItem(
                 coveredVisualRange = TextRange(0, 1),
                 sequence = openingMarker
             ),
-            style = styles.listNumber,
+            style = styles.listNumber
         )
         val onInput = LocalInteractiveInputHandler.current
         Checkbox(
@@ -181,7 +184,7 @@ private fun UiBulletList(unorderedList: BulletList) {
                             coveredVisualRange = TextRange(0, 1),
                             sequence = child.openingMarker
                         ),
-                        style = styles.listNumber,
+                        style = styles.listNumber
                     )
                     Column {
                         child.children.forEach { listItemContent ->
@@ -218,7 +221,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
                             coveredVisualRange = TextRange(0, computedNumber.toString().length + 1),
                             sequence = child.openingMarker
                         ),
-                        style = styles.listNumber,
+                        style = styles.listNumber
                     )
                     Column {
                         child.children.forEach { listItemContent ->
@@ -285,7 +288,7 @@ private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
             SequenceTextMapping(TextRange(0, line.length), line)
         }),
         style = styles.codeBlock.textStyle,
-        modifier = styles.codeBlock.modifier,
+        modifier = styles.codeBlock.modifier
     )
 }
 
@@ -319,7 +322,7 @@ private fun UiUnparsedBlock(node: Node) {
             TextRange(node.startOffset, node.endOffset), // TODO +1?
             TextRange(0, text.length)
         ),
-        style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan),
+        style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)
     )
 }
 
@@ -331,6 +334,7 @@ private fun UiParagraph(paragraph: Paragraph) {
         text = inlines.text,
         textMapping = inlines.textMapping,
         style = styles.paragraph,
+        inlineContent = inlines.inlineContent
     )
 }
 
@@ -341,6 +345,7 @@ private fun UiHeading(header: Heading) {
     InteractiveText(
         text = inlines.text,
         textMapping = inlines.textMapping,
+        inlineContent = inlines.inlineContent,
         style = when (header.level) {
             1 -> styles.h1
             2 -> styles.h2

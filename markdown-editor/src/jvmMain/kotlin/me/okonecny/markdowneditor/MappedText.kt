@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor
 
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
@@ -12,7 +13,8 @@ import me.okonecny.interactivetext.plus
  */
 data class MappedText(
     val text: AnnotatedString,
-    val textMapping: TextMapping
+    val textMapping: TextMapping,
+    val inlineContent: Map<String, InlineTextContent> = emptyMap()
 ) {
     constructor(text: String, textMapping: TextMapping) : this(AnnotatedString(text), textMapping)
 
@@ -25,7 +27,8 @@ data class MappedText(
     } else {
         MappedText(
             text = text + other.text,
-            textMapping = textMapping + other.textMapping
+            textMapping = textMapping + other.textMapping,
+            inlineContent = inlineContent + other.inlineContent
         )
     }
 
@@ -41,12 +44,17 @@ data class MappedText(
             mappedText += text
         }
 
-        fun appendInlineContent(source: MappedText, inlineElementType: String) {
+        fun appendInlineContent(source: MappedText, inlineElementType: String, inlineContent: InlineTextContent) {
             mappedText += MappedText(
                 text = buildAnnotatedString {
                     appendInlineContent(inlineElementType, source.text.text)
                 },
-                textMapping = source.textMapping
+                textMapping = source.textMapping,
+                inlineContent = if (source.inlineContent.containsKey(inlineElementType)) {
+                    throw IllegalArgumentException("Renderer for $inlineElementType is already defined.")
+                } else {
+                    source.inlineContent + mapOf(inlineElementType to inlineContent)
+                }
             )
         }
 

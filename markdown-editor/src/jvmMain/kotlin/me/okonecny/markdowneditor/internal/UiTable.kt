@@ -109,6 +109,7 @@ internal fun UiTable(
                 InteractiveText(
                     text = cell.text.text,
                     textMapping = cell.text.textMapping,
+                    inlineContent = cell.text.inlineContent,
                     textAlign = cell.textAlign,
                     style = cellStyle.textStyle,
                     modifier = cellStyle.modifier

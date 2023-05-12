@@ -37,14 +37,14 @@ class ConstantTextMapping(
     private val visualTextRange: TextRange? = null
 ) : TextMapping {
     override fun toSource(visualTextRange: TextRange): TextRange? =
-        if (this.visualTextRange?.intersects(visualTextRange) == true) {
+        if (this.visualTextRange?.intersects(visualTextRange) == true || this.visualTextRange?.contains(visualTextRange) == true) {
             coveredSourceRange
         } else {
             null
         }
 
     override fun toVisual(sourceTextRange: TextRange): TextRange? =
-        if (this.coveredSourceRange.intersects(sourceTextRange)) {
+        if (this.coveredSourceRange.intersects(sourceTextRange) || this.coveredSourceRange.contains(sourceTextRange)) {
             visualTextRange
         } else {
             null

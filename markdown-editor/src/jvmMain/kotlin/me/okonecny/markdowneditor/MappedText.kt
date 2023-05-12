@@ -28,7 +28,7 @@ data class MappedText(
         MappedText(
             text = text + other.text,
             textMapping = textMapping + other.textMapping,
-            inlineContent = inlineContent + other.inlineContent
+            inlineContent = inlineContent + other.inlineContent.filterKeys { key -> !inlineContent.containsKey(key) }
         )
     }
 
@@ -44,16 +44,16 @@ data class MappedText(
             mappedText += text
         }
 
-        fun appendInlineContent(source: MappedText, inlineElementType: String, inlineContent: InlineTextContent) {
+        fun appendInlineContent(source: MappedText, inlineElementType: String, inlineContent: () -> InlineTextContent) {
             mappedText += MappedText(
                 text = buildAnnotatedString {
                     appendInlineContent(inlineElementType, source.text.text)
                 },
                 textMapping = source.textMapping,
-                inlineContent = if (source.inlineContent.containsKey(inlineElementType)) {
-                    throw IllegalArgumentException("Renderer for $inlineElementType is already defined.")
+                inlineContent = source.inlineContent + if (source.inlineContent.containsKey(inlineElementType)) {
+                    emptyMap()
                 } else {
-                    source.inlineContent + mapOf(inlineElementType to inlineContent)
+                    mapOf(inlineElementType to inlineContent())
                 }
             )
         }

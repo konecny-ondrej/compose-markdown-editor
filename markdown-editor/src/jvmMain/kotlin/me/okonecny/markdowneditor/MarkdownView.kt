@@ -3,7 +3,6 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -11,13 +10,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vladsch.flexmark.ast.*
-import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.tables.*
@@ -26,6 +23,7 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
+import me.okonecny.markdowneditor.inline.appendImage
 import me.okonecny.markdowneditor.internal.*
 
 /**
@@ -94,11 +92,11 @@ private fun TableScope.UiTableRowCells(rowType: RowType, tableSectionRows: Itera
     tableSectionRows.forEach { tableRow ->
         when (tableRow) {
             is TableRow -> UiTableRow(rowType) {
-                tableRow.children.forEach { tableHeadCell ->
-                    when (tableHeadCell) {
+                tableRow.children.forEach { tableCell ->
+                    when (tableCell) {
                         is TableCell -> UiTableCell(
-                            parseInlines(tableHeadCell.children),
-                            textAlign = when (tableHeadCell.alignment) {
+                            parseInlines(tableCell.children),
+                            textAlign = when (tableCell.alignment) {
                                 TableCell.Alignment.RIGHT -> TextAlign.Right
                                 TableCell.Alignment.CENTER -> TextAlign.Center
                                 else -> TextAlign.Left
@@ -386,7 +384,10 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
 //                    // TODO: proper parsing
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
-                is Image -> appendUnparsed(inline)
+                is Image -> {
+                    appendImage(inline)
+                }
+
                 else -> appendUnparsed(inline)
             }
         }

@@ -51,7 +51,7 @@ internal fun MappedText.Builder.appendImage(
 
     appendInlineContent(
         image.altText(visualLength),
-        IMAGE_INLINE_ELEMENT_TYPE + imageCount.getAndIncrement()
+        IMAGE_INLINE_ELEMENT_TYPE + remember { imageCount.getAndIncrement() }
     ) {
         InlineTextContent(placeholder) {
             Image(image, convertedImageSize, onSizeChange)
@@ -82,7 +82,7 @@ private fun Image(image: Image, imageSize: DpSize, onSizeChange: (IntSize) -> Un
                     .size(imageSize.width, imageSize.height)
                     .border(with(LocalDensity.current) { 1.sp.toDp() }, Color.Red)
                     .clickable(onClick = {
-                        onSizeChange(IntSize(40, 40))
+                        onSizeChange(IntSize(40, 50))
                         loadState = ImageLoadState.LOADED_SUCCESS
                     })
             ) {

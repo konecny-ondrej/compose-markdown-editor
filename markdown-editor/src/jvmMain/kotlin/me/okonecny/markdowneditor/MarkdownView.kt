@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
@@ -22,7 +21,8 @@ import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.inline.appendImage
-import me.okonecny.markdowneditor.internal.*
+import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
+import me.okonecny.markdowneditor.internal.create
 
 /**
  * Renders a Markdown document nicely.
@@ -86,40 +86,44 @@ private fun UiBlock(block: Node) {
 }
 
 @Composable
-private fun TableScope.UiTableRowCells(rowType: RowType, tableSectionRows: Iterable<Node>) {
-    tableSectionRows.forEach { tableRow ->
-        when (tableRow) {
-            is TableRow -> UiTableRow(rowType) {
-                tableRow.children.forEach { tableCell ->
-                    when (tableCell) {
-                        is TableCell -> UiTableCell(
-                            parseInlines(tableCell.children),
-                            textAlign = when (tableCell.alignment) {
-                                TableCell.Alignment.RIGHT -> TextAlign.Right
-                                TableCell.Alignment.CENTER -> TextAlign.Center
-                                else -> TextAlign.Left
-                            }
-                        )
+private fun UiTableBlock(tableBlock: TableBlock) {
 
-                        else -> UiTableCell("Bad table cell", TextAlign.Left)
+    @Composable
+    fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
+        tableSection.children.forEach { headRow ->
+            Row(Modifier.height(IntrinsicSize.Max)) {
+                headRow.children.forEach { cell ->
+                    when (cell) {
+                        is TableCell -> {
+                            val inlines = parseInlines(cell.children)
+                            InteractiveText(
+                                text = inlines.text,
+                                textMapping = inlines.textMapping,
+                                inlineContent = inlines.inlineContent,
+                                style = cellStyle.textStyle,
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1.0f)
+                                    .then(cellStyle.modifier)
+                            )
+                        }
+
+                        else -> UiUnparsedBlock(cell)
                     }
-
                 }
             }
-
-            else -> UiTableRow(rowType) { UiTableCell("Bad table row", TextAlign.Left) }
         }
     }
-}
 
-@Composable
-private fun UiTableBlock(tableBlock: TableBlock) {
-    UiTable(tableBlock) { tableChild ->
-        when (tableChild) {
-            is TableHead -> UiTableRowCells(RowType.HEADER, tableChild.children)
-            is TableBody -> UiTableRowCells(RowType.BODY, tableChild.children)
-            is TableSeparator -> Unit // This is just a Markdown syntax to specify alignment of the columns.
-            else -> UiUnparsedBlock(tableChild)
+    val styles = DocumentTheme.current.styles
+    Column(styles.table.modifier) {
+        tableBlock.children.forEach { tableSection ->
+            when (tableSection) {
+                is TableSeparator -> Unit
+                is TableHead -> UiTableSection(tableSection, styles.table.headerCellStyle)
+                is TableBody -> UiTableSection(tableSection, styles.table.bodyCellStyle)
+                else -> UiUnparsedBlock(tableSection)
+            }
         }
     }
 }
@@ -385,7 +389,7 @@ private fun parseInlines(
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
                 is Image -> {
-                    var imageSize by remember { mutableStateOf(IntSize(30,30)) }
+                    var imageSize by remember { mutableStateOf(IntSize(30, 30)) }
                     appendImage(inline, imageSize) { newSize ->
                         imageSize = newSize
                     }

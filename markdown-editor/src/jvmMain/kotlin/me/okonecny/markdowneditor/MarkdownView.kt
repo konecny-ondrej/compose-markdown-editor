@@ -90,27 +90,31 @@ private fun UiTableBlock(tableBlock: TableBlock) {
 
     @Composable
     fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
-        tableSection.children.forEach { headRow ->
-            Row(Modifier.height(IntrinsicSize.Max)) {
-                headRow.children.forEach { cell ->
-                    when (cell) {
-                        is TableCell -> {
-                            val inlines = parseInlines(cell.children)
-                            InteractiveText(
-                                text = inlines.text,
-                                textMapping = inlines.textMapping,
-                                inlineContent = inlines.inlineContent,
-                                style = cellStyle.textStyle,
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .weight(1.0f)
-                                    .then(cellStyle.modifier)
-                            )
-                        }
+        tableSection.children.forEach { tableRow ->
+            when (tableRow) {
+                is TableRow -> Row(Modifier.height(IntrinsicSize.Max)) {
+                    tableRow.children.forEach { cell ->
+                        when (cell) {
+                            is TableCell -> {
+                                val inlines = parseInlines(cell.children)
+                                InteractiveText(
+                                    text = inlines.text,
+                                    textMapping = inlines.textMapping,
+                                    inlineContent = inlines.inlineContent,
+                                    style = cellStyle.textStyle,
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .weight(1.0f)
+                                        .then(cellStyle.modifier)
+                                )
+                            }
 
-                        else -> UiUnparsedBlock(cell)
+                            else -> UiUnparsedBlock(cell)
+                        }
                     }
                 }
+
+                else -> UiUnparsedBlock(tableRow)
             }
         }
     }

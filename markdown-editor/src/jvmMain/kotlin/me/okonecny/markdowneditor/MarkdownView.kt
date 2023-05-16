@@ -4,16 +4,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Checkbox
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
@@ -359,7 +357,9 @@ private fun UiHeading(header: Heading) {
 // region inlines
 
 @Composable
-private fun parseInlines(inlines: Iterable<Node>): MappedText {
+private fun parseInlines(
+    inlines: Iterable<Node>
+): MappedText {
     val styles = DocumentTheme.current.styles
     return buildMappedString {
         inlines.forEach { inline ->
@@ -385,7 +385,10 @@ private fun parseInlines(inlines: Iterable<Node>): MappedText {
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
                 is Image -> {
-                    appendImage(inline)
+                    var imageSize by remember { mutableStateOf(IntSize(30,30)) }
+                    appendImage(inline, imageSize) { newSize ->
+                        imageSize = newSize
+                    }
                 }
 
                 else -> appendUnparsed(inline)
@@ -499,7 +502,7 @@ private class SequenceTextMapping(
         val sourceBase = this.coveredSourceRange.start
         val visualBase = coveredVisualRange.start
         return TextRange(
-            (sourceTextRange.start - sourceBase + visualBase).coerceAtMost(coveredVisualRange.end),
+            (sourceTextRange.start - sourceBase + visualBase).coerceIn(0, coveredVisualRange.end),
             (sourceTextRange.end - sourceBase + visualBase).coerceAtMost(coveredVisualRange.end)
         )
     }

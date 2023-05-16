@@ -22,14 +22,20 @@ data class MappedText(
         val empty: MappedText = MappedText("", ZeroTextMapping)
     }
 
-    operator fun plus(other: MappedText): MappedText = if (this === empty) {
-        other
-    } else {
-        MappedText(
-            text = text + other.text,
-            textMapping = textMapping + other.textMapping,
-            inlineContent = inlineContent + other.inlineContent.filterKeys { key -> !inlineContent.containsKey(key) }
-        )
+    operator fun plus(other: MappedText): MappedText = when {
+        this === empty -> other
+        other === empty -> this
+        else -> {
+            val conflictingInlines = inlineContent.keys.intersect(other.inlineContent.keys)
+            if (conflictingInlines.isNotEmpty()) {
+                throw IllegalArgumentException("Definition for ${conflictingInlines.joinToString(", ")} is already present.")
+            }
+            MappedText(
+                text = text + other.text,
+                textMapping = textMapping + other.textMapping,
+                inlineContent = inlineContent + other.inlineContent
+            )
+        }
     }
 
     internal class Builder(
@@ -45,17 +51,14 @@ data class MappedText(
         }
 
         fun appendInlineContent(source: MappedText, inlineElementType: String, inlineContent: () -> InlineTextContent) {
-            mappedText += MappedText(
+            val inlines = MappedText(
                 text = buildAnnotatedString {
                     appendInlineContent(inlineElementType, source.text.text)
                 },
                 textMapping = source.textMapping,
-                inlineContent = source.inlineContent + if (source.inlineContent.containsKey(inlineElementType)) {
-                    emptyMap()
-                } else {
-                    mapOf(inlineElementType to inlineContent())
-                }
+                inlineContent = mapOf(inlineElementType to inlineContent())
             )
+            mappedText += source + inlines
         }
 
         fun append(text: String) { // TODO: do we want to append text without mapping?

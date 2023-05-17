@@ -40,13 +40,15 @@ fun MarkdownView(
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,
-        CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
+        CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType),
+        LocalMarkdownEditorComponent provides markdown
     ) {
         UiMdDocument(document.ast, scrollable)
     }
 }
 
 private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFenceRenderer>() }
+internal val LocalMarkdownEditorComponent = compositionLocalOf { MarkdownEditorComponent::class.create() }
 
 @Composable
 private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {

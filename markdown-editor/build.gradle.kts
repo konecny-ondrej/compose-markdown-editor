@@ -1,6 +1,7 @@
 val kotlinInjectVersion: String by project
 val kotlinJvmTarget: String by project
 val kermitVersion: String by project
+val ktorVersion: String by project
 val flexmarkVersion: String by project
 
 plugins {
@@ -31,7 +32,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("co.touchlab:kermit:${kermitVersion}") {
+                implementation("co.touchlab:kermit:$kermitVersion") {
                     exclude("org.jetbrains.kotlin", "kotlin-test-junit")
                 }
             }
@@ -41,8 +42,11 @@ kotlin {
             dependencies {
                 api(compose.desktop.currentOs)
                 api(project(":interactive-text"))
-                implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
-                implementation("com.vladsch.flexmark:flexmark-all:${flexmarkVersion}")
+                implementation("me.tatarka.inject:kotlin-inject-runtime:$kotlinInjectVersion")
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                implementation("io.ktor:ktor-client-logging:$ktorVersion")
+                implementation("com.vladsch.flexmark:flexmark-all:$flexmarkVersion")
             }
         }
         val jvmTest by getting {

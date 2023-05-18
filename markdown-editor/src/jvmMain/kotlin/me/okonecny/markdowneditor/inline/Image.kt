@@ -35,7 +35,6 @@ import me.okonecny.markdowneditor.ZERO_WIDTH_SPACE
 import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 private const val IMAGE_INLINE_ELEMENT_TYPE = "me.okonecny.markdowneditor.inline.Image"

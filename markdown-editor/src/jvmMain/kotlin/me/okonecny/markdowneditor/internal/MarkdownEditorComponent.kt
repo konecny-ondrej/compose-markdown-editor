@@ -7,6 +7,8 @@ import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.parser.ParserEmulationProfile
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.logging.*
 import me.okonecny.markdowneditor.DocumentParser
 import me.tatarka.inject.annotations.Component
@@ -27,13 +29,14 @@ internal abstract class MarkdownEditorComponent {
     abstract val httpClient: HttpClient
 
     @Provides
-    fun httpClient(): HttpClient = HttpClient(CIO) {
+    @MarkdownEditorScope
+    protected fun httpClient(): HttpClient = HttpClient(CIO) {
+        install(HttpCache)
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
                     co.touchlab.kermit.Logger.d(message, tag = "HttpClient")
                 }
-
             }
         }
     }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
+    <g fill="none" fill-rule="evenodd" transform="translate(3 3)">
+        <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m14.5 10.5l-3-3l-3 2.985m3 4.015l-9-9l-3 3"/>
+        </g>
+    </g>
+    <g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.5 3.5c-2.414 1.377-4 4.022-4 7a8 8 0 1 0 8-8"/>
+        <path d="M6.5 7.5v-4h-4"/>
+    </g>
+    <circle cx="11" cy="4" r="1" fill="currentColor" transform="translate(3 3)"/>
+</svg>

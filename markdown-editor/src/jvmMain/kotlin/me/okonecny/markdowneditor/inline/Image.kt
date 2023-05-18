@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextRange
@@ -90,17 +91,18 @@ private fun UiImage(
 ) {
     if (!imageState.loaded) {
         val editorComponent = LocalMarkdownEditorComponent.current
+        val failedImage = painterResource("/image-failed.svg")
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 // TODO: load local images from disk if the URL does not start with "http://" or "https://".
                 onStateChange(
                     imageState.copy(
-                        painter = BitmapPainter(try {
-                            loadImageBitmap(editorComponent.httpClient, imageState.url)
-                        } catch (e: IOException) {
+                        painter = try {
+                            BitmapPainter(loadImageBitmap(editorComponent.httpClient, imageState.url))
+                        } catch (e: RuntimeException) {
                             Logger.e(e) { "Failed to load image." }
-                            throw e
-                        }),
+                            failedImage
+                        },
                         loaded = true
                     )
                 )

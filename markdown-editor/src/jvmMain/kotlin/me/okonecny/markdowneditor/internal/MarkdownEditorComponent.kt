@@ -8,7 +8,6 @@ import com.vladsch.flexmark.parser.ParserEmulationProfile
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.logging.*
 import me.okonecny.markdowneditor.DocumentParser
 import me.tatarka.inject.annotations.Component
@@ -27,6 +26,7 @@ annotation class MarkdownEditorScope
 internal abstract class MarkdownEditorComponent {
     abstract val documentParser: DocumentParser
     abstract val httpClient: HttpClient
+    abstract val imageLoader: ImageLoader
 
     @Provides
     @MarkdownEditorScope

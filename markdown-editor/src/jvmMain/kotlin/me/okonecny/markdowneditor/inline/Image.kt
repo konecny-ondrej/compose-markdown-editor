@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.Image
 import me.okonecny.interactivetext.ConstantTextMapping
+import me.okonecny.markdowneditor.LocalDocument
 import me.okonecny.markdowneditor.LocalMarkdownEditorComponent
 import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.ZERO_WIDTH_SPACE
@@ -77,13 +78,14 @@ private fun UiImage(
 ) {
     if (!imageState.loaded) {
         val editorComponent = LocalMarkdownEditorComponent.current
+        val basePath = LocalDocument.current.basePath
         val failedImage = painterResource("/image-failed.svg")
         LaunchedEffect(Unit) {
             // TODO: load local images from disk if the URL does not start with "http://" or "https://".
             onStateChange(
                 imageState.copy(
                     painter = try {
-                        editorComponent.imageLoader.load(imageState.url)
+                        editorComponent.imageLoader.load(imageState.url, basePath)
                     } catch (e: RuntimeException) {
                         Logger.e(e) { "Failed to load image." }
                         failedImage

@@ -142,6 +142,7 @@ But let's throw in a <b>tag</b>.
 Inline-style:
 
 ![random image](https://picsum.photos/seed/picsum/400/400 "Text 1") ![random image](https://picsum.photos/seed/picsum/400/400 "Text 1.5")
+![local image](flower.jpg "Some flowers loaded from disk")
 ![bad image](https://example.com "Text 1.5")
 
 Reference-style:

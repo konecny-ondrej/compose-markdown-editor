@@ -15,6 +15,7 @@ import me.tatarka.inject.annotations.Inject
 import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.nio.file.Path
 
 /**
  * Loads images from the Internet or from local files.
@@ -25,13 +26,12 @@ internal class ImageLoader(
 ) {
     private val httpClient by lazyHttpClient
 
-    suspend fun load(url: String): Painter {
-        return if (url.startsWith("http://") || url.startsWith("https://")) withContext(Dispatchers.IO) {
-            // TODO: load local images from disk if the URL does not start with "http://" or "https://".
-            BitmapPainter(loadImageBitmap(httpClient, url))
+    suspend fun load(url: String, basePath: Path): Painter {
+        return BitmapPainter(if (url.startsWith("http://") || url.startsWith("https://")) withContext(Dispatchers.IO) {
+            loadImageBitmap(httpClient, url)
         } else {
-            throw IllegalArgumentException()
-        }
+            loadImageBitmap(basePath.resolve(url).toFile())
+        })
     }
 }
 

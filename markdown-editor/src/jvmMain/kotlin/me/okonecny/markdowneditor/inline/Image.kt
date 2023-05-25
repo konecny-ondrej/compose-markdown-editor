@@ -1,10 +1,12 @@
 package me.okonecny.markdowneditor.inline
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.painter.Painter
@@ -19,10 +21,8 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.Image
 import me.okonecny.interactivetext.ConstantTextMapping
-import me.okonecny.markdowneditor.LocalDocument
-import me.okonecny.markdowneditor.LocalMarkdownEditorComponent
-import me.okonecny.markdowneditor.MappedText
-import me.okonecny.markdowneditor.ZERO_WIDTH_SPACE
+import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.markdowneditor.*
 import java.util.concurrent.atomic.AtomicLong
 
 private const val IMAGE_INLINE_ELEMENT_TYPE = "me.okonecny.markdowneditor.inline.Image"
@@ -36,7 +36,6 @@ internal fun MappedText.Builder.appendImage(
     onStateChange: (newState: ImageState) -> Unit
 ) {
     append(ZERO_WIDTH_SPACE) // So we don't have an empty paragraph.
-    // TODO: load image
     // TODO: image cache so we don't load the image multiple times
 
     // Consider the image size to be in DP so images still occupy the same space visually in the document,
@@ -81,7 +80,6 @@ private fun UiImage(
         val basePath = LocalDocument.current.basePath
         val failedImage = painterResource("/image-failed.svg")
         LaunchedEffect(Unit) {
-            // TODO: load local images from disk if the URL does not start with "http://" or "https://".
             onStateChange(
                 imageState.copy(
                     painter = try {
@@ -96,13 +94,25 @@ private fun UiImage(
         }
     }
 
-    androidx.compose.foundation.Image(
-        painter = imageState.painter,
-        contentDescription = if (imageState.loaded) "TODO: i18n" else imageState.title.text.text,
-        modifier = modifier.size(imageState.imagePixelSize.dp),
-        contentScale = ContentScale.FillBounds
-    )
-    // TODO: render image title
+    val style = DocumentTheme.current.styles.image
+    Box(
+        modifier = style.modifier
+    ) {
+        androidx.compose.foundation.Image(
+            painter = imageState.painter,
+            contentDescription = if (imageState.loaded) "TODO: i18n" else imageState.title.text.text,
+            modifier = modifier.size(imageState.imagePixelSize.dp),
+            contentScale = ContentScale.FillBounds
+        )
+        InteractiveText(
+            text = imageState.title.text,
+            textMapping = imageState.title.textMapping,
+            inlineContent = imageState.title.inlineContent,
+            style = style.title.textStyle,
+            modifier = style.title.modifier.align(Alignment.BottomCenter)
+        )
+
+    }
 }
 
 private fun Image.altText(visualOffset: Int): MappedText = MappedText(

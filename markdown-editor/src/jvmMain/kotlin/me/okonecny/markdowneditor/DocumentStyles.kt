@@ -142,7 +142,24 @@ data class DocumentStyles(
     ),
     val selection: TextStyle = TextStyle(
         background = Color.Cyan.copy(alpha = 0.5f)
+    ),
+    val image: ImageStyle = ImageStyle(
+        modifier = Modifier
+            .clip(blockShape)
+            .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape),
+        title = BlockStyle(
+            textStyle = paragraph.copy(textAlign = TextAlign.Center),
+            modifier = Modifier
+                .fillMaxWidth(1.0f)
+                .background(Color.White.copy(alpha = 0.5f))
+                .padding(4.dp)
+        )
     )
+)
+
+data class ImageStyle(
+    val modifier: Modifier,
+    val title: BlockStyle
 )
 
 data class BoxStyle(

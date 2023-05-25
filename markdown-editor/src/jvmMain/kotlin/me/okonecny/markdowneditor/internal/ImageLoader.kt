@@ -26,9 +26,11 @@ internal class ImageLoader(
     private val httpClient by lazyHttpClient
 
     suspend fun load(url: String): Painter {
-        return withContext(Dispatchers.IO) {
+        return if (url.startsWith("http://") || url.startsWith("https://")) withContext(Dispatchers.IO) {
             // TODO: load local images from disk if the URL does not start with "http://" or "https://".
             BitmapPainter(loadImageBitmap(httpClient, url))
+        } else {
+            throw IllegalArgumentException()
         }
     }
 }

@@ -12,6 +12,7 @@ import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.MarkdownView
+import java.nio.file.Path
 
 /**
  * Renders "example" fenced code block from commonMarkSpec.md.
@@ -20,7 +21,7 @@ class ExampleRenderer : CodeFenceRenderer {
     override val codeFenceType: String = "example"
 
     @Composable
-    override fun render(code: MappedText) {
+    override fun render(code: MappedText, basePath: Path) {
         val styles = DocumentTheme.current.styles
         val lines = code.text.text.lines()
         val splitterLineNo = lines.indexOfFirst { line -> line.trim() == "." }
@@ -50,7 +51,7 @@ class ExampleRenderer : CodeFenceRenderer {
                         .background(Color(0xAAAAAAFF))
                 ) {
                     DisabledInteractiveContainer {
-                        MarkdownView(markdownCode, scrollable = false)
+                        MarkdownView(markdownCode, basePath, scrollable = false)
                     }
                 }
                 Text(

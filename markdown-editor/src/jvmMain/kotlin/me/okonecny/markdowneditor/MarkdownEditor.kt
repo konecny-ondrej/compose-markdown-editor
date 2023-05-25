@@ -9,6 +9,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
+import java.nio.file.Path
 import kotlin.math.abs
 
 
@@ -18,6 +19,7 @@ import kotlin.math.abs
 @Composable
 fun MarkdownEditor(
     sourceText: String,
+    basePath: Path,
     interactiveScope: InteractiveScope,
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
@@ -80,7 +82,7 @@ fun MarkdownEditor(
             }
         }
     ) {
-        MarkdownView(sourceText, documentTheme, scrollable, codeFenceRenderers)
+        MarkdownView(sourceText, basePath, documentTheme, scrollable, codeFenceRenderers)
         LaunchedEffect(sourceText) {
             if (interactiveScope.isPlaced) {
                 cursorRequest?.apply {

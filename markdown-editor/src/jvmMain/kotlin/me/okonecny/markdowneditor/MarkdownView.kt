@@ -25,6 +25,7 @@ import me.okonecny.markdowneditor.inline.ImageState
 import me.okonecny.markdowneditor.inline.appendImage
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
+import java.nio.file.Path
 
 /**
  * Renders a Markdown document nicely.
@@ -32,25 +33,33 @@ import me.okonecny.markdowneditor.internal.create
 @Composable
 fun MarkdownView(
     sourceText: String,
+    basePath: Path,
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) {
-    val markdown = remember { MarkdownEditorComponent::class.create() }
-    val parser = remember { markdown.documentParser }
-    val document = remember(sourceText) { parser.parse(sourceText) }
+    val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
+    val parser = remember(markdown) { markdown.documentParser }
+    val document = remember(sourceText, parser) { parser.parse(sourceText, basePath) }
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,
         CodeFenceRenderers provides codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType),
-        LocalMarkdownEditorComponent provides markdown
+        LocalMarkdownEditorComponent provides markdown,
+        LocalDocument provides document
     ) {
         UiMdDocument(document.ast, scrollable)
     }
 }
 
 private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFenceRenderer>() }
-internal val LocalMarkdownEditorComponent = compositionLocalOf { MarkdownEditorComponent::class.create() }
+internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
+    throw IllegalStateException("The editor component can only be used inside MarkdownView.")
+}
+internal val LocalDocument = compositionLocalOf<MarkdownDocument> {
+    throw IllegalStateException("The document can only be used inside MarkdownView.")
+}
+
 
 @Composable
 private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {
@@ -281,7 +290,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
                 modifier = styles.codeBlock.modifier,
             )
         } else {
-            codeFenceRenderer.render(code)
+            codeFenceRenderer.render(code, LocalDocument.current.basePath)
         }
     }
 }

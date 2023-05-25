@@ -11,6 +11,7 @@ import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
+import kotlin.io.path.Path
 
 @Composable
 @Preview
@@ -35,6 +36,7 @@ fun App() {
             val documentTheme = DocumentTheme.default
             MarkdownEditor(
                 sourceText = markdownSource,
+                basePath = Path("markdown-editor/src/jvmMain/resources"),
                 interactiveScope = interactiveScope,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),

@@ -64,8 +64,18 @@ internal data class SourceEditor(
         ("\\s".toRegex().find(sourceText, sourceCursor.end + 1)?.range?.first ?: sourceText.length) - sourceCursor.start
     )
 
+    private fun deleteUnderCursor(): SourceEditor {
+        if (sourceCursor.collapsed) return this
+        return SourceEditor(
+            sourceText.removeRange(sourceCursor.start, sourceCursor.end),
+            TextRange(sourceCursor.start),
+            sourceSelection
+        )
+    }
+
     fun deleteBeforeCursor(size: Int): SourceEditor {
         if (!sourceSelection.collapsed) return deleteSelection()
+        if (!sourceCursor.collapsed) return deleteUnderCursor()
         val editedSource = sourceText.substring(
             0, (sourceCursor.start - size).coerceAtLeast(0)
         ) + sourceText.substring(sourceCursor.end)
@@ -75,6 +85,7 @@ internal data class SourceEditor(
 
     fun deleteAfterCursor(size: Int): SourceEditor {
         if (!sourceSelection.collapsed) return deleteSelection()
+        if (!sourceCursor.collapsed) return deleteUnderCursor()
         val editedSource = sourceText.substring(
             0, sourceCursor.start
         ) + sourceText.substring(sourceCursor.start + size)

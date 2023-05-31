@@ -50,15 +50,15 @@ data class MappedText(
             mappedText += text
         }
 
-        fun appendInlineContent(source: MappedText, inlineElementType: String, inlineContent: () -> InlineTextContent) {
+        fun appendInlineContent(source: MappedText, inlineElementId: String, inlineContent: () -> InlineTextContent) {
             val inlines = MappedText(
                 text = buildAnnotatedString {
-                    appendInlineContent(inlineElementType, source.text.text)
+                    appendInlineContent(inlineElementId, source.text.text)
                 },
                 textMapping = source.textMapping,
-                inlineContent = mapOf(inlineElementType to inlineContent())
+                inlineContent = mapOf(inlineElementId to inlineContent())
             )
-            mappedText += source + inlines
+            mappedText += inlines
         }
 
         fun append(text: String) { // TODO: do we want to append text without mapping?

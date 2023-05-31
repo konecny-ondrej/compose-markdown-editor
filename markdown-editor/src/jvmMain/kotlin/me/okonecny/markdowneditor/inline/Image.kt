@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor.inline
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -21,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.Image
 import me.okonecny.interactivetext.ConstantTextMapping
-import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -35,7 +35,17 @@ internal fun MappedText.Builder.appendImage(
     imageState: ImageState,
     onStateChange: (newState: ImageState) -> Unit
 ) {
-    append(ZERO_WIDTH_SPACE) // So we don't have an empty paragraph.
+    if (visualLength == 0) {
+        append(
+            MappedText(
+                text = ZERO_WIDTH_SPACE,
+                textMapping = ConstantTextMapping(
+                    coveredSourceRange = TextRange(image.startOffset, image.endOffset),
+                    visualTextRange = TextRange(visualLength, visualLength + 1)
+                )
+            )
+        ) // So we don't have an empty paragraph.
+    }
     // TODO: image cache so we don't load the image multiple times
 
     // Consider the image size to be in DP so images still occupy the same space visually in the document,
@@ -51,7 +61,10 @@ internal fun MappedText.Builder.appendImage(
     }
 
     appendInlineContent(
-        image.altText(visualLength),
+        ConstantTextMapping(
+            coveredSourceRange = TextRange(image.startOffset, image.endOffset),
+            visualTextRange = TextRange(visualLength, visualLength + 1)
+        ),
         IMAGE_INLINE_ELEMENT_TYPE + remember { imageCount.getAndIncrement() }
     ) {
         InlineTextContent(placeholder) {
@@ -63,7 +76,7 @@ internal fun MappedText.Builder.appendImage(
 data class ImageState(
     val url: String,
     val painter: Painter,
-    val title: MappedText = MappedText.empty,
+    val title: String = "",
     val loaded: Boolean = false
 ) {
     val imagePixelSize: Size = painter.intrinsicSize
@@ -84,7 +97,7 @@ private fun UiImage(
                 imageState.copy(
                     painter = try {
                         editorComponent.imageLoader.load(imageState.url, basePath)
-                    } catch (e: RuntimeException) {
+                    } catch (e: Exception) {
                         Logger.e(e) { "Failed to load image." }
                         failedImage
                     },
@@ -100,28 +113,19 @@ private fun UiImage(
     ) {
         androidx.compose.foundation.Image(
             painter = imageState.painter,
-            contentDescription = if (imageState.loaded) "TODO: i18n" else imageState.title.text.text,
+            contentDescription = if (imageState.loaded) "Unloaded image" else imageState.title, // TODO: i18n
             modifier = modifier.size(imageState.imagePixelSize.dp),
             contentScale = ContentScale.FillBounds
         )
-        InteractiveText(
-            text = imageState.title.text,
-            textMapping = imageState.title.textMapping,
-            inlineContent = imageState.title.inlineContent,
-            style = style.title.textStyle,
-            modifier = style.title.modifier.align(Alignment.BottomCenter)
-        )
-
+        if (imageState.title.isNotBlank()) {
+            Text(
+                text = imageState.title,
+                style = style.title.textStyle,
+                modifier = style.title.modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
-
-private fun Image.altText(visualOffset: Int): MappedText = MappedText(
-    text = " ",
-    textMapping = ConstantTextMapping(
-        coveredSourceRange = TextRange(startOffset, endOffset),
-        visualTextRange = TextRange(visualOffset, visualOffset + 1)
-    )
-)
 
 private val Size.dp: DpSize get() = DpSize(width.dp, height.dp)
 

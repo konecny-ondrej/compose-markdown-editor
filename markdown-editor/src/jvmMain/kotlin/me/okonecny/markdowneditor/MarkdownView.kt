@@ -408,18 +408,12 @@ private fun parseInlines(
                 is HtmlInlineBase -> appendUnparsed(inline)
                 is Image -> {
                     val unloadedImage = painterResource("/image-load.svg")
-                    var imageState by rememberSaveable(inline.url.toString()) {
+                    var imageState by rememberSaveable(inline.url.toString(), inline.title.toString()) {
                         mutableStateOf(
                             ImageState(
                                 url = inline.url.toString(),
                                 painter = unloadedImage,
-                                title = MappedText(
-                                    text = inline.title.toString(),
-                                    textMapping = SequenceTextMapping(
-                                        coveredVisualRange = TextRange(0, inline.title.length),
-                                        sequence = inline.title
-                                    )
-                                )
+                                title = inline.title.toString()
                             )
                         )
                     }

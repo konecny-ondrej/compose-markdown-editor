@@ -34,6 +34,7 @@ import java.nio.file.Path
 fun MarkdownView(
     sourceText: String,
     basePath: Path,
+    modifier: Modifier = Modifier.fillMaxWidth(1f),
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
@@ -48,7 +49,7 @@ fun MarkdownView(
         LocalMarkdownEditorComponent provides markdown,
         LocalDocument provides document
     ) {
-        UiMdDocument(document.ast, scrollable)
+        UiMdDocument(document.ast, modifier, scrollable)
     }
 }
 
@@ -62,9 +63,9 @@ internal val LocalDocument = compositionLocalOf<MarkdownDocument> {
 
 
 @Composable
-private fun UiMdDocument(markdownRoot: Document, scrollable: Boolean) {
+private fun UiMdDocument(markdownRoot: Document, modifier: Modifier, scrollable: Boolean) {
     if (scrollable) {
-        LazyColumn(modifier = Modifier.fillMaxWidth(1f)) {
+        LazyColumn(modifier = modifier) {
             markdownRoot.children.forEach { child ->
                 item {
                     UiBlock(child)

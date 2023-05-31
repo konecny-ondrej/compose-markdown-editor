@@ -50,12 +50,16 @@ data class MappedText(
             mappedText += text
         }
 
-        fun appendInlineContent(source: MappedText, inlineElementId: String, inlineContent: () -> InlineTextContent) {
+        fun appendInlineContent(
+            textMapping: TextMapping,
+            inlineElementId: String,
+            inlineContent: () -> InlineTextContent
+        ) {
             val inlines = MappedText(
                 text = buildAnnotatedString {
-                    appendInlineContent(inlineElementId, source.text.text)
+                    appendInlineContent(inlineElementId)
                 },
-                textMapping = source.textMapping,
+                textMapping = textMapping,
                 inlineContent = mapOf(inlineElementId to inlineContent())
             )
             mappedText += inlines

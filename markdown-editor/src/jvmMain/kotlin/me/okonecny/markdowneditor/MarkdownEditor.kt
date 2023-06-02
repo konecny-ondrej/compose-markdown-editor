@@ -1,5 +1,7 @@
 package me.okonecny.markdowneditor
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
@@ -7,6 +9,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import co.touchlab.kermit.Logger
 import me.okonecny.interactivetext.*
 import java.nio.file.Path
@@ -21,15 +24,17 @@ fun MarkdownEditor(
     sourceText: String,
     basePath: Path,
     interactiveScope: InteractiveScope,
+    modifier: Modifier = Modifier,
+    showSource: Boolean = false,
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     onChange: (String) -> Unit
 ) {
-    var cursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
+    var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
-    var sourceCursor by remember { mutableStateOf(TextRange(0)) }
+    var sourceCursor by remember { mutableStateOf<TextRange?>(null) }
     val clipboardManager = LocalClipboardManager.current
 
     InteractiveContainer(
@@ -41,12 +46,12 @@ fun MarkdownEditor(
             if (!newVisualCursor.isValid) return@InteractiveContainer
             val componentUnderCursor = interactiveScope.getComponent(newVisualCursor.componentId)
             val newSourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
-            sourceCursor = newSourceCursor ?: sourceCursor
+            sourceCursor = newSourceCursor
         },
         onInput = { textInputCommand ->
             if (!visualCursor.isValid && textInputCommand.needsValidCursor) return@InteractiveContainer
             val sourceSelection = computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
-            val sourceEditor = SourceEditor(sourceText, sourceCursor, sourceSelection)
+            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: return@InteractiveContainer, sourceSelection)
 
             val editedSourceEditor = when (textInputCommand) {
                 Copy -> {
@@ -75,20 +80,42 @@ fun MarkdownEditor(
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
                 visualSelection = Selection.empty
-                cursorRequest = {
+                sourceCursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor
                 }
                 onChange(editedSourceEditor.sourceText)
             }
         }
     ) {
-        MarkdownView(sourceText, basePath, documentTheme, scrollable, codeFenceRenderers)
+        if (showSource) {
+            Row(modifier) {
+                MarkdownView(
+                    sourceText,
+                    basePath,
+                    modifier = Modifier.weight(0.5f),
+                    documentTheme,
+                    scrollable,
+                    codeFenceRenderers
+                )
+                BasicTextField(
+                    value = TextFieldValue(
+                        text = sourceText,
+                        selection = sourceCursor ?: TextRange(0)
+                    ),
+                    onValueChange = {},
+                    modifier = Modifier.weight(0.5f)
+                )
+            }
+        } else {
+            MarkdownView(sourceText, basePath, modifier, documentTheme, scrollable, codeFenceRenderers)
+        }
         LaunchedEffect(sourceText) {
             if (interactiveScope.isPlaced) {
-                cursorRequest?.apply {
+                sourceCursorRequest?.apply {
                     invoke()
-                    cursorRequest = null
-                    visualCursor = computeVisualCursor(sourceCursor, interactiveScope.requireComponentLayout())
+                    sourceCursorRequest = null
+                    visualCursor =
+                        computeVisualCursor(sourceCursor ?: return@apply, interactiveScope.requireComponentLayout())
                 }
             }
         }

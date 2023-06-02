@@ -38,6 +38,7 @@ fun App() {
                 sourceText = markdownSource,
                 basePath = Path("markdown-editor/src/jvmMain/resources"),
                 interactiveScope = interactiveScope,
+                showSource = true,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),
                 onChange = { newSource ->

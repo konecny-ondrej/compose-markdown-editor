@@ -78,7 +78,7 @@ internal data class SourceEditor(
         if (!sourceCursor.collapsed) return deleteUnderCursor()
         val editedSource = sourceText.substring(
             0, (sourceCursor.start - size).coerceAtLeast(0)
-        ) + sourceText.substring(sourceCursor.end)
+        ) + sourceText.substring(sourceCursor.start)
         val newCursor = TextRange((sourceCursor.start - size).coerceAtLeast(0))
         return SourceEditor(editedSource, newCursor, TextRange.Zero)
     }

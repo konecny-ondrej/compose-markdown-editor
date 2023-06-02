@@ -49,6 +49,10 @@ class ConstantTextMapping(
         } else {
             null
         }
+
+    override fun toString(): String {
+        return "${this::class.simpleName}(S:$coveredSourceRange, V:$visualTextRange)"
+    }
 }
 
 operator fun TextMapping.plus(other: TextMapping): TextMapping = ChunkedSourceTextMapping.concat(this, other)

@@ -97,10 +97,11 @@ fun MarkdownEditor(
                     scrollable,
                     codeFenceRenderers
                 )
+                val debugCursor = sourceCursor ?: TextRange(0)
                 BasicTextField(
                     value = TextFieldValue(
                         text = sourceText,
-                        selection = sourceCursor ?: TextRange(0)
+                        selection = if (debugCursor.collapsed) TextRange(debugCursor.start, debugCursor.end +1) else debugCursor
                     ),
                     onValueChange = {},
                     modifier = Modifier.weight(0.5f)

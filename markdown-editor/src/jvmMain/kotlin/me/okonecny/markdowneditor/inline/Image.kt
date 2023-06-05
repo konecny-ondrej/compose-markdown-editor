@@ -4,9 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -60,12 +59,13 @@ internal fun MappedText.Builder.appendImage(
         )
     }
 
+    val imageId = remember { imageCount.getAndIncrement() }
     appendInlineContent(
         ConstantTextMapping(
             coveredSourceRange = TextRange(image.startOffset, image.endOffset),
             visualTextRange = TextRange(visualLength, visualLength + 1)
         ),
-        IMAGE_INLINE_ELEMENT_TYPE + remember { imageCount.getAndIncrement() }
+        IMAGE_INLINE_ELEMENT_TYPE + imageId
     ) {
         InlineTextContent(placeholder) {
             UiImage(imageState, onStateChange)
@@ -80,6 +80,23 @@ data class ImageState(
     val loaded: Boolean = false
 ) {
     val imagePixelSize: Size = painter.intrinsicSize
+}
+
+@Composable
+fun rememberImageState(
+    url: String,
+    title: String,
+    unloadedImage: Painter = painterResource("/image-load.svg")
+): MutableState<ImageState> {
+    return rememberSaveable(url, title) {
+        mutableStateOf(
+            ImageState(
+                url = url,
+                painter = unloadedImage,
+                title = title
+            )
+        )
+    }
 }
 
 @Composable

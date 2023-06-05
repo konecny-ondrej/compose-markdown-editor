@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
@@ -21,8 +19,8 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
-import me.okonecny.markdowneditor.inline.ImageState
 import me.okonecny.markdowneditor.inline.appendImage
+import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import java.nio.file.Path
@@ -407,16 +405,10 @@ private fun parseInlines(
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
                 is Image -> {
-                    val unloadedImage = painterResource("/image-load.svg")
-                    var imageState by rememberSaveable(inline.url.toString(), inline.title.toString()) {
-                        mutableStateOf(
-                            ImageState(
-                                url = inline.url.toString(),
-                                painter = unloadedImage,
-                                title = inline.title.toString()
-                            )
-                        )
-                    }
+                    var imageState by rememberImageState(
+                        url = inline.url.toString(),
+                        title = inline.title.toString()
+                    )
                     appendImage(inline, imageState) { newState ->
                         imageState = newState
                     }

@@ -334,7 +334,7 @@ private fun UiUnparsedBlock(node: Node) {
     val text = "!${node.nodeName}!"
     InteractiveText(
         text = text,
-        textMapping = ConstantTextMapping(
+        textMapping = BoundedBlockTextMapping(
             TextRange(node.startOffset, node.endOffset), // TODO +1?
             TextRange(0, text.length)
         ),

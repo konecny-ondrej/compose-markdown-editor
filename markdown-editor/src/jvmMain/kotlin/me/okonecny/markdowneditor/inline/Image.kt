@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ast.Image
-import me.okonecny.interactivetext.ConstantTextMapping
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -38,7 +38,7 @@ internal fun MappedText.Builder.appendImage(
         append(
             MappedText(
                 text = ZERO_WIDTH_SPACE,
-                textMapping = ConstantTextMapping(
+                textMapping = BoundedBlockTextMapping(
                     coveredSourceRange = TextRange(image.startOffset, image.endOffset),
                     visualTextRange = TextRange(visualLength, visualLength + 1)
                 )
@@ -61,7 +61,7 @@ internal fun MappedText.Builder.appendImage(
 
     val imageId = remember { imageCount.getAndIncrement() }
     appendInlineContent(
-        ConstantTextMapping(
+        BoundedBlockTextMapping(
             coveredSourceRange = TextRange(image.startOffset, image.endOffset),
             visualTextRange = TextRange(visualLength, visualLength + 1)
         ),

@@ -32,7 +32,7 @@ object ZeroTextMapping : TextMapping {
     override fun toVisual(sourceTextRange: TextRange): TextRange? = null
 }
 
-class ConstantTextMapping(
+class BoundedBlockTextMapping(
     override val coveredSourceRange: TextRange,
     private val visualTextRange: TextRange? = null
 ) : TextMapping {

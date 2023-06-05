@@ -34,7 +34,7 @@ fun MarkdownEditor(
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
-    var sourceCursor by remember { mutableStateOf<TextRange?>(null) }
+    var sourceCursor by remember { mutableStateOf<Int?>(null) }
     val clipboardManager = LocalClipboardManager.current
 
     InteractiveContainer(
@@ -46,7 +46,7 @@ fun MarkdownEditor(
             if (!newVisualCursor.isValid) return@InteractiveContainer
             val componentUnderCursor = interactiveScope.getComponent(newVisualCursor.componentId)
             val newSourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
-            sourceCursor = newSourceCursor
+            sourceCursor = newSourceCursor?.start
         },
         onInput = { textInputCommand ->
             if (!visualCursor.isValid && textInputCommand.needsValidCursor) return@InteractiveContainer
@@ -97,11 +97,11 @@ fun MarkdownEditor(
                     scrollable,
                     codeFenceRenderers
                 )
-                val debugCursor = sourceCursor ?: TextRange(0)
+                val debuggingCursor = sourceCursor ?: 0
                 BasicTextField(
                     value = TextFieldValue(
                         text = sourceText,
-                        selection = if (debugCursor.collapsed) TextRange(debugCursor.start, debugCursor.end +1) else debugCursor
+                        selection = TextRange(debuggingCursor, debuggingCursor + 1)
                     ),
                     onValueChange = {},
                     modifier = Modifier.weight(0.5f)
@@ -137,9 +137,9 @@ private fun computeSourceSelection(
     )
 }
 
-private fun computeVisualCursor(sourceCursor: TextRange, layout: InteractiveComponentLayout): CursorPosition {
-    val componentAtCursor = layout.componentAtSource(sourceCursor.start)
-    val cursorVisualRange = componentAtCursor.textMapping.toVisual(sourceCursor)
+private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentLayout): CursorPosition {
+    val componentAtCursor = layout.componentAtSource(sourceCursor)
+    val cursorVisualRange = componentAtCursor.textMapping.toVisual(TextRange(sourceCursor))
     if (cursorVisualRange != null) return CursorPosition(componentAtCursor.id, cursorVisualRange.start)
 
     // Decide if start or end is closer to the source cursor pos.
@@ -147,7 +147,7 @@ private fun computeVisualCursor(sourceCursor: TextRange, layout: InteractiveComp
     val visualOffset = if (componentSourceRange == null) {
         componentAtCursor.visualTextRange.start
     } else {
-        if (abs(componentSourceRange.start - sourceCursor.start) <= abs(componentSourceRange.end - sourceCursor.end)) {
+        if (abs(componentSourceRange.start - sourceCursor) <= abs(componentSourceRange.end - sourceCursor)) {
             componentAtCursor.visualTextRange.start
         } else {
             componentAtCursor.visualTextRange.end

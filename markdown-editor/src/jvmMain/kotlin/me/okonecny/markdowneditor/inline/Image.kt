@@ -86,7 +86,10 @@ data class ImageState(
 fun rememberImageState(
     url: String,
     title: String,
-    unloadedImage: Painter = painterResource("/image-load.svg")
+    unloadedImage: Painter = LocalMarkdownEditorComponent.current.imageLoader.unloadedImage(
+        url,
+        LocalDocument.current.basePath
+    ) ?: painterResource("/image-load.svg")
 ): MutableState<ImageState> {
     return rememberSaveable(url, title) {
         mutableStateOf(

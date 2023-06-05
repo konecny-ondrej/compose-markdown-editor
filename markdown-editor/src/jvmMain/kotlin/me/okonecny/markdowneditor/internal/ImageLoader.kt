@@ -21,17 +21,38 @@ import java.nio.file.Path
  * Loads images from the Internet or from local files.
  */
 @Inject
+@MarkdownEditorScope
 internal class ImageLoader(
     lazyHttpClient: Lazy<HttpClient>
 ) {
     private val httpClient by lazyHttpClient
+    private val imageCache = mutableMapOf<String, Painter>()
+
+    private val String.isHttp get() = startsWith("http://") || startsWith("https://")
+    private fun String.fullPath(basePath: Path): String = if (isHttp) this else basePath.resolve(this).toString()
+
+    fun unloadedImage(url: String, basePath: Path): Painter? {
+        val fullPath = url.fullPath(basePath)
+        return synchronized(imageCache) {
+            imageCache[fullPath]
+        }
+    }
 
     suspend fun load(url: String, basePath: Path): Painter {
-        return BitmapPainter(if (url.startsWith("http://") || url.startsWith("https://")) withContext(Dispatchers.IO) {
-            loadImageBitmap(httpClient, url)
+        val fullPath = url.fullPath(basePath)
+        synchronized(imageCache) {
+            val cachedImage = imageCache[fullPath]
+            if (cachedImage != null) return@load cachedImage
+        }
+        val loadedImage = BitmapPainter(if (url.isHttp) withContext(Dispatchers.IO) {
+            loadImageBitmap(httpClient, fullPath)
         } else {
-            loadImageBitmap(basePath.resolve(url).toFile())
+            loadImageBitmap(File(fullPath))
         })
+        synchronized(imageCache) {
+            imageCache.putIfAbsent(fullPath, loadedImage)
+        }
+        return loadedImage
     }
 }
 

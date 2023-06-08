@@ -18,7 +18,9 @@ fun InteractiveText(
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
+    activeAnnotationTags: Set<String> = setOf(),
+    onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     var interactiveModifier: Modifier = Modifier
@@ -56,12 +58,14 @@ fun InteractiveText(
         finalText = text
     }
 
-    // TODO: clickable links
-
     Text( // TODO: use BasicText?
         text = finalText,
         style = style,
-        modifier = modifier.then(interactiveModifier),
+        modifier = modifier.then(interactiveModifier).annotationClickDetector(
+            textLayoutResult,
+            activeAnnotationTags,
+            onClick = onAnnotationCLick
+        ),
         textAlign = textAlign,
         inlineContent = inlineContent,
         onTextLayout = { layoutResult: TextLayoutResult ->
@@ -103,5 +107,17 @@ fun InteractiveText(
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
-    textAlign: TextAlign? = null
-) = InteractiveText(AnnotatedString(text), textMapping, style, selectionStyle, modifier, mapOf(), textAlign)
+    textAlign: TextAlign? = null,
+    activeAnnotationTags: Set<String> = setOf(),
+    onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
+) = InteractiveText(
+    AnnotatedString(text),
+    textMapping,
+    style,
+    selectionStyle,
+    modifier,
+    mapOf(),
+    textAlign,
+    activeAnnotationTags,
+    onAnnotationCLick
+)

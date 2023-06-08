@@ -22,6 +22,16 @@ data class MappedText(
         val empty: MappedText = MappedText("", ZeroTextMapping)
     }
 
+    fun annotatedWith(tag: String, annotation: String): MappedText = MappedText(
+        text = buildAnnotatedString {
+            pushStringAnnotation(tag, annotation)
+            append(text)
+            pop()
+        },
+        textMapping = textMapping,
+        inlineContent = inlineContent
+    )
+
     operator fun plus(other: MappedText): MappedText = when {
         this === empty -> other
         other === empty -> this

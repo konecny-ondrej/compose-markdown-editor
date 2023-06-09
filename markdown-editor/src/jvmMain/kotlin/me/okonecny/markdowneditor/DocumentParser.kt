@@ -14,11 +14,23 @@ class DocumentParser(
         val flexmarkDocument = flexmarkParser.parse(sourceText)
         headerIdGenerator.generateIds(flexmarkDocument)
 
+        val references = Parser.REFERENCES.get(flexmarkDocument)
+            .mapValues { (name, reference) ->
+                MarkdownReference(
+                    name = name,
+                    url = reference.url.toString(),
+                    title = reference.title?.toString()
+                )
+            }
+            .mapKeys { (name, _) ->
+                name.lowercase()
+            }
+
         return MarkdownDocument(
             sourceText,
             flexmarkDocument,
             basePath,
-            listOf() // TODO: parse links
+            references
         )
     }
 }

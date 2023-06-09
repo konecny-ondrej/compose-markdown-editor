@@ -133,6 +133,7 @@ private fun UiBlock(block: Node) {
         is BulletList -> UiBulletList(block)
         is HtmlCommentBlock -> Unit // Ignore HTML comments. They are not visible in HTML either.
         is TableBlock -> UiTableBlock(block)
+        is Reference -> Unit // References are just data items.
         else -> UiUnparsedBlock(block)
     }
 }
@@ -422,18 +423,22 @@ private fun UiHeading(header: Heading) {
 
 // region inlines
 
+// TODO: fix text mapping when parseInlines() is called recursively happens eg. with links).
+// e.g after the link with no URL.
 @Composable
 private fun parseInlines(
-    inlines: Iterable<Node>
+    inlines: Iterable<Node>,
+    baseOffset: Int = 0
 ): MappedText {
     val styles = DocumentTheme.current.styles
     return buildMappedString {
+        val base = visualLength + baseOffset
         inlines.forEach { inline ->
             if (inline is AnchorRefTarget) {
                 LocalNavigation.current.registerAnchorTarget(inline.anchorRefId)
             }
             when (inline) {
-                is Text -> append(inline.text(visualStartOffset = visualLength))
+                is Text -> append(inline.text(visualStartOffset = base))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(System.lineSeparator())
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -444,7 +449,7 @@ private fun parseInlines(
                 is AutoLink -> appendStyled(
                     MappedText(
                         inline.text.toString(),
-                        SequenceTextMapping(TextRange(visualLength, visualLength + inline.textLength), inline.text)
+                        SequenceTextMapping(TextRange(base, base + inline.textLength), inline.text)
                     ), styles.link.toSpanStyle()
                 )
 
@@ -469,36 +474,38 @@ private fun parseInlines(
     }
 }
 
+private fun annotateLinkByHandler(
+    linkText: MappedText,
+    linkUrl: String?,
+    linkHandlers: Map<String, LinkHandler>
+): MappedText {
+    if (linkUrl.isNullOrEmpty()) return linkText
+    return linkHandlers.mapValues { (_, handler) ->
+        handler.parseLinkAnnotation(linkUrl)
+    }
+        .entries
+        .runningFold(linkText) { inlines, annotation ->
+            inlines.annotatedWith(annotation.key, annotation.value ?: return@runningFold inlines)
+        }
+        .ifEmpty { listOf(linkText) }
+        .last()
+}
+
 @Composable
 private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-    val reference = linkRef.text.ifEmpty { linkRef.reference }
-    appendStyled(
-        MappedText(
-            text = AnnotatedString(reference.toString()),
-            textMapping = SequenceTextMapping(
-                TextRange(visualLength, visualLength + reference.length),
-                reference
-            )
-        ).annotatedWith(INTERNAL_LINK_TAG, "TODO"), DocumentTheme.current.styles.link.toSpanStyle()
-        // TODO: resolve the reference and if found, pass the ref url to the link handler.
-    )
+    val linkText = parseInlines(linkRef.children, visualLength)
+    val reference = linkRef.reference.ifEmpty { linkRef.text }
+    val url = LocalDocument.current.resolveReference(reference.toString())?.url
+    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+    appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
 }
 
 @Composable
 private fun MappedText.Builder.appendLink(link: Link) {
     val url = link.url.toString()
-    val parsedInlines = parseInlines(link.children)
-    val annotatedInlines = LinkHandlers.current
-        .mapValues { (_, handler) ->
-            handler.parseLinkAnnotation(url)
-        }
-        .entries
-        .runningFold(parsedInlines) { inlines, annotation ->
-            inlines.annotatedWith(annotation.key, annotation.value ?: return@runningFold inlines)
-        }
-        .ifEmpty { listOf(parsedInlines) }
-        .last()
-    appendStyled(annotatedInlines, DocumentTheme.current.styles.link.toSpanStyle())
+    val linkText = parseInlines(link.children, visualLength)
+    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+    appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
 }
 
 @Composable

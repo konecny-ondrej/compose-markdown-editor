@@ -7,7 +7,13 @@ class MarkdownDocument(
     val sourceText: String,
     val ast: Document,
     val basePath: Path,
-    val links: List<MarkdownLink>
-)
+    private val references: Map<String, MarkdownReference>
+) {
+    fun resolveReference(reference: String): MarkdownReference? = references[reference.lowercase()]
+}
 
-class MarkdownLink // TODO
+data class MarkdownReference(
+    val name: String,
+    val url: String,
+    val title: String?
+)

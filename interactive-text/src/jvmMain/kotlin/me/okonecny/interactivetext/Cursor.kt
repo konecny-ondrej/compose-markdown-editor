@@ -94,7 +94,7 @@ internal fun Modifier.cursorLine(
             drawContent()
             val cursorAlphaValue = cursorAlpha.value.coerceIn(0f, 1f)
             val cursorRect = textLayoutResult.getCursorRect(offset)
-            val cursorWidth = floor(1.dp.toPx()).coerceAtLeast(1f) // TODO: style cursor width
+            val cursorWidth = floor(2.dp.toPx()).coerceAtLeast(1f) // TODO: style cursor width
             val cursorX = (cursorRect.left + cursorWidth / 2)
                 .coerceAtMost(size.width - cursorWidth / 2)
             drawIntoCanvas {

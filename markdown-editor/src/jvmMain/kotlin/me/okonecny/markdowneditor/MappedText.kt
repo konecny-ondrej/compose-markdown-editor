@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import me.okonecny.interactivetext.TextMapping
 import me.okonecny.interactivetext.ZeroTextMapping
@@ -77,6 +78,18 @@ data class MappedText(
 
         fun append(text: String) { // TODO: do we want to append text without mapping?
             mappedText += MappedText(text, ZeroTextMapping)
+        }
+
+        fun appendStyled(mappedText: MappedText, style: SpanStyle) {
+            append(
+                mappedText.copy(
+                    text = buildAnnotatedString {
+                        pushStyle(style)
+                        append(mappedText.text)
+                        pop()
+                    }
+                )
+            )
         }
     }
 }

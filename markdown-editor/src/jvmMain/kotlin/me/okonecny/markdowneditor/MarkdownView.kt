@@ -133,7 +133,7 @@ private fun UiBlock(block: Node) {
         is BulletList -> UiBulletList(block)
         is HtmlCommentBlock -> Unit // Ignore HTML comments. They are not visible in HTML either.
         is TableBlock -> UiTableBlock(block)
-        is Reference -> Unit // References are just data items.
+        is Reference -> Unit // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
         else -> UiUnparsedBlock(block)
     }
 }
@@ -462,6 +462,17 @@ private fun parseInlines(
                     var imageState by rememberImageState(
                         url = inline.url.toString(),
                         title = inline.title.toString()
+                    )
+                    appendImage(inline, imageState) { newState ->
+                        imageState = newState
+                    }
+                }
+
+                is ImageRef -> {
+                    val reference = LocalDocument.current.resolveReference(inline.reference.toString())
+                    var imageState by rememberImageState(
+                        url = reference?.url ?: "",
+                        title = reference?.title ?: ""
                     )
                     appendImage(inline, imageState) { newState ->
                         imageState = newState

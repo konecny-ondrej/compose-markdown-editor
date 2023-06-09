@@ -19,7 +19,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
-import com.vladsch.flexmark.ast.Image
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.*
 import java.util.concurrent.atomic.AtomicLong
@@ -30,7 +30,7 @@ private val imageCount = AtomicLong(0L) // TODO: store this in the mapped text b
 
 @Composable
 internal fun MappedText.Builder.appendImage(
-    image: Image,
+    image: Node,
     imageState: ImageState,
     onStateChange: (newState: ImageState) -> Unit
 ) {

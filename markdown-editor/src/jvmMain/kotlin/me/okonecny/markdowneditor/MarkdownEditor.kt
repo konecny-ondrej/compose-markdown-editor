@@ -29,6 +29,7 @@ fun MarkdownEditor(
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
+    linkHandlers: List<LinkHandler> = emptyList(),
     onChange: (String) -> Unit
 ) {
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
@@ -95,7 +96,8 @@ fun MarkdownEditor(
                     modifier = Modifier.weight(0.5f),
                     documentTheme,
                     scrollable,
-                    codeFenceRenderers
+                    codeFenceRenderers,
+                    linkHandlers
                 )
                 val debuggingCursor = sourceCursor ?: 0
                 BasicTextField(

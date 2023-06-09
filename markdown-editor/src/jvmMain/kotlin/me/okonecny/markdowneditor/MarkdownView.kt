@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,11 +20,15 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
+import me.okonecny.markdowneditor.inline.INTERNAL_LINK_TAG
+import me.okonecny.markdowneditor.inline.InternalAnchorLink
 import me.okonecny.markdowneditor.inline.appendImage
 import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import java.nio.file.Path
+
+private val ACTIVE_TAGS = setOf(INTERNAL_LINK_TAG)
 
 /**
  * Renders a Markdown document nicely.
@@ -35,7 +40,8 @@ fun MarkdownView(
     modifier: Modifier = Modifier.fillMaxWidth(1f),
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
-    codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
+    codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
+    linkHandlers: List<LinkHandler> = emptyList()
 ) {
     val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
     val parser = remember(markdown) { markdown.documentParser }
@@ -47,27 +53,58 @@ fun MarkdownView(
         LocalMarkdownEditorComponent provides markdown,
         LocalDocument provides document
     ) {
-        UiMdDocument(document.ast, modifier, scrollable)
+        UiMdDocument(document.ast, modifier, scrollable, linkHandlers)
     }
 }
 
 private val CodeFenceRenderers = compositionLocalOf { emptyMap<String, CodeFenceRenderer>() }
+private val LinkHandlers = compositionLocalOf { emptyMap<String, LinkHandler>() }
 internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
     throw IllegalStateException("The editor component can only be used inside MarkdownView.")
 }
 internal val LocalDocument = compositionLocalOf<MarkdownDocument> {
     throw IllegalStateException("The document can only be used inside MarkdownView.")
 }
-
+val LocalNavigation = compositionLocalOf<Navigation> { NopNavigation }
 
 @Composable
-private fun UiMdDocument(markdownRoot: Document, modifier: Modifier, scrollable: Boolean) {
+private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
+    val actions = LinkHandlers.current
+    return { _: Int, annotations: List<AnnotatedString.Range<String>> ->
+        actions.forEach { (actionTag, action) ->
+            annotations.filter { range ->
+                range.tag == actionTag
+            }.forEach { range ->
+                action.linkActivated(range.item)
+            }
+        }
+    }
+}
+
+@Composable
+private fun UiMdDocument(
+    markdownRoot: Document,
+    modifier: Modifier,
+    scrollable: Boolean,
+    linkHandlers: List<LinkHandler>
+) {
     if (scrollable) {
-        LazyColumn(modifier = modifier) {
-            markdownRoot.children.forEach { child ->
-                item {
-                    UiBlock(child)
+        val navigation = remember { ScrollableNavigation() }
+        CompositionLocalProvider(
+            LocalNavigation provides navigation,
+            LinkHandlers provides (linkHandlers + listOf(InternalAnchorLink(navigation))).associateBy(LinkHandler::linkAnnotationTag),
+        ) {
+            val lazyColState = rememberLazyListState()
+            LazyColumn(modifier = modifier, state = lazyColState) {
+                markdownRoot.children.forEachIndexed { index, child ->
+                    item {
+                        navigation.currentScrollId = index
+                        UiBlock(child)
+                    }
                 }
+            }
+            LaunchedEffect(navigation.scrollRequest) {
+                navigation.scrollIfRequested(lazyColState)
             }
         }
     } else {
@@ -81,6 +118,9 @@ private fun UiMdDocument(markdownRoot: Document, modifier: Modifier, scrollable:
 
 @Composable
 private fun UiBlock(block: Node) {
+    if (block is AnchorRefTarget) {
+        LocalNavigation.current.registerAnchorTarget(block.anchorRefId)
+    }
     when (block) {
         is Heading -> UiHeading(block)
         is Paragraph -> UiParagraph(block)
@@ -117,7 +157,9 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .weight(1.0f)
-                                        .then(cellStyle.modifier)
+                                        .then(cellStyle.modifier),
+                                    activeAnnotationTags = ACTIVE_TAGS,
+                                    onAnnotationCLick = handleLinks()
                                 )
                             }
 
@@ -350,7 +392,9 @@ private fun UiParagraph(paragraph: Paragraph) {
         text = inlines.text,
         textMapping = inlines.textMapping,
         style = styles.paragraph,
-        inlineContent = inlines.inlineContent
+        inlineContent = inlines.inlineContent,
+        activeAnnotationTags = ACTIVE_TAGS,
+        onAnnotationCLick = handleLinks()
     )
 }
 
@@ -370,7 +414,9 @@ private fun UiHeading(header: Heading) {
             5 -> styles.h5
             6 -> styles.h6
             else -> styles.h1
-        }
+        },
+        activeAnnotationTags = ACTIVE_TAGS,
+        onAnnotationCLick = handleLinks()
     )
 }
 
@@ -383,6 +429,9 @@ private fun parseInlines(
     val styles = DocumentTheme.current.styles
     return buildMappedString {
         inlines.forEach { inline ->
+            if (inline is AnchorRefTarget) {
+                LocalNavigation.current.registerAnchorTarget(inline.anchorRefId)
+            }
             when (inline) {
                 is Text -> append(inline.text(visualStartOffset = visualLength))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
@@ -430,14 +479,26 @@ private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
                 TextRange(visualLength, visualLength + reference.length),
                 reference
             )
-        ), DocumentTheme.current.styles.link.toSpanStyle()
+        ).annotatedWith(INTERNAL_LINK_TAG, "TODO"), DocumentTheme.current.styles.link.toSpanStyle()
+        // TODO: resolve the reference and if found, pass the ref url to the link handler.
     )
 }
 
 @Composable
 private fun MappedText.Builder.appendLink(link: Link) {
+    val url = link.url.toString()
     val parsedInlines = parseInlines(link.children)
-    appendStyled(parsedInlines, DocumentTheme.current.styles.link.toSpanStyle())
+    val annotatedInlines = LinkHandlers.current
+        .mapValues { (_, handler) ->
+            handler.parseLinkAnnotation(url)
+        }
+        .entries
+        .runningFold(parsedInlines) { inlines, annotation ->
+            inlines.annotatedWith(annotation.key, annotation.value ?: return@runningFold inlines)
+        }
+        .ifEmpty { listOf(parsedInlines) }
+        .last()
+    appendStyled(annotatedInlines, DocumentTheme.current.styles.link.toSpanStyle())
 }
 
 @Composable
@@ -446,15 +507,6 @@ private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
         unparsedNode,
         DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
-
-private fun MappedText.Builder.appendStyled(mappedText: MappedText, style: SpanStyle) {
-    append(
-        MappedText(
-            text = AnnotatedString(mappedText.text.text, style),
-            textMapping = mappedText.textMapping
-        )
-    )
-}
 
 private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
     val parsedText = inlineNode.text(visualLength)

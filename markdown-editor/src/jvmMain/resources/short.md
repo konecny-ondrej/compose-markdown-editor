@@ -72,6 +72,14 @@ Combined emphasis with **asterisks and _underscores_**.
 
 Or leave it empty and use the [link text itself].
 
+Test link to [Header 3](#header-3)
+
+Link with [empty URL]().
+
+Test reference link to [Header 2][h2link]
+
+[h2link]: #header-2
+
 Autolink option will detect text links like https://www.google.com and turn them into Markdown links automatically.
 
 ---
@@ -99,15 +107,17 @@ print s
  * @since 1.0.0
  */
 @NonNull
-public static Parser createParser(){
+class ParserFactory {
+    public static Parser createParser() {
         return new Parser.Builder()
-        .extensions(Arrays.asList(
-        StrikethroughExtension.create(),
-        TablesExtension.create(),
-        TaskListExtension.create()
-        ))
-        .build();
-        }
+                .extensions(Arrays.asList(
+                        StrikethroughExtension.create(),
+                        TablesExtension.create(),
+                        TaskListExtension.create()
+                ))
+                .build();
+    }
+}
 ```
 
 ```xml

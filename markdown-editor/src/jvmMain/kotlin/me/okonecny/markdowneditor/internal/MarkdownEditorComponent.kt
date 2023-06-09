@@ -1,5 +1,8 @@
 package me.okonecny.markdowneditor.internal
 
+import com.vladsch.flexmark.ext.emoji.EmojiExtension
+import com.vladsch.flexmark.ext.emoji.EmojiImageType
+import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
 import com.vladsch.flexmark.ext.tables.TablesExtension
 import com.vladsch.flexmark.html.renderer.HeaderIdGenerator
@@ -46,10 +49,13 @@ internal abstract class MarkdownEditorComponent {
     protected fun flexmarkParser(): Parser {
         val builder = Parser.builder()
         builder.setAll(ParserEmulationProfile.GITHUB.profileOptions)
+        builder.set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.IMAGE_ONLY)
+        builder.set(EmojiExtension.USE_SHORTCUT_TYPE, EmojiShortcutType.GITHUB)
         builder.extensions(
             listOf(
                 TablesExtension.create(),
-                TaskListExtension.create()
+                TaskListExtension.create(),
+                EmojiExtension.create()
             )
         )
         return builder.build()

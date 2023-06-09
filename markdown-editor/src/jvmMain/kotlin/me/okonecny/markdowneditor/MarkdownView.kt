@@ -12,6 +12,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.*
+import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.tables.*
@@ -20,10 +21,7 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
-import me.okonecny.markdowneditor.inline.INTERNAL_LINK_TAG
-import me.okonecny.markdowneditor.inline.InternalAnchorLink
-import me.okonecny.markdowneditor.inline.appendImage
-import me.okonecny.markdowneditor.inline.rememberImageState
+import me.okonecny.markdowneditor.inline.*
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import java.nio.file.Path
@@ -427,18 +425,16 @@ private fun UiHeading(header: Heading) {
 // e.g after the link with no URL.
 @Composable
 private fun parseInlines(
-    inlines: Iterable<Node>,
-    baseOffset: Int = 0
+    inlines: Iterable<Node>
 ): MappedText {
     val styles = DocumentTheme.current.styles
     return buildMappedString {
-        val base = visualLength + baseOffset
         inlines.forEach { inline ->
             if (inline is AnchorRefTarget) {
                 LocalNavigation.current.registerAnchorTarget(inline.anchorRefId)
             }
             when (inline) {
-                is Text -> append(inline.text(visualStartOffset = base))
+                is Text -> append(inline.text(visualStartOffset = visualLength))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(System.lineSeparator())
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -449,7 +445,7 @@ private fun parseInlines(
                 is AutoLink -> appendStyled(
                     MappedText(
                         inline.text.toString(),
-                        SequenceTextMapping(TextRange(base, base + inline.textLength), inline.text)
+                        SequenceTextMapping(TextRange(visualLength, visualLength + inline.textLength), inline.text)
                     ), styles.link.toSpanStyle()
                 )
 
@@ -479,6 +475,16 @@ private fun parseInlines(
                     }
                 }
 
+                is Emoji -> appendEmoji(
+                    inline, MappedText(
+                        text = inline.chars.toString(),
+                        textMapping = SequenceTextMapping(
+                            coveredVisualRange = TextRange(visualLength, visualLength + inline.chars.length),
+                            sequence = inline.chars
+                        )
+                    )
+                )
+
                 else -> appendUnparsed(inline)
             }
         }
@@ -504,7 +510,7 @@ private fun annotateLinkByHandler(
 
 @Composable
 private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-    val linkText = parseInlines(linkRef.children, visualLength)
+    val linkText = parseInlines(linkRef.children)
     val reference = linkRef.reference.ifEmpty { linkRef.text }
     val url = LocalDocument.current.resolveReference(reference.toString())?.url
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
@@ -514,7 +520,7 @@ private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
 @Composable
 private fun MappedText.Builder.appendLink(link: Link) {
     val url = link.url.toString()
-    val linkText = parseInlines(link.children, visualLength)
+    val linkText = parseInlines(link.children)
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
     appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
 }
@@ -526,8 +532,9 @@ private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
         DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
 
+@Composable
 private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    val parsedText = inlineNode.text(visualLength)
+    val parsedText = parseInlines(inlineNode.children)
     appendStyled(parsedText, style)
 }
 

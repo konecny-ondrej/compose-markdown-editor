@@ -108,9 +108,22 @@ private fun InteractiveScope.moveCursorByCharsInComponent(
     charOffset: Int
 ): CursorPosition {
     val component = getComponent(cursorPosition.componentId)
-    val newOffset = (cursorPosition.visualOffset + charOffset)
-        .coerceAtMost(component.visualTextRange.end)
-        .coerceAtLeast(component.visualTextRange.start)
+    val originalPosition =
+        component.textLayoutResult?.getHorizontalPosition(cursorPosition.visualOffset, usePrimaryDirection = true)
+    var newOffset: Int
+    var retries = 1
+    do {
+        newOffset = (cursorPosition.visualOffset + (charOffset * retries))
+            .coerceAtMost(component.visualTextRange.end)
+            .coerceAtLeast(component.visualTextRange.start)
+        retries++
+    } while (originalPosition == component.textLayoutResult?.getHorizontalPosition(
+            newOffset,
+            usePrimaryDirection = true
+        ) && newOffset != component.visualTextRange.start && newOffset != component.visualTextRange.end
+    )
+
+
     return CursorPosition(component.id, newOffset)
 }
 

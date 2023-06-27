@@ -10,7 +10,8 @@ is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** int
 
 ## Emoji :100:
 
-- By name: :ok: :grin: :+1:
+- By name: :ok: :grin: :+1: :boy|type_1_2:
+- Unicode: 🇧🇭
 
 ---
 

@@ -107,6 +107,7 @@ private fun InteractiveScope.moveCursorByCharsInComponent(
     cursorPosition: CursorPosition,
     charOffset: Int
 ): CursorPosition {
+    require(charOffset == 1 || charOffset == -1) { "Direction of cursor movement can only ever be 1 or -1." }
     val component = getComponent(cursorPosition.componentId)
     val originalPosition =
         component.textLayoutResult?.getHorizontalPosition(cursorPosition.visualOffset, usePrimaryDirection = true)
@@ -117,10 +118,14 @@ private fun InteractiveScope.moveCursorByCharsInComponent(
             .coerceAtMost(component.visualTextRange.end)
             .coerceAtLeast(component.visualTextRange.start)
         retries++
-    } while (originalPosition == component.textLayoutResult?.getHorizontalPosition(
+        val newPosition = component.textLayoutResult?.getHorizontalPosition(
             newOffset,
             usePrimaryDirection = true
-        ) && newOffset != component.visualTextRange.start && newOffset != component.visualTextRange.end
+        )
+    } while (
+        originalPosition == newPosition
+        && newOffset != component.visualTextRange.start
+        && newOffset != component.visualTextRange.end
     )
 
 

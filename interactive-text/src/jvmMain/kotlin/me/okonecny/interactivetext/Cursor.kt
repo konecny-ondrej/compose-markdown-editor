@@ -11,9 +11,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import kotlin.math.floor
@@ -102,18 +99,13 @@ internal fun Modifier.cursorLine(
             val cursorWidth = floor(2.dp.toPx()).coerceAtLeast(1f) // TODO: style cursor width
             val cursorX = (cursorRect.left + cursorWidth / 2)
                 .coerceAtMost(size.width - cursorWidth / 2)
-            drawIntoCanvas {
-                it.drawLine(
-                    Offset(cursorX, cursorRect.top),
-                    Offset(cursorX, cursorRect.bottom),
-                    Paint().apply {
-                        SolidColor(Color.Black) // TODO: style cursor brush
-                            .applyTo(size, this, cursorAlphaValue)
-                        strokeWidth = cursorWidth
-                        isAntiAlias = false
-                    }
-                )
-            }
+            drawLine(
+                color = Color.Black.copy(alpha = cursorAlphaValue), // TODO: style cursor color
+                start = Offset(cursorX, cursorRect.top),
+                end = Offset(cursorX, cursorRect.bottom),
+                strokeWidth = cursorWidth
+
+            )
         }
     }
 }

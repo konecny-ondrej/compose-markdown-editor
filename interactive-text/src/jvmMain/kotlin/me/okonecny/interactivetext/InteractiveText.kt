@@ -5,8 +5,12 @@ import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 
 
@@ -25,7 +29,6 @@ fun InteractiveText(
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     var interactiveModifier: Modifier = Modifier
     val interactiveScope = LocalInteractiveScope.current
-    val finalText: AnnotatedString
 
     if (interactiveScope != null) {
         val interactiveId = interactiveScope.rememberInteractiveId()
@@ -37,7 +40,10 @@ fun InteractiveText(
                 textLayoutResult,
                 cursorPosition.visualOffset,
                 cursorPosition.componentId == interactiveId
-            ).onGloballyPositioned { layoutCoordinates ->
+            )
+            .paintSelection(selection, interactiveId, textLayoutResult, text, interactiveScope, selectionStyle)
+
+            .onGloballyPositioned { layoutCoordinates ->
                 interactiveScope.register(
                     InteractiveComponent(
                         id = interactiveId,
@@ -53,13 +59,10 @@ fun InteractiveText(
                 interactiveScope.unregister(interactiveId)
             }
         }
-        finalText = paintSelection(text, interactiveId, selection, selectionStyle, interactiveScope)
-    } else {
-        finalText = text
     }
 
     Text( // TODO: use BasicText?
-        text = finalText,
+        text = text,
         style = style,
         modifier = modifier.then(interactiveModifier).annotationClickDetector(
             textLayoutResult,
@@ -74,30 +77,39 @@ fun InteractiveText(
     )
 }
 
-@Composable
-private fun paintSelection(
-    text: AnnotatedString,
-    interactiveId: InteractiveId,
+private fun Modifier.paintSelection(
     selection: Selection,
-    selectionStyle: TextStyle,
-    interactiveScope: InteractiveScope
-): AnnotatedString {
-    if (selection.isEmpty) return text
-    if (!interactiveScope.isPlaced) return text
-    if (!interactiveScope.requireComponentLayout().isComponentBetween(
+    interactiveId: InteractiveId,
+    textLayoutResult: TextLayoutResult?,
+    text: AnnotatedString,
+    interactiveScope: InteractiveScope,
+    selectionStyle: TextStyle
+) = drawWithContent {
+    if (
+        textLayoutResult == null
+        || selection.isEmpty
+        || !interactiveScope.requireComponentLayout().isComponentBetween(
             interactiveId,
             selection.start.componentId,
             selection.end.componentId
         )
-    ) return text
-    return buildAnnotatedString {
-        append(text)
-        addStyle(
-            selectionStyle.toSpanStyle(),
-            if (selection.start.componentId == interactiveId) selection.start.visualOffset else 0,
-            if (selection.end.componentId == interactiveId) selection.end.visualOffset.coerceAtMost(text.length) else text.length
-        )
+    ) {
+        drawContent()
+        return@drawWithContent
     }
+    val selectionStart = if (selection.start.componentId == interactiveId) {
+        selection.start.visualOffset
+    } else {
+        0
+    }
+    val selectionEnd = if (selection.end.componentId == interactiveId) {
+        selection.end.visualOffset.coerceAtMost(text.length)
+    } else {
+        text.length
+    }
+    val selectionPath = textLayoutResult.getPathForRange(selectionStart, selectionEnd)
+    drawPath(selectionPath, selectionStyle.background)
+    drawContent()
 }
 
 @Composable

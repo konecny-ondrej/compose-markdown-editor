@@ -93,7 +93,12 @@ internal fun Modifier.cursorLine(
         drawWithContent {
             drawContent()
             val cursorAlphaValue = cursorAlpha.value.coerceIn(0f, 1f)
-            val cursorRect = textLayoutResult.getCursorRect(offset)
+            val cursorRect = try {
+                textLayoutResult.getCursorRect(offset)
+            } catch (e: NullPointerException) { // Workaround for the Paragraph bugging out sometimes.
+                return@drawWithContent
+            }
+
             val cursorWidth = floor(2.dp.toPx()).coerceAtLeast(1f) // TODO: style cursor width
             val cursorX = (cursorRect.left + cursorWidth / 2)
                 .coerceAtMost(size.width - cursorWidth / 2)

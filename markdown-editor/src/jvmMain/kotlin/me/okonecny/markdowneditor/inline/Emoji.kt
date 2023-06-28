@@ -1,14 +1,10 @@
 package me.okonecny.markdowneditor.inline
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.platform.Font
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
@@ -30,24 +26,30 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
         return
     }
 
-    val emojiImage = resolvedEmoji.unicodeChars
+    val emojiCodepoints = resolvedEmoji.unicodeChars
         .replace("U+", "")
-        .replace(" ", "-")
-    appendInlineContent(
-        textMapping = BoundedBlockTextMapping(
-            coveredSourceRange = TextRange(emojiNode.startOffset, emojiNode.endOffset),
-            visualTextRange = TextRange(visualLength, visualLength + 1)
-        ),
-        inlineElementId = "emoji$emojiImage"
-    ) {
-        InlineTextContent(
-            Placeholder(1.3.em, 1.3.em, PlaceholderVerticalAlign.Center)
-        ) {
-            Image(
-                painter = painterResource("/openmoji/${emojiImage}.svg"),
-                contentDescription = emojiShortcut.alt,
-                modifier = Modifier.fillMaxSize()
+        .split(" ")
+        .map { hexValue -> Integer.parseInt(hexValue, 16) }
+    val emojiString = StringBuilder()
+    for (codepoint in emojiCodepoints) emojiString.appendCodePoint(codepoint)
+
+    append(
+        MappedText(
+            text = buildAnnotatedString {
+                pushStyle(
+                    SpanStyle(
+                        fontFamily = FontFamily(
+                            Font("/NotoColorEmoji-Regular.ttf")
+                        )
+                    )
+                )
+                append(emojiString.toString())
+                pop()
+            },
+            textMapping = BoundedBlockTextMapping(
+                coveredSourceRange = TextRange(emojiNode.startOffset, emojiNode.endOffset),
+                visualTextRange = TextRange(visualLength, visualLength + 1)
             )
-        }
-    }
+        )
+    )
 }

@@ -522,7 +522,14 @@ private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
     val reference = linkRef.reference.ifEmpty { linkRef.text }
     val url = LocalDocument.current.resolveReference(reference.toString())?.url
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-    appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
+    appendStyled(
+        annotatedLinkText,
+        if (linkText == annotatedLinkText) {
+            DocumentTheme.current.styles.deadLink.toSpanStyle()
+        } else {
+            DocumentTheme.current.styles.link.toSpanStyle()
+        }
+    )
 }
 
 @Composable
@@ -530,7 +537,14 @@ private fun MappedText.Builder.appendLink(link: Link) {
     val url = link.url.toString()
     val linkText = parseInlines(link.children, visualStartOffset = visualLength)
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-    appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
+    appendStyled(
+        annotatedLinkText,
+        if (linkText == annotatedLinkText) {
+            DocumentTheme.current.styles.deadLink.toSpanStyle()
+        } else {
+            DocumentTheme.current.styles.link.toSpanStyle()
+        }
+    )
 }
 
 @Composable

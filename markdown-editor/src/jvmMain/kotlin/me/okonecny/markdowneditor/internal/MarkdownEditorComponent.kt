@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor.internal
 
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.EmojiExtension
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
@@ -55,7 +56,8 @@ internal abstract class MarkdownEditorComponent {
             listOf(
                 TablesExtension.create(),
                 TaskListExtension.create(),
-                EmojiExtension.create()
+                EmojiExtension.create(),
+                AutolinkExtension.create()
             )
         )
         return builder.build()

@@ -44,7 +44,7 @@ fun MarkdownView(
 ) {
     val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
     val parser = remember(markdown) { markdown.documentParser }
-    val document = remember(sourceText, parser) { parser.parse(sourceText, basePath) }
+    val document = remember(sourceText, parser, basePath) { parser.parse(sourceText, basePath) }
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,
@@ -436,6 +436,13 @@ private fun parseInlines(
             }
             when (inline) {
                 is Text -> append(inline.text(visualStartOffset = visualLength + visualStartOffset))
+                is TextBase -> append(
+                    parseInlines(
+                        inline.children,
+                        visualStartOffset = visualLength + visualStartOffset
+                    )
+                )
+
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(System.lineSeparator())
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -443,17 +450,27 @@ private fun parseInlines(
                 is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                 is HardLineBreak -> append(System.lineSeparator())
                 is Link -> appendLink(inline)
-                is AutoLink -> appendStyled(
-                    MappedText(
-                        inline.text.toString(),
+                is AutoLink -> {
+                    val url = inline.text.toString()
+                    val linkText = MappedText(
+                        url,
                         SequenceTextMapping(
                             TextRange(
                                 visualLength + visualStartOffset,
                                 visualLength + visualStartOffset + inline.textLength
                             ), inline.text
                         )
-                    ), styles.link.toSpanStyle()
-                )
+                    )
+                    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+                    appendStyled(
+                        annotatedLinkText,
+                        if (linkText == annotatedLinkText) {
+                            DocumentTheme.current.styles.deadLink.toSpanStyle()
+                        } else {
+                            DocumentTheme.current.styles.link.toSpanStyle()
+                        }
+                    )
+                }
 
                 is LinkRef -> appendLinkRef(inline)
                 is HtmlEntity -> appendStyled(inline, styles.inlineCode.toSpanStyle())

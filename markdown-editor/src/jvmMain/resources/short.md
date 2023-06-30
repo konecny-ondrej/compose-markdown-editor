@@ -12,6 +12,7 @@ is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** int
 
 - By name: :ok: :grin: :+1: :boy|type_1_2:
 - Unicode: 🇧🇭
+- Emoji within link [this 🇧🇭 :ok: cheatsheet][cheatsheet]
 
 ---
 

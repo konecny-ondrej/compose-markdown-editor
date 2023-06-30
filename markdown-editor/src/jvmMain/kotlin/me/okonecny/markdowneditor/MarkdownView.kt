@@ -421,11 +421,11 @@ private fun UiHeading(header: Heading) {
 
 // region inlines
 
-// TODO: fix text mapping when parseInlines() is called recursively happens eg. with links).
 // e.g after the link with no URL.
 @Composable
 private fun parseInlines(
-    inlines: Iterable<Node>
+    inlines: Iterable<Node>,
+    visualStartOffset: Int = 0
 ): MappedText {
     val styles = DocumentTheme.current.styles
     return buildMappedString {
@@ -434,7 +434,7 @@ private fun parseInlines(
                 LocalNavigation.current.registerAnchorTarget(inline.anchorRefId)
             }
             when (inline) {
-                is Text -> append(inline.text(visualStartOffset = visualLength))
+                is Text -> append(inline.text(visualStartOffset = visualLength + visualStartOffset))
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(System.lineSeparator())
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
@@ -445,7 +445,12 @@ private fun parseInlines(
                 is AutoLink -> appendStyled(
                     MappedText(
                         inline.text.toString(),
-                        SequenceTextMapping(TextRange(visualLength, visualLength + inline.textLength), inline.text)
+                        SequenceTextMapping(
+                            TextRange(
+                                visualLength + visualStartOffset,
+                                visualLength + visualStartOffset + inline.textLength
+                            ), inline.text
+                        )
                     ), styles.link.toSpanStyle()
                 )
 
@@ -479,7 +484,10 @@ private fun parseInlines(
                     inline, MappedText(
                         text = inline.chars.toString(),
                         textMapping = SequenceTextMapping(
-                            coveredVisualRange = TextRange(visualLength, visualLength + inline.chars.length),
+                            coveredVisualRange = TextRange(
+                                visualLength + visualStartOffset,
+                                visualLength + visualStartOffset + inline.chars.length
+                            ),
                             sequence = inline.chars
                         )
                     )
@@ -510,7 +518,7 @@ private fun annotateLinkByHandler(
 
 @Composable
 private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-    val linkText = parseInlines(linkRef.children)
+    val linkText = parseInlines(linkRef.children, visualStartOffset = visualLength)
     val reference = linkRef.reference.ifEmpty { linkRef.text }
     val url = LocalDocument.current.resolveReference(reference.toString())?.url
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
@@ -520,7 +528,7 @@ private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
 @Composable
 private fun MappedText.Builder.appendLink(link: Link) {
     val url = link.url.toString()
-    val linkText = parseInlines(link.children)
+    val linkText = parseInlines(link.children, visualStartOffset = visualLength)
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
     appendStyled(annotatedLinkText, DocumentTheme.current.styles.link.toSpanStyle())
 }
@@ -534,7 +542,7 @@ private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
 
 @Composable
 private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    val parsedText = parseInlines(inlineNode.children)
+    val parsedText = parseInlines(inlineNode.children, visualStartOffset = visualLength)
     appendStyled(parsedText, style)
 }
 

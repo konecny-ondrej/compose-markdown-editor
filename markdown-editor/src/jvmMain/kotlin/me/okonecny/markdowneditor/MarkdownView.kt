@@ -21,12 +21,13 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
-import me.okonecny.markdowneditor.inline.*
+import me.okonecny.markdowneditor.inline.InternalAnchorLink
+import me.okonecny.markdowneditor.inline.appendEmoji
+import me.okonecny.markdowneditor.inline.appendImage
+import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import java.nio.file.Path
-
-private val ACTIVE_TAGS = setOf(INTERNAL_LINK_TAG)
 
 /**
  * Renders a Markdown document nicely.
@@ -157,7 +158,7 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                                         .fillMaxHeight()
                                         .weight(1.0f)
                                         .then(cellStyle.modifier),
-                                    activeAnnotationTags = ACTIVE_TAGS,
+                                    activeAnnotationTags = LinkHandlers.current.keys,
                                     onAnnotationCLick = handleLinks()
                                 )
                             }
@@ -392,7 +393,7 @@ private fun UiParagraph(paragraph: Paragraph) {
         textMapping = inlines.textMapping,
         style = styles.paragraph,
         inlineContent = inlines.inlineContent,
-        activeAnnotationTags = ACTIVE_TAGS,
+        activeAnnotationTags = LinkHandlers.current.keys,
         onAnnotationCLick = handleLinks()
     )
 }
@@ -414,7 +415,7 @@ private fun UiHeading(header: Heading) {
             6 -> styles.h6
             else -> styles.h1
         },
-        activeAnnotationTags = ACTIVE_TAGS,
+        activeAnnotationTags = LinkHandlers.current.keys,
         onAnnotationCLick = handleLinks()
     )
 }

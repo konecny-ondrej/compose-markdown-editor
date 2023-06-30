@@ -1,7 +1,7 @@
 package me.okonecny.markdowneditor
 
 interface LinkHandler {
-    val linkAnnotationTag: String
+    val linkAnnotationTag: String get() = this::class.qualifiedName!!
 
     fun linkActivated(annotationValue: String)
 

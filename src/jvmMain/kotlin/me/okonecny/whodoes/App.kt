@@ -11,6 +11,7 @@ import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
+import me.okonecny.markdowneditor.inline.WebLink
 import kotlin.io.path.Path
 
 @Composable
@@ -41,6 +42,7 @@ fun App() {
                 showSource = true,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),
+                linkHandlers = listOf(WebLink()),
                 onChange = { newSource ->
                     markdownSource = newSource
                 }

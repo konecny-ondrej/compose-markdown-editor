@@ -48,7 +48,7 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
             },
             textMapping = BoundedBlockTextMapping(
                 coveredSourceRange = TextRange(emojiNode.startOffset, emojiNode.endOffset),
-                visualTextRange = TextRange(visualLength, visualLength + 1)
+                visualTextRange = TextRange(visualLength, visualLength + emojiString.length)
             )
         )
     )

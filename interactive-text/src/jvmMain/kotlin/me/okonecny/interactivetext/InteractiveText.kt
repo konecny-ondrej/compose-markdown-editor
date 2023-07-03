@@ -23,6 +23,7 @@ fun InteractiveText(
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
     textAlign: TextAlign? = null,
+    userData: UserData = UserData.empty,
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
 ) {
@@ -120,6 +121,7 @@ fun InteractiveText(
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     textAlign: TextAlign? = null,
+    userData: UserData = UserData.empty,
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
 ) = InteractiveText(
@@ -130,6 +132,7 @@ fun InteractiveText(
     modifier,
     mapOf(),
     textAlign,
+    userData,
     activeAnnotationTags,
     onAnnotationCLick
 )

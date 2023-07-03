@@ -422,7 +422,7 @@ private fun UiHeading(header: Heading) {
 
 // region inlines
 
-// e.g after the link with no URL.
+// e.g. after the link with no URL.
 @Composable
 private fun parseInlines(
     inlines: Iterable<Node>,

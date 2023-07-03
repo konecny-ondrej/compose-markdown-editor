@@ -6,6 +6,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.useResource
 import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
@@ -42,7 +43,7 @@ fun App() {
                 showSource = true,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),
-                linkHandlers = listOf(WebLink()),
+                linkHandlers = listOf(WebLink(LocalUriHandler.current)),
                 onChange = { newSource ->
                     markdownSource = newSource
                 }

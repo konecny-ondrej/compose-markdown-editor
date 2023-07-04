@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor.inline
 
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
@@ -25,27 +26,10 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
         append(fallback)
         return
     }
-
-    val emojiCodepoints = resolvedEmoji.unicodeChars
-        .replace("U+", "")
-        .split(" ")
-        .map { hexValue -> Integer.parseInt(hexValue, 16) }
-    val emojiString = StringBuilder()
-    for (codepoint in emojiCodepoints) emojiString.appendCodePoint(codepoint)
-
+    val emojiString = resolvedEmoji.unicodeString
     append(
         MappedText(
-            text = buildAnnotatedString {
-                pushStyle(
-                    SpanStyle(
-                        fontFamily = FontFamily(
-                            Font("/NotoColorEmoji-Regular.ttf")
-                        )
-                    )
-                )
-                append(emojiString.toString())
-                pop()
-            },
+            text = resolvedEmoji.annotatedString,
             textMapping = BoundedBlockTextMapping(
                 coveredSourceRange = TextRange(emojiNode.startOffset, emojiNode.endOffset),
                 visualTextRange = TextRange(visualLength, visualLength + emojiString.length)
@@ -53,3 +37,27 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
         )
     )
 }
+
+internal val EmojiReference.Emoji.unicodeString: String
+    get() = buildString {
+        unicodeChars
+            .replace("U+", "")
+            .split(" ")
+            .map { hexValue -> Integer.parseInt(hexValue, 16) }
+            .forEach { appendCodePoint(it) }
+    }
+
+internal val EmojiReference.Emoji.annotatedString: AnnotatedString
+    get() = buildAnnotatedString {
+        pushStyle(
+            SpanStyle(
+                fontFamily = FontFamily(
+                    Font("/NotoColorEmoji-Regular.ttf")
+                )
+            )
+        )
+        append(unicodeString)
+        pop()
+    }
+
+internal fun String.isMaybeEmojiStart() = matches("^:\\S+$".toRegex()) && last() != ':'

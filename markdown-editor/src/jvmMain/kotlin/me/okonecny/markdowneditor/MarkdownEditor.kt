@@ -17,10 +17,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
 import co.touchlab.kermit.Logger
+import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
+import me.okonecny.markdowneditor.inline.annotatedString
+import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import java.nio.file.Path
 import kotlin.math.abs
 
@@ -127,14 +129,29 @@ fun MarkdownEditor(
                     codeFenceRenderers,
                     linkHandlers
                 )
-                AutocompletePopup(visualCursor, interactiveScope) {
-                    Text(
-                        nodeUnderCursor.toString(),
-                        Modifier.shadow(5.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(Color.White)
-                            .padding(5.dp)
-                    )
+                val contextWord = sourceCursor?.let { sourceText.wordBefore(it) }
+
+                if (contextWord != null && contextWord.isMaybeEmojiStart()) { // TODO: generalize autocomplete?
+                    val emojiNamePrefix = contextWord.substring(1)
+                    AutocompletePopup(visualCursor, interactiveScope) {
+                        val emojiSuggestions = EmojiReference.getEmojiList()
+                            .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
+                            .take(5)
+                        Column(
+                            Modifier.shadow(5.dp)
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(Color.White)
+                                .padding(5.dp)
+                        ) {
+                            emojiSuggestions.forEach { emoji ->
+                                Row {
+                                    Text(emoji.annotatedString)
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(":${emoji.shortcut}:")
+                                }
+                            }
+                        }
+                    }
                 }
 
             }
@@ -149,22 +166,6 @@ fun MarkdownEditor(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AutocompletePopup(
-    visualCursor: CursorPosition,
-    interactiveScope: InteractiveScope,
-    content: @Composable () -> Unit
-) {
-    if (!visualCursor.isValid) return
-    if (!interactiveScope.isPlaced) return
-    Box(Modifier.absoluteOffset {
-        val coords = visualCursor.visualOffset(interactiveScope.requireComponentLayout())
-        coords.round()
-    }) {
-        content()
     }
 }
 

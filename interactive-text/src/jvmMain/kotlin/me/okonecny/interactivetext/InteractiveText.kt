@@ -51,7 +51,8 @@ fun InteractiveText(
                         layoutCoordinates = layoutCoordinates,
                         visualTextRange = TextRange(0, text.length),
                         textMapping = textMapping,
-                        textLayoutResult = textLayoutResult
+                        textLayoutResult = textLayoutResult,
+                        userData = userData
                     )
                 )
             }

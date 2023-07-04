@@ -11,6 +11,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import co.touchlab.kermit.Logger
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
 import java.nio.file.Path
 import kotlin.math.abs
@@ -32,11 +33,30 @@ fun MarkdownEditor(
     linkHandlers: List<LinkHandler> = emptyList(),
     onChange: (String) -> Unit
 ) {
+    val clipboardManager = LocalClipboardManager.current
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
     var sourceCursor by remember { mutableStateOf<Int?>(null) }
-    val clipboardManager = LocalClipboardManager.current
+    val componentUnderCursor: InteractiveComponent? by remember {
+        derivedStateOf {
+            if (!interactiveScope.isPlaced || !visualCursor.isValid) null else {
+                interactiveScope.getComponent(visualCursor.componentId)
+            }
+        }
+    }
+    val nodeUnderCursor: Node? by remember {
+        derivedStateOf {
+            val cursor = sourceCursor ?: return@derivedStateOf null
+            val component = componentUnderCursor ?: return@derivedStateOf null
+            if (!component.hasData<Node>()) return@derivedStateOf null
+            val componentNode = component[Node::class]
+            return@derivedStateOf componentNode.descendants.minByOrNull { child ->
+                val range = child.sourceRange
+                if (range.contains(cursor)) range.span else Int.MAX_VALUE
+            }
+        }
+    }
 
     InteractiveContainer(
         scope = interactiveScope,
@@ -45,8 +65,8 @@ fun MarkdownEditor(
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
-            val componentUnderCursor = interactiveScope.getComponent(newVisualCursor.componentId)
-            val newSourceCursor = componentUnderCursor.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
+            val component = componentUnderCursor ?: return@InteractiveContainer
+            val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
             sourceCursor = newSourceCursor?.start
         },
         onInput = { textInputCommand ->

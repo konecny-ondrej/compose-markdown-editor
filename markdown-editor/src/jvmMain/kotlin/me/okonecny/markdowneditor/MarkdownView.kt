@@ -159,7 +159,8 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                                         .weight(1.0f)
                                         .then(cellStyle.modifier),
                                     activeAnnotationTags = LinkHandlers.current.keys,
-                                    onAnnotationCLick = handleLinks()
+                                    onAnnotationCLick = handleLinks(),
+                                    userData = UserData.of(Node::class, cell)
                                 )
                             }
 
@@ -329,6 +330,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
                 textMapping = code.textMapping,
                 style = styles.codeBlock.textStyle,
                 modifier = styles.codeBlock.modifier,
+                userData = UserData.of(Node::class, codeFence)
             )
         } else {
             codeFenceRenderer.render(code, LocalDocument.current.basePath)
@@ -394,19 +396,20 @@ private fun UiParagraph(paragraph: Paragraph) {
         style = styles.paragraph,
         inlineContent = inlines.inlineContent,
         activeAnnotationTags = LinkHandlers.current.keys,
-        onAnnotationCLick = handleLinks()
+        onAnnotationCLick = handleLinks(),
+        userData = UserData.of(Node::class, paragraph)
     )
 }
 
 @Composable
-private fun UiHeading(header: Heading) {
-    val inlines = parseInlines(header.children)
+private fun UiHeading(heading: Heading) {
+    val inlines = parseInlines(heading.children)
     val styles = DocumentTheme.current.styles
     InteractiveText(
         text = inlines.text,
         textMapping = inlines.textMapping,
         inlineContent = inlines.inlineContent,
-        style = when (header.level) {
+        style = when (heading.level) {
             1 -> styles.h1
             2 -> styles.h2
             3 -> styles.h3
@@ -416,7 +419,8 @@ private fun UiHeading(header: Heading) {
             else -> styles.h1
         },
         activeAnnotationTags = LinkHandlers.current.keys,
-        onAnnotationCLick = handleLinks()
+        onAnnotationCLick = handleLinks(),
+        userData = UserData.of(Node::class, heading)
     )
 }
 

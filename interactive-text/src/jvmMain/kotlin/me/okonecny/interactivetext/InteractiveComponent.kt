@@ -72,6 +72,8 @@ data class UserData constructor(
 ) {
     companion object {
         val empty = UserData()
+
+        fun <T : Any> of(type: KClass<T>, value: T): UserData = empty.withData(type, value)
     }
 
     inline operator fun <reified T : Any> get(type: KClass<T>): T {

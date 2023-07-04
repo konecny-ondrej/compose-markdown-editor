@@ -31,14 +31,14 @@ data class CursorPosition(
     /**
      * Find the visual position of the cursor in the layout.
      */
-    internal fun visualOffset(layout: InteractiveComponentLayout): Offset {
+    fun visualOffset(layout: InteractiveComponentLayout): Offset {
         val component = layout.getComponent(componentId)
         val componentTextLayout = component.textLayoutResult
         if (!component.hasText || componentTextLayout == null) {
             return layout.containerCoordinates.localCenterPointOf(component)
         }
         val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
-        return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
+        return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomCenter)
     }
 
     internal fun isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {

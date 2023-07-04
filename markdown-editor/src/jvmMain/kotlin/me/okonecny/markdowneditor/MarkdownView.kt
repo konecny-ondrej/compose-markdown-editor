@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.style.TextAlign
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
@@ -153,7 +154,12 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                                     text = inlines.text,
                                     textMapping = inlines.textMapping,
                                     inlineContent = inlines.inlineContent,
-                                    style = cellStyle.textStyle,
+                                    style = cellStyle.textStyle.copy(textAlign = when(cell.alignment) {
+                                        TableCell.Alignment.LEFT -> TextAlign.Left
+                                        TableCell.Alignment.CENTER -> TextAlign.Center
+                                        TableCell.Alignment.RIGHT -> TextAlign.Right
+                                        else -> TextAlign.Start
+                                    }),
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .weight(1.0f)

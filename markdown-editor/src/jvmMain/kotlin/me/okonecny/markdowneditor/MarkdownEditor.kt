@@ -1,15 +1,23 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
@@ -109,15 +117,27 @@ fun MarkdownEditor(
         }
     ) {
         WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
-            MarkdownView(
-                sourceText,
-                basePath,
-                contentModifier,
-                documentTheme,
-                scrollable,
-                codeFenceRenderers,
-                linkHandlers
-            )
+            Box(contentModifier) {
+                MarkdownView(
+                    sourceText,
+                    basePath,
+                    Modifier.fillMaxSize(1f),
+                    documentTheme,
+                    scrollable,
+                    codeFenceRenderers,
+                    linkHandlers
+                )
+                AutocompletePopup(visualCursor, interactiveScope) {
+                    Text(
+                        nodeUnderCursor.toString(),
+                        Modifier.shadow(5.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(Color.White)
+                            .padding(5.dp)
+                    )
+                }
+
+            }
         }
         LaunchedEffect(sourceText) {
             if (interactiveScope.isPlaced) {
@@ -129,6 +149,22 @@ fun MarkdownEditor(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AutocompletePopup(
+    visualCursor: CursorPosition,
+    interactiveScope: InteractiveScope,
+    content: @Composable () -> Unit
+) {
+    if (!visualCursor.isValid) return
+    if (!interactiveScope.isPlaced) return
+    Box(Modifier.absoluteOffset {
+        val coords = visualCursor.visualOffset(interactiveScope.requireComponentLayout())
+        coords.round()
+    }) {
+        content()
     }
 }
 

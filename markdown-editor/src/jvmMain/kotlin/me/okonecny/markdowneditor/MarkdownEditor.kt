@@ -108,29 +108,16 @@ fun MarkdownEditor(
             }
         }
     ) {
-        if (showSource) {
-            Row(modifier) {
-                MarkdownView(
-                    sourceText,
-                    basePath,
-                    modifier = Modifier.weight(0.5f),
-                    documentTheme,
-                    scrollable,
-                    codeFenceRenderers,
-                    linkHandlers
-                )
-                val debuggingCursor = sourceCursor ?: 0
-                BasicTextField(
-                    value = TextFieldValue(
-                        text = sourceText,
-                        selection = TextRange(debuggingCursor, debuggingCursor + 1)
-                    ),
-                    onValueChange = {},
-                    modifier = Modifier.weight(0.5f)
-                )
-            }
-        } else {
-            MarkdownView(sourceText, basePath, modifier, documentTheme, scrollable, codeFenceRenderers)
+        WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
+            MarkdownView(
+                sourceText,
+                basePath,
+                contentModifier,
+                documentTheme,
+                scrollable,
+                codeFenceRenderers,
+                linkHandlers
+            )
         }
         LaunchedEffect(sourceText) {
             if (interactiveScope.isPlaced) {
@@ -142,6 +129,32 @@ fun MarkdownEditor(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WithOptionalSourceView(
+    showSource: Boolean,
+    sourceText: String,
+    sourceCursor: Int?,
+    modifier: Modifier,
+    content: @Composable (Modifier) -> Unit
+) {
+    if (showSource) {
+        Row(modifier) {
+            content(Modifier.weight(0.5f))
+            val debuggingCursor = sourceCursor ?: 0
+            BasicTextField(
+                value = TextFieldValue(
+                    text = sourceText,
+                    selection = TextRange(debuggingCursor, debuggingCursor + 1)
+                ),
+                onValueChange = {},
+                modifier = Modifier.weight(0.5f)
+            )
+        }
+    } else {
+        content(modifier)
     }
 }
 

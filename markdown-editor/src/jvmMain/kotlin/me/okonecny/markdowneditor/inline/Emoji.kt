@@ -60,4 +60,4 @@ internal val EmojiReference.Emoji.annotatedString: AnnotatedString
         pop()
     }
 
-internal fun String.isMaybeEmojiStart() = matches("^:\\S+$".toRegex()) && last() != ':'
+internal fun String.isMaybeEmojiStart() = matches("^:[^:]+$".toRegex())

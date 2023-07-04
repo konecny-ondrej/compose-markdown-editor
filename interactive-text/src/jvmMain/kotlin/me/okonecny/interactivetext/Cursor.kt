@@ -38,7 +38,7 @@ data class CursorPosition(
             return layout.containerCoordinates.localCenterPointOf(component)
         }
         val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
-        return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomCenter)
+        return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
     }
 
     internal fun isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {

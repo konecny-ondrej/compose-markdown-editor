@@ -1,15 +1,10 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -66,6 +61,21 @@ fun MarkdownEditor(
                 val range = child.sourceRange
                 if (range.contains(cursor)) range.span else Int.MAX_VALUE
             }
+        }
+    }
+    val contextWord: String = remember(sourceCursor) {
+        sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
+    }
+    val autocompleteState = remember(contextWord) {
+        if (contextWord.isMaybeEmojiStart()) { // TODO: generalize autocomplete?
+            val emojiNamePrefix = contextWord.substring(1)
+            val emojiSuggestions = EmojiReference.getEmojiList()
+                .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
+                .filter { it.unicodeString.isNotEmpty() }
+                .take(5)
+            AutocompleteState(emojiSuggestions)
+        } else {
+            AutocompleteState.empty()
         }
     }
 
@@ -130,44 +140,28 @@ fun MarkdownEditor(
                     codeFenceRenderers,
                     linkHandlers
                 )
-                val contextWord = sourceCursor?.let { sourceText.wordBefore(it) }
 
-                if (contextWord != null && contextWord.isMaybeEmojiStart()) { // TODO: generalize autocomplete?
-                    val emojiNamePrefix = contextWord.substring(1)
-                    val emojiSuggestions = EmojiReference.getEmojiList()
-                        .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
-                        .filter { it.unicodeString.isNotEmpty() }
-                        .take(5)
-                    if (emojiSuggestions.isNotEmpty()) {
-                        AutocompletePopup(visualCursor, interactiveScope) {
-                            Column(
-                                Modifier.shadow(5.dp)
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color.White)
-                                    .padding(5.dp)
-                            ) {
-                                emojiSuggestions.forEach { emoji ->
-                                    Row {
-                                        Text(emoji.annotatedString)
-                                        Spacer(Modifier.width(3.dp))
-                                        Text(":${emoji.shortcut}:")
-                                    }
-                                }
-                            }
-                        }
-                    }
+                AutocompletePopup(
+                    visualCursor,
+                    interactiveScope,
+                    autocompleteState
+                ) { emoji ->
+                    Text(emoji.annotatedString)
+                    Spacer(Modifier.width(3.dp))
+                    Text(":${emoji.shortcut}:")
                 }
 
             }
+
         }
-        LaunchedEffect(sourceText) {
-            if (interactiveScope.isPlaced) {
-                sourceCursorRequest?.apply {
-                    invoke()
-                    sourceCursorRequest = null
-                    visualCursor =
-                        computeVisualCursor(sourceCursor ?: return@apply, interactiveScope.requireComponentLayout())
-                }
+    }
+    LaunchedEffect(sourceText) {
+        if (interactiveScope.isPlaced) {
+            sourceCursorRequest?.apply {
+                invoke()
+                sourceCursorRequest = null
+                visualCursor =
+                    computeVisualCursor(sourceCursor ?: return@apply, interactiveScope.requireComponentLayout())
             }
         }
     }

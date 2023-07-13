@@ -5,14 +5,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
@@ -66,23 +63,28 @@ fun MarkdownEditor(
     val contextWord: String = remember(sourceCursor) {
         sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
     }
-    val autocompleteState = remember(contextWord) {
-        if (contextWord.isMaybeEmojiStart()) { // TODO: generalize autocomplete?
+    val emojiSuggestions by remember(contextWord) {
+        derivedStateOf {
+            if (!contextWord.isMaybeEmojiStart()) return@derivedStateOf emptyList()
             val emojiNamePrefix = contextWord.substring(1)
-            val emojiSuggestions = EmojiReference.getEmojiList()
+            if (emojiNamePrefix.isEmpty()) return@derivedStateOf emptyList()
+            EmojiReference.getEmojiList()
                 .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
                 .filter { it.unicodeString.isNotEmpty() }
                 .take(5)
-            AutocompleteState(emojiSuggestions)
-        } else {
-            AutocompleteState.empty()
         }
+    }
+
+    var autocompleteState by remember(emojiSuggestions) {
+        mutableStateOf(AutocompleteState(emojiSuggestions) { emoji -> ":" + emoji.shortcut + ":" })
     }
 
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
-        modifier = Modifier.onKeyEvent { keyEvent: KeyEvent -> Logger.d(keyEvent.toString()); false },
+        modifier = Modifier.autocompleteNavigation(autocompleteState) { newState ->
+            autocompleteState = newState
+        },
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
@@ -116,7 +118,14 @@ fun MarkdownEditor(
                     }
                 }
 
-                NewLine -> sourceEditor.typeNewLine()
+                NewLine -> {
+                    if (autocompleteState.isEmpty()) {
+                        sourceEditor.typeNewLine()
+                    } else {
+                        sourceEditor.type(autocompleteState.remainingText(contextWord))
+                    }
+                }
+
                 is Type -> sourceEditor.type(textInputCommand.text)
                 is ReplaceRange -> sourceEditor.replaceRange(textInputCommand.sourceRange, textInputCommand.newSource)
             }

@@ -23,6 +23,7 @@ import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.inline.annotatedString
 import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
+import me.okonecny.markdowneditor.inline.unicodeString
 import java.nio.file.Path
 import kotlin.math.abs
 
@@ -133,21 +134,24 @@ fun MarkdownEditor(
 
                 if (contextWord != null && contextWord.isMaybeEmojiStart()) { // TODO: generalize autocomplete?
                     val emojiNamePrefix = contextWord.substring(1)
-                    AutocompletePopup(visualCursor, interactiveScope) {
-                        val emojiSuggestions = EmojiReference.getEmojiList()
-                            .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
-                            .take(5)
-                        Column(
-                            Modifier.shadow(5.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(Color.White)
-                                .padding(5.dp)
-                        ) {
-                            emojiSuggestions.forEach { emoji ->
-                                Row {
-                                    Text(emoji.annotatedString)
-                                    Spacer(Modifier.width(3.dp))
-                                    Text(":${emoji.shortcut}:")
+                    val emojiSuggestions = EmojiReference.getEmojiList()
+                        .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
+                        .filter { it.unicodeString.isNotEmpty() }
+                        .take(5)
+                    if (emojiSuggestions.isNotEmpty()) {
+                        AutocompletePopup(visualCursor, interactiveScope) {
+                            Column(
+                                Modifier.shadow(5.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(Color.White)
+                                    .padding(5.dp)
+                            ) {
+                                emojiSuggestions.forEach { emoji ->
+                                    Row {
+                                        Text(emoji.annotatedString)
+                                        Spacer(Modifier.width(3.dp))
+                                        Text(":${emoji.shortcut}:")
+                                    }
                                 }
                             }
                         }

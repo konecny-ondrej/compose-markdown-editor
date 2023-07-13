@@ -22,7 +22,7 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
         "/openmoji"
     )
     val resolvedEmoji: EmojiReference.Emoji? = emojiShortcut.emoji
-    if (resolvedEmoji == null) {
+    if (resolvedEmoji == null || resolvedEmoji.unicodeString.isEmpty()) {
         append(fallback)
         return
     }
@@ -41,10 +41,10 @@ internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTe
 internal val EmojiReference.Emoji.unicodeString: String
     get() = buildString {
         unicodeChars
-            .replace("U+", "")
-            .split(" ")
-            .map { hexValue -> Integer.parseInt(hexValue, 16) }
-            .forEach { appendCodePoint(it) }
+            ?.replace("U+", "")
+            ?.split(" ")
+            ?.map { hexValue -> Integer.parseInt(hexValue, 16) }
+            ?.forEach { appendCodePoint(it) }
     }
 
 internal val EmojiReference.Emoji.annotatedString: AnnotatedString

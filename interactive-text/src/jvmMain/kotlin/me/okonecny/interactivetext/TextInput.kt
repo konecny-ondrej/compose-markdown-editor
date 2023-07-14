@@ -15,7 +15,7 @@ internal fun Modifier.textInput(
     enabled: Boolean,
     onInput: (TextInputCommand) -> Unit
 ): Modifier = composed {
-    var textInputSession by remember { mutableStateOf<TextInputSession?>(null) }
+    var textInputSession by remember(onInput) { mutableStateOf<TextInputSession?>(null) }
     val textInputService = LocalTextInputService.current
 
     if (textInputSession == null && textInputService != null && enabled) {
@@ -35,11 +35,15 @@ internal fun Modifier.textInput(
             onImeActionPerformed = { _ -> }
         )
     }
-    val session = textInputSession
-    if (session != null && !enabled && textInputService != null) {
-        Logger.d("Stop text input.")
-        textInputService.stopInput(session)
-        textInputSession = null
+    DisposableEffect(Unit) {
+        onDispose {
+            val session = textInputSession
+            if (session != null && enabled && textInputService != null) {
+                Logger.d("Stop text input.")
+                textInputService.stopInput(session)
+                textInputSession = null
+            }
+        }
     }
 
     return@composed onKeyEvent { keyEvent: KeyEvent ->

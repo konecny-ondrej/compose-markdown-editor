@@ -3,7 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 
-internal data class SourceEditor(
+data class SourceEditor(
     val sourceText: String, val sourceCursor: Int, private val sourceSelection: TextRange
 ) {
 

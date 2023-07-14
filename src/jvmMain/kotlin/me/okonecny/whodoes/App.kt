@@ -11,6 +11,7 @@ import androidx.compose.ui.res.useResource
 import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
+import me.okonecny.markdowneditor.UndoManager
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
 import kotlin.io.path.Path
@@ -25,6 +26,7 @@ fun App() {
     var markdownSource by mutableStateOf(useResource(filename) { md ->
         md.bufferedReader().readText()
     })
+    var undoManager = remember { UndoManager() }
     val interactiveScope = rememberInteractiveScope()
 
     MaterialTheme {
@@ -40,12 +42,14 @@ fun App() {
                 sourceText = markdownSource,
                 basePath = Path("markdown-editor/src/jvmMain/resources"),
                 interactiveScope = interactiveScope,
+                undoManager = undoManager,
                 showSource = true,
                 documentTheme = documentTheme,
                 codeFenceRenderers = listOf(ExampleRenderer()),
                 linkHandlers = listOf(WebLink(LocalUriHandler.current)),
-                onChange = { newSource ->
+                onChange = { newSource, newUndoManager ->
                     markdownSource = newSource
+                    undoManager = newUndoManager
                 }
             )
         }

@@ -1,10 +1,7 @@
 package me.okonecny.interactivetext
 
 import androidx.compose.foundation.text.isTypedEvent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -84,6 +81,15 @@ internal fun Modifier.textInput(
 
                 @OptIn(ExperimentalComposeUiApi::class)
                 Key.V -> if (keyEvent.isCtrlPressed) onInput(Paste)
+
+                @OptIn(ExperimentalComposeUiApi::class)
+                Key.Z -> if (keyEvent.isCtrlPressed) {
+                    if (keyEvent.isShiftPressed) {
+                        onInput(Redo)
+                    } else {
+                        onInput(Undo)
+                    }
+                }
             }
         }
         return@onKeyEvent false
@@ -127,4 +133,12 @@ object Copy : TextInputCommand {
 
 object Paste : TextInputCommand {
     override val needsValidCursor: Boolean = true
+}
+
+object Undo : TextInputCommand {
+    override val needsValidCursor: Boolean = false
+}
+
+object Redo : TextInputCommand {
+    override val needsValidCursor: Boolean = false
 }

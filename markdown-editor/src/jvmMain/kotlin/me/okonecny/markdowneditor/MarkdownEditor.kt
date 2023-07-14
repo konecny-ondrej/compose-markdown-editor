@@ -28,13 +28,14 @@ fun MarkdownEditor(
     sourceText: String,
     basePath: Path,
     interactiveScope: InteractiveScope,
+    undoManager: UndoManager = remember { UndoManager() },
     modifier: Modifier = Modifier,
     showSource: Boolean = false,
     documentTheme: DocumentTheme = DocumentTheme.default,
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     linkHandlers: List<LinkHandler> = emptyList(),
-    onChange: (String) -> Unit
+    onChange: (String, UndoManager) -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
@@ -91,6 +92,7 @@ fun MarkdownEditor(
             val sourceSelection = computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
             val sourceEditor = SourceEditor(sourceText, sourceCursor ?: return@InteractiveContainer, sourceSelection)
 
+            var editedUndoManager = undoManager
             val editedSourceEditor = when (textInputCommand) {
                 Copy -> {
                     clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
@@ -122,13 +124,26 @@ fun MarkdownEditor(
 
                 is Type -> sourceEditor.type(textInputCommand.text)
                 is ReplaceRange -> sourceEditor.replaceRange(textInputCommand.sourceRange, textInputCommand.newSource)
+                is Undo -> if (undoManager.hasHistory) {
+                    editedUndoManager = undoManager.undo()
+                    editedUndoManager.currentHistory
+                } else sourceEditor
+
+                is Redo -> if (undoManager.hasHistory) {
+                    editedUndoManager = undoManager.redo()
+                    editedUndoManager.currentHistory
+                } else sourceEditor
             }
+
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
+                if (undoManager == editedUndoManager) { // TODO: maybe don't add every letter types, but bigger chunks.
+                    editedUndoManager = undoManager.add(editedSourceEditor)
+                }
                 visualSelection = Selection.empty
                 sourceCursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor
                 }
-                onChange(editedSourceEditor.sourceText)
+                onChange(editedSourceEditor.sourceText, editedUndoManager)
             }
         }
     ) {

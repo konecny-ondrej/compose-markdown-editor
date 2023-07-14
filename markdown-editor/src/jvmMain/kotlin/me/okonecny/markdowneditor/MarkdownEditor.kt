@@ -40,18 +40,12 @@ fun MarkdownEditor(
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
-    var sourceCursor by remember { mutableStateOf<Int?>(null) }
-    val componentUnderCursor: InteractiveComponent? by remember {
-        derivedStateOf {
-            if (!interactiveScope.isPlaced || !visualCursor.isValid) null else {
-                interactiveScope.getComponent(visualCursor.componentId)
-            }
-        }
-    }
+    var sourceCursor by remember(interactiveScope) { mutableStateOf<Int?>(null) }
+
     val nodeUnderCursor: Node? by remember {
         derivedStateOf {
             val cursor = sourceCursor ?: return@derivedStateOf null
-            val component = componentUnderCursor ?: return@derivedStateOf null
+            val component = interactiveScope.componentUnderCursor ?: return@derivedStateOf null
             if (!component.hasData<Node>()) return@derivedStateOf null
             val componentNode = component[Node::class]
             return@derivedStateOf componentNode.descendants.minByOrNull { child ->
@@ -88,7 +82,7 @@ fun MarkdownEditor(
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
-            val component = componentUnderCursor ?: return@InteractiveContainer
+            val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
             val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
             sourceCursor = newSourceCursor?.start
         },

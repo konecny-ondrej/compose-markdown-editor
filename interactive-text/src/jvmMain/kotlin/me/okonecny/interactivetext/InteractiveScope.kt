@@ -19,6 +19,12 @@ class InteractiveScope(
     private var componentLayout: InteractiveComponentLayout? = null
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
 
+    val componentUnderCursor: InteractiveComponent?
+        get() = if (!isPlaced || !cursorPosition.value.isValid) null else {
+            getComponent(cursorPosition.value.componentId)
+        }
+
+
     /**
      * Generates ID for interactive components.
      * Automatically remembered so consumers always receive the same ID.

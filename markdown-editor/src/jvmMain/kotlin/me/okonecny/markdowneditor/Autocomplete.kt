@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ internal fun <T> AutocompletePopup(
     visualCursor: CursorPosition,
     interactiveScope: InteractiveScope,
     state: AutocompleteState<T>,
+    onClick: (clickedItem: Int) -> Unit = {},
     renderItem: @Composable RowScope.(T) -> Unit
 ) {
     if (!visualCursor.isValid) return
@@ -39,7 +41,10 @@ internal fun <T> AutocompletePopup(
             state.itemData.forEachIndexed { index, item ->
                 val selectedModifier =
                     if (index != state.selectedItem) Modifier else Modifier.background(Color.Cyan) // TODO: style
-                Row(selectedModifier.fillMaxWidth(1f)) {
+                Row(selectedModifier
+                    .fillMaxWidth(1f)
+                    .clickable { onClick(index) }
+                ) {
                     this.renderItem(item)
                 }
             }

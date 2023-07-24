@@ -159,10 +159,16 @@ fun MarkdownEditor(
                     linkHandlers
                 )
 
+                val handleInput = LocalInteractiveInputHandler.current
                 AutocompletePopup(
                     visualCursor,
                     interactiveScope,
-                    autocompleteState
+                    autocompleteState,
+                    onClick = { clickedItem ->
+                        autocompleteState = autocompleteState.copy(selectedItem = clickedItem)
+                        handleInput(Type(autocompleteState.remainingText(contextWord)))
+                        interactiveScope.focusRequester.requestFocus()
+                    }
                 ) { emoji ->
                     Text(emoji.annotatedString)
                     Spacer(Modifier.width(3.dp))

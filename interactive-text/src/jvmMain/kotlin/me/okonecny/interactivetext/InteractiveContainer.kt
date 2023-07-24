@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -40,7 +39,7 @@ fun InteractiveContainer(
         val interactiveModifier = if (scope == null) {
             Modifier
         } else {
-            val requester = remember { FocusRequester() }
+            val requester = scope.focusRequester
             var isFocused by remember { mutableStateOf(false) }
             var shouldResetSelection = true
             var selection by scope.selection

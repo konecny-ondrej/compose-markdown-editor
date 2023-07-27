@@ -234,17 +234,21 @@ private fun computeSourceSelection(
 private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentLayout): CursorPosition {
     val componentAtCursor = layout.componentAtSource(sourceCursor)
     val cursorVisualRange = componentAtCursor.textMapping.toVisual(TextRange(sourceCursor))
-    if (cursorVisualRange != null) return CursorPosition(componentAtCursor.id, cursorVisualRange.start)
+    if (cursorVisualRange != null && cursorVisualRange.collapsed) return CursorPosition(
+        componentAtCursor.id,
+        cursorVisualRange.start
+    )
 
     // Decide if start or end is closer to the source cursor pos.
     val componentSourceRange = componentAtCursor.textMapping.coveredSourceRange
     val visualOffset = if (componentSourceRange == null) {
         componentAtCursor.visualTextRange.start
     } else {
+        val visualRange = cursorVisualRange ?: componentAtCursor.visualTextRange
         if (abs(componentSourceRange.start - sourceCursor) <= abs(componentSourceRange.end - sourceCursor)) {
-            componentAtCursor.visualTextRange.start
+            visualRange.start
         } else {
-            componentAtCursor.visualTextRange.end
+            visualRange.end
         }
     }
     return CursorPosition(componentAtCursor.id, visualOffset)

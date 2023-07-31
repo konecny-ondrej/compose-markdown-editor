@@ -14,7 +14,7 @@ data class UndoManager(
     } else {
         val undoneStack = stack.slice(0..currentHistoryIndex)
         val trimmedStack = if (undoneStack.size >= maxCapacity) {
-            stack.slice((undoneStack.lastIndex - maxCapacity)..undoneStack.lastIndex)
+            stack.slice((undoneStack.size - maxCapacity)..undoneStack.lastIndex)
         } else {
             undoneStack
         }

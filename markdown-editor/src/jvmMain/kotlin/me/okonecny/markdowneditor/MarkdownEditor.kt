@@ -70,16 +70,9 @@ fun MarkdownEditor(
         }
     }
 
-    var autocompleteState by remember(emojiSuggestions) {
-        mutableStateOf(AutocompleteState(emojiSuggestions) { emoji -> ":" + emoji.shortcut + ":" })
-    }
-
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
-        modifier = Modifier.autocompleteNavigation(autocompleteState) { newState ->
-            autocompleteState = newState
-        },
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
@@ -114,14 +107,7 @@ fun MarkdownEditor(
                     }
                 }
 
-                NewLine -> {
-                    if (autocompleteState.isEmpty()) {
-                        sourceEditor.typeNewLine()
-                    } else {
-                        sourceEditor.type(autocompleteState.remainingText(contextWord))
-                    }
-                }
-
+                NewLine -> sourceEditor.typeNewLine()
                 is Type -> sourceEditor.type(textInputCommand.text)
                 is ReplaceRange -> sourceEditor.replaceRange(textInputCommand.sourceRange, textInputCommand.newSource)
                 is Undo -> if (undoManager.hasHistory) {
@@ -163,10 +149,10 @@ fun MarkdownEditor(
                 AutocompletePopup(
                     visualCursor,
                     interactiveScope,
-                    autocompleteState,
+                    emojiSuggestions,
                     onClick = { clickedItem ->
-                        autocompleteState = autocompleteState.copy(selectedItem = clickedItem)
-                        handleInput(Type(autocompleteState.remainingText(contextWord)))
+                        val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
+                        handleInput(Type(emojiTag.remainingText(contextWord)))
                         interactiveScope.focusRequester.requestFocus()
                     }
                 ) { emoji ->

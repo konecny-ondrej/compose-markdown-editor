@@ -1,97 +1,61 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.DropdownMenuState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.interactivetext.InteractiveScope
+import me.okonecny.interactivetext.LocalInteractiveInputHandler
+import me.okonecny.interactivetext.textInput
 
 @Composable
 internal fun <T> AutocompletePopup(
     visualCursor: CursorPosition,
     interactiveScope: InteractiveScope,
-    state: AutocompleteState<T>,
+    suggestions: List<T>,
     onClick: (clickedItem: Int) -> Unit = {},
     renderItem: @Composable RowScope.(T) -> Unit
 ) {
     if (!visualCursor.isValid) return
     if (!interactiveScope.isPlaced) return
-    if (state.isEmpty()) return
-    Box(Modifier.absoluteOffset {
-        val coords = visualCursor.visualOffset(interactiveScope.requireComponentLayout())
-        coords.round()
-    }) {
-        Column(
-            Modifier.shadow(5.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(Color.White)
-                .padding(5.dp)
-                .width(IntrinsicSize.Max)
-        ) {
-            state.itemData.forEachIndexed { index, item ->
-                val selectedModifier =
-                    if (index != state.selectedItem) Modifier else Modifier.background(Color.Cyan) // TODO: style
-                Row(selectedModifier
-                    .fillMaxWidth(1f)
-                    .clickable { onClick(index) }
-                ) {
-                    this.renderItem(item)
-                }
+    if (suggestions.isEmpty()) return
+
+    val menuPosition = visualCursor.visualRect(interactiveScope.requireComponentLayout()).bottomCenter
+    val menuState = remember {
+        DropdownMenuState(DropdownMenuState.Status.Open(menuPosition))
+    }
+
+    val focusRequester = remember { FocusRequester() }
+    DropdownMenu(
+        state = menuState,
+        focusable = true,
+        modifier = Modifier
+            .focusRequester(focusRequester)
+            .textInput(true, LocalInteractiveInputHandler.current)
+    ) {
+        suggestions.forEachIndexed { index, item ->
+            DropdownMenuItem(
+                onClick = { onClick(index) }
+            ) {
+                this.renderItem(item)
             }
         }
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
     }
 }
 
-internal data class AutocompleteState<T>(
-    val itemData: List<T>,
-    val selectedItem: Int = 0,
-    private val mapToSource: (T) -> String
-) {
-    fun isEmpty(): Boolean = itemData.isEmpty()
-
-    fun remainingText(prefix: String): String {
-        if (itemData.isEmpty()) return ""
-        if (selectedItem !in 0..itemData.lastIndex) return ""
-        val source = mapToSource(itemData[selectedItem])
-        if (source.startsWith(prefix)) return source.substring(prefix.length)
-        return source
-    }
-
-    companion object {
-        fun <T> empty() = AutocompleteState<T>(emptyList()) { "" }
-    }
-}
-
-internal fun <T> Modifier.autocompleteNavigation(
-    state: AutocompleteState<T>,
-    onChange: (newState: AutocompleteState<T>) -> Unit
-) = if (state.isEmpty()) this else onKeyEvent { keyEvent: KeyEvent ->
-    if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-    when (keyEvent.key) {
-        @OptIn(ExperimentalComposeUiApi::class)
-        Key.DirectionDown -> {
-            onChange(state.copy(selectedItem = (state.selectedItem + 1).coerceAtMost(state.itemData.lastIndex)))
-            true
-        }
-
-        @OptIn(ExperimentalComposeUiApi::class)
-        Key.DirectionUp -> {
-            onChange(state.copy(selectedItem = (state.selectedItem - 1).coerceAtLeast(0)))
-            true
-        }
-
-        else -> false
-    }
+fun String.remainingText(prefix: String): String {
+    if (startsWith(prefix)) return substring(prefix.length)
+    return this
 }
 
 fun String.wordBefore(pos: Int): String {

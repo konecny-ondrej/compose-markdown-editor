@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -40,15 +39,11 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = scope.focusRequester
-            var isFocused by remember { mutableStateOf(false) }
             var shouldResetSelection = true
             var selection by scope.selection
             val cursorPosition by scope.cursorPosition
             Modifier
                 .focusRequester(requester)
-                .onFocusChanged { focusState ->
-                    isFocused = focusState.hasFocus
-                }
                 .focusable()
                 .onGloballyPositioned { layoutCoordinates ->
                     scope.place(layoutCoordinates)
@@ -87,7 +82,7 @@ fun InteractiveContainer(
                     }
                     false
                 }
-                .textInput(enabled = isFocused, onInput = onInput)
+                .textInput(onInput = onInput)
             // TODO: select word on double click
         }
         Box(modifier = interactiveModifier.then(modifier)) {

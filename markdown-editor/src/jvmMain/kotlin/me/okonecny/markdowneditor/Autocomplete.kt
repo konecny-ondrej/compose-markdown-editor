@@ -38,7 +38,7 @@ internal fun <T> AutocompletePopup(
         focusable = true,
         modifier = Modifier
             .focusRequester(focusRequester)
-            .textInput(true, LocalInteractiveInputHandler.current)
+            .textInput(LocalInteractiveInputHandler.current)
     ) {
         suggestions.forEachIndexed { index, item ->
             DropdownMenuItem(

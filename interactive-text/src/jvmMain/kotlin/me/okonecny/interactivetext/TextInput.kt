@@ -12,13 +12,12 @@ import androidx.compose.ui.text.input.*
 import co.touchlab.kermit.Logger
 
 fun Modifier.textInput(
-    enabled: Boolean,
     onInput: (TextInputCommand) -> Unit
 ): Modifier = composed {
     var textInputSession by remember(onInput) { mutableStateOf<TextInputSession?>(null) }
     val textInputService = LocalTextInputService.current
 
-    if (textInputSession == null && textInputService != null && enabled) {
+    if (textInputSession == null && textInputService != null) {
         Logger.d("Start text input.")
         textInputSession = textInputService.startInput(
             value = TextFieldValue(""),
@@ -38,7 +37,7 @@ fun Modifier.textInput(
     DisposableEffect(Unit) {
         onDispose {
             val session = textInputSession
-            if (session != null && enabled && textInputService != null) {
+            if (session != null && textInputService != null) {
                 Logger.d("Stop text input.")
                 textInputService.stopInput(session)
                 textInputSession = null

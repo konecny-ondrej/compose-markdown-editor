@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
@@ -31,14 +32,17 @@ data class CursorPosition(
     /**
      * Find the visual position of the cursor in the layout.
      */
-    fun visualOffset(layout: InteractiveComponentLayout): Offset {
+    fun visualRect(layout: InteractiveComponentLayout): Rect {
         val component = layout.getComponent(componentId)
         val componentTextLayout = component.textLayoutResult
         if (!component.hasText || componentTextLayout == null) {
-            return layout.containerCoordinates.localCenterPointOf(component)
+            return Rect(layout.containerCoordinates.localCenterPointOf(component), 0f)
         }
         val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
-        return layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.center)
+        return Rect(
+            layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
+            layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
+        )
     }
 
     internal fun isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {

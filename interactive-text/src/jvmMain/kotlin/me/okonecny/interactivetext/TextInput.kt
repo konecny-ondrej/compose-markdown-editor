@@ -11,7 +11,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.*
 import co.touchlab.kermit.Logger
 
-internal fun Modifier.textInput(
+fun Modifier.textInput(
     enabled: Boolean,
     onInput: (TextInputCommand) -> Unit
 ): Modifier = composed {

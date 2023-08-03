@@ -37,7 +37,7 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
-            var undoManager by remember { mutableStateOf(UndoManager()) }
+            var undoManager by remember(filename) { mutableStateOf(UndoManager()) }
             MarkdownEditor(
                 sourceText = markdownSource,
                 basePath = Path("markdown-editor/src/jvmMain/resources"),

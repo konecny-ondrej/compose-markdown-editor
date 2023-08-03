@@ -26,7 +26,6 @@ fun App() {
     var markdownSource by mutableStateOf(useResource(filename) { md ->
         md.bufferedReader().readText()
     })
-    var undoManager = remember { UndoManager() }
     val interactiveScope = rememberInteractiveScope()
 
     MaterialTheme {
@@ -38,6 +37,7 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
+            var undoManager by remember { mutableStateOf(UndoManager()) }
             MarkdownEditor(
                 sourceText = markdownSource,
                 basePath = Path("markdown-editor/src/jvmMain/resources"),

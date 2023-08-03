@@ -121,10 +121,13 @@ fun MarkdownEditor(
                 } else sourceEditor
             }
 
-            if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
-                if (undoManager == editedUndoManager) { // TODO: maybe don't add every letter types, but bigger chunks.
-                    editedUndoManager = undoManager.add(editedSourceEditor)
+            if (undoManager == editedUndoManager) { // TODO: maybe don't add every letter types, but bigger chunks.
+                if (!editedUndoManager.hasHistory) {
+                    editedUndoManager = editedUndoManager.add(sourceEditor)
                 }
+                editedUndoManager = editedUndoManager.add(editedSourceEditor)
+            }
+            if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
                 visualSelection = Selection.empty
                 sourceCursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor

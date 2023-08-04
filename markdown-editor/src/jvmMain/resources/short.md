@@ -5,6 +5,8 @@ Based on [this cheatsheet][cheatsheet]
 This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this
 is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** into a blockquote.
 
+Link to [images](#images) below.
+Link to [Autolink] not so [down](#md-links) to [Markdown links] below.
 
 ---
 
@@ -88,7 +90,8 @@ Test reference link to [Header 2][h2link]
 
 [h2link]: #header-2
 
-Autolink option will detect text links like https://www.google.com and turn them into Markdown links automatically.
+[Autolink](@) option will detect text links like https://www.google.com and turn them into [Markdown links](@md-links)
+automatically.
 
 ---
 
@@ -103,7 +106,8 @@ alert(s);
 
 ```python
 s = "Python syntax highlighting"
-print s
+print
+s
 ```
 
 ```java

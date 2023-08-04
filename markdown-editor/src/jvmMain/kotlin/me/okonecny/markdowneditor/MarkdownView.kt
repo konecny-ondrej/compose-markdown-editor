@@ -81,6 +81,23 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
+private fun ScrollableNavigation.withAllTargetsRegistered(document: Document): ScrollableNavigation {
+    fun registerNode(node: Node) {
+        val anchorRefId: String? = when (node) {
+            is AnchorRefTarget -> node.anchorRefId
+            is Link -> node.anchorRefId
+            else -> null
+        }
+        if (anchorRefId != null) registerAnchorTarget(anchorRefId)
+        if (node.hasChildren()) node.children.forEach(::registerNode)
+    }
+    document.children.forEachIndexed { index, node ->
+        currentScrollId = index
+        registerNode(node)
+    }
+    return this
+}
+
 @Composable
 private fun UiMdDocument(
     markdownRoot: Document,
@@ -89,7 +106,7 @@ private fun UiMdDocument(
     linkHandlers: List<LinkHandler>
 ) {
     if (scrollable) {
-        val navigation = remember { ScrollableNavigation() }
+        val navigation = remember(markdownRoot) { ScrollableNavigation().withAllTargetsRegistered(markdownRoot) }
         CompositionLocalProvider(
             LocalNavigation provides navigation,
             LinkHandlers provides (linkHandlers + listOf(InternalAnchorLink(navigation))).associateBy(LinkHandler::linkAnnotationTag),
@@ -98,7 +115,8 @@ private fun UiMdDocument(
             LazyColumn(modifier = modifier, state = lazyColState) {
                 markdownRoot.children.forEachIndexed { index, child ->
                     item {
-                        navigation.currentScrollId = index
+                        navigation.currentScrollId =
+                            index // TODO: register the link anchors eagerly to allow scrolling forward.
                         UiBlock(child)
                     }
                 }
@@ -118,9 +136,6 @@ private fun UiMdDocument(
 
 @Composable
 private fun UiBlock(block: Node) {
-    if (block is AnchorRefTarget) {
-        LocalNavigation.current.registerAnchorTarget(block.anchorRefId)
-    }
     when (block) {
         is Heading -> UiHeading(block)
         is Paragraph -> UiParagraph(block)
@@ -154,12 +169,14 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                                     text = inlines.text,
                                     textMapping = inlines.textMapping,
                                     inlineContent = inlines.inlineContent,
-                                    style = cellStyle.textStyle.copy(textAlign = when(cell.alignment) {
-                                        TableCell.Alignment.LEFT -> TextAlign.Left
-                                        TableCell.Alignment.CENTER -> TextAlign.Center
-                                        TableCell.Alignment.RIGHT -> TextAlign.Right
-                                        else -> TextAlign.Start
-                                    }),
+                                    style = cellStyle.textStyle.copy(
+                                        textAlign = when (cell.alignment) {
+                                            TableCell.Alignment.LEFT -> TextAlign.Left
+                                            TableCell.Alignment.CENTER -> TextAlign.Center
+                                            TableCell.Alignment.RIGHT -> TextAlign.Right
+                                            else -> TextAlign.Start
+                                        }
+                                    ),
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .weight(1.0f)
@@ -441,9 +458,6 @@ private fun parseInlines(
     val styles = DocumentTheme.current.styles
     return buildMappedString {
         inlines.forEach { inline ->
-            if (inline is AnchorRefTarget) {
-                LocalNavigation.current.registerAnchorTarget(inline.anchorRefId)
-            }
             when (inline) {
                 is Text -> append(inline.text(visualStartOffset = visualLength + visualStartOffset))
                 is TextBase -> append(
@@ -567,7 +581,9 @@ private fun MappedText.Builder.appendLink(link: Link) {
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
     appendStyled(
         annotatedLinkText,
-        if (linkText == annotatedLinkText) {
+        if (link.isAnchor) {
+            DocumentTheme.current.styles.inlineAnchor.toSpanStyle()
+        } else if (linkText == annotatedLinkText) {
             DocumentTheme.current.styles.deadLink.toSpanStyle()
         } else {
             DocumentTheme.current.styles.link.toSpanStyle()

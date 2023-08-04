@@ -131,6 +131,10 @@ data class DocumentStyles(
         color = Color.Blue,
         textDecoration = TextDecoration.Underline
     ),
+    val inlineAnchor: TextStyle = TextStyle(
+        fontWeight = FontWeight.Bold,
+        textDecoration = TextDecoration.Underline
+    ),
     val deadLink: TextStyle = TextStyle(
         color = Color.Red,
         textDecoration = TextDecoration.Underline

@@ -38,6 +38,7 @@ fun MarkdownEditor(
     onChange: (String, UndoManager) -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
+    val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
     var visualCursor by interactiveScope.cursorPosition
     var visualSelection by interactiveScope.selection
@@ -80,10 +81,58 @@ fun MarkdownEditor(
             val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
             sourceCursor = newSourceCursor?.start
         },
-        onInput = { textInputCommand ->
-            if (!visualCursor.isValid && textInputCommand.needsValidCursor) return@InteractiveContainer
+        onInput = inputQueue::add
+    ) {
+        WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
+            Box(contentModifier) {
+                MarkdownView(
+                    sourceText,
+                    basePath,
+                    Modifier.fillMaxSize(1f),
+                    documentTheme,
+                    scrollable,
+                    codeFenceRenderers,
+                    linkHandlers
+                )
+
+                val handleInput = LocalInteractiveInputHandler.current
+                AutocompletePopup(
+                    visualCursor,
+                    interactiveScope,
+                    emojiSuggestions,
+                    onClick = { clickedItem ->
+                        val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
+                        handleInput(Type(emojiTag.remainingText(contextWord)))
+                        interactiveScope.focusRequester.requestFocus()
+                    }
+                ) { emoji ->
+                    Text(emoji.annotatedString)
+                    Spacer(Modifier.width(3.dp))
+                    Text(":${emoji.shortcut}:")
+                }
+
+            }
+
+        }
+    }
+    LaunchedEffect(sourceCursorRequest) {
+        if (interactiveScope.isPlaced) {
+            sourceCursorRequest?.apply {
+                invoke()
+                sourceCursorRequest = null
+                visualCursor = computeVisualCursor(
+                    sourceCursor ?: return@apply,
+                    interactiveScope.requireComponentLayout()
+                )
+            }
+        }
+    }
+    LaunchedEffect(inputQueue.size) {
+        for (i in inputQueue.lastIndex downTo 0) {
+            val textInputCommand = inputQueue.removeAt(i)
+            if (!visualCursor.isValid && textInputCommand.needsValidCursor) break
             val sourceSelection = computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
-            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: return@InteractiveContainer, sourceSelection)
+            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, sourceSelection)
 
             var editedUndoManager = undoManager
             val editedSourceEditor = when (textInputCommand) {
@@ -133,48 +182,6 @@ fun MarkdownEditor(
                     sourceCursor = editedSourceEditor.sourceCursor
                 }
                 onChange(editedSourceEditor.sourceText, editedUndoManager)
-            }
-        }
-    ) {
-        WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
-            Box(contentModifier) {
-                MarkdownView(
-                    sourceText,
-                    basePath,
-                    Modifier.fillMaxSize(1f),
-                    documentTheme,
-                    scrollable,
-                    codeFenceRenderers,
-                    linkHandlers
-                )
-
-                val handleInput = LocalInteractiveInputHandler.current
-                AutocompletePopup(
-                    visualCursor,
-                    interactiveScope,
-                    emojiSuggestions,
-                    onClick = { clickedItem ->
-                        val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
-                        handleInput(Type(emojiTag.remainingText(contextWord)))
-                        interactiveScope.focusRequester.requestFocus()
-                    }
-                ) { emoji ->
-                    Text(emoji.annotatedString)
-                    Spacer(Modifier.width(3.dp))
-                    Text(":${emoji.shortcut}:")
-                }
-
-            }
-
-        }
-    }
-    LaunchedEffect(sourceText) {
-        if (interactiveScope.isPlaced) {
-            sourceCursorRequest?.apply {
-                invoke()
-                sourceCursorRequest = null
-                visualCursor =
-                    computeVisualCursor(sourceCursor ?: return@apply, interactiveScope.requireComponentLayout())
             }
         }
     }

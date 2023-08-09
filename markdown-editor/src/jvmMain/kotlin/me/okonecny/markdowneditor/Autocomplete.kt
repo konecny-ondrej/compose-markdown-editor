@@ -1,6 +1,9 @@
 package me.okonecny.markdowneditor
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.DropdownMenuState
@@ -10,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
@@ -27,28 +32,30 @@ internal fun <T> AutocompletePopup(
     if (!interactiveScope.isPlaced) return
     if (suggestions.isEmpty()) return
 
-    val menuPosition = visualCursor.visualRect(interactiveScope.requireComponentLayout()).bottomCenter
-    val menuState = remember {
-        DropdownMenuState(DropdownMenuState.Status.Open(menuPosition))
+    val menuPosition = remember(visualCursor) {
+        visualCursor.visualRect(interactiveScope.requireComponentLayout()).bottomCenter
     }
-
     val focusRequester = remember { FocusRequester() }
-    DropdownMenu(
-        state = menuState,
-        focusable = true,
-        modifier = Modifier
-            .focusRequester(focusRequester)
-            .textInput(LocalInteractiveInputHandler.current)
-    ) {
-        suggestions.forEachIndexed { index, item ->
-            DropdownMenuItem(
-                onClick = { onClick(index) }
-            ) {
-                this.renderItem(item)
+    Box(Modifier.offset { menuPosition.round() }) {
+        DropdownMenu(
+            state = remember {
+                DropdownMenuState(DropdownMenuState.Status.Open(Offset.Zero))
+            },
+            focusable = true,
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .textInput(LocalInteractiveInputHandler.current)
+        ) {
+            suggestions.forEachIndexed { index, item ->
+                DropdownMenuItem(
+                    onClick = { onClick(index) }
+                ) {
+                    this.renderItem(item)
+                }
             }
-        }
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
         }
     }
 }

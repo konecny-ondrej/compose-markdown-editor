@@ -94,6 +94,11 @@ fun MarkdownEditor(
                     codeFenceRenderers,
                     linkHandlers
                 )
+                FloatingTextToolbar(
+                    nodeUnderCursor,
+                    visualCursor,
+                    interactiveScope
+                )
 
                 val handleInput = LocalInteractiveInputHandler.current
                 AutocompletePopup(

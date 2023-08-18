@@ -38,6 +38,7 @@ class DocumentParser(
     }
 
     private fun parseInlineReferences(nodes: Iterable<Node>): Map<String, MarkdownReference> {
+        if (nodes.none()) return emptyMap()
         return nodes.map { node ->
             if (node is Link && node.isAnchor && node.url?.toString() == "@") {
                 val referenceName = node.unformattedText.lowercase()

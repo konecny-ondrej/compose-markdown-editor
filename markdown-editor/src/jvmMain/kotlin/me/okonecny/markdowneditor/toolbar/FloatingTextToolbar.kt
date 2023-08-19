@@ -32,16 +32,20 @@ import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.internal.Symbol
+import me.okonecny.markdowneditor.wordAt
 
 @Composable
 fun FloatingTextToolbar(
-    activeNode: Node?,
+    nodeUnderCursor: Node?,
     visualCursor: CursorPosition,
+    sourceCursor: Int?,
+    sourceText: String,
     interactiveScope: InteractiveScope
 ) {
     if (!visualCursor.isValid) return
+    if (sourceCursor == null) return
     if (!interactiveScope.isPlaced) return
-    if (activeNode == null) return
+    if (nodeUnderCursor == null) return
 
     val toolbarPosition = remember(visualCursor) {
         visualCursor.visualRect(interactiveScope.requireComponentLayout()).topLeft
@@ -49,19 +53,19 @@ fun FloatingTextToolbar(
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(activeNode)
+            ToolbarContent(nodeUnderCursor, sourceText, sourceCursor)
         }
     ) { measuredSize ->
         Box(Modifier.offset {
             (toolbarPosition - Offset(0f, measuredSize.height.toPx())).round()
         }) {
-            ToolbarContent((activeNode))
+            ToolbarContent(nodeUnderCursor, sourceText, sourceCursor)
         }
     }
 }
 
 @Composable
-private fun ToolbarContent(activeNode: Node) {
+private fun ToolbarContent(activeNode: Node, sourceText: String, sourceCursor: Int) {
     Row(
         Modifier
             .shadow(8.dp, MaterialTheme.shapes.medium)
@@ -69,6 +73,8 @@ private fun ToolbarContent(activeNode: Node) {
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
+        Text(sourceText.wordAt(sourceCursor))
+        Spacer(Modifier.width(3.dp))
         ParagraphStyleCombo()
         Spacer(Modifier.width(3.dp))
         TextToolbarButton(

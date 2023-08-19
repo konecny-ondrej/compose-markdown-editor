@@ -98,6 +98,8 @@ fun MarkdownEditor(
                 FloatingTextToolbar(
                     nodeUnderCursor,
                     visualCursor,
+                    sourceCursor,
+                    sourceText,
                     interactiveScope
                 )
 

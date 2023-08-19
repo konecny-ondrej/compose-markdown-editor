@@ -47,7 +47,7 @@ fun FloatingTextToolbar(
     if (!interactiveScope.isPlaced) return
     if (nodeUnderCursor == null) return
 
-    val toolbarPosition = remember(visualCursor) {
+    val cursorPosition = remember(visualCursor) {
         visualCursor.visualRect(interactiveScope.requireComponentLayout()).topLeft
     }
 
@@ -55,9 +55,17 @@ fun FloatingTextToolbar(
         measuredContent = {
             ToolbarContent(nodeUnderCursor, sourceText, sourceCursor)
         }
-    ) { measuredSize ->
+    ) { measuredSize, constraints ->
         Box(Modifier.offset {
-            (toolbarPosition - Offset(0f, measuredSize.height.toPx())).round()
+            val maxPosition = Offset(
+                x = constraints.maxWidth - measuredSize.width.toPx(),
+                y = constraints.maxHeight - measuredSize.height.toPx(),
+            )
+            val toolbarPosition = (cursorPosition - Offset(0f, measuredSize.height.toPx()))
+            Offset(
+                x = toolbarPosition.x.coerceIn(0f, maxPosition.x),
+                y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
+            ).round()
         }) {
             ToolbarContent(nodeUnderCursor, sourceText, sourceCursor)
         }

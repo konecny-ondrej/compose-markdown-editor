@@ -14,9 +14,8 @@ import androidx.compose.ui.unit.toSize
 internal fun MeasuringLayout(
     modifier: Modifier = Modifier,
     measuredContent: @Composable () -> Unit,
-    dependentContent: @Composable (measuredSize: DpSize) -> Unit
+    dependentContent: @Composable (measuredSize: DpSize, constraints: Constraints) -> Unit
 ) {
-
     val density = LocalDensity.current
     SubcomposeLayout(
         modifier = modifier
@@ -30,7 +29,7 @@ internal fun MeasuringLayout(
             IntSize(measuredPlaceable.width, measuredPlaceable.height).toSize().toDpSize()
         }
         val dependentPlaceable: Placeable = subcompose(LayoutSlot.Dependent) {
-            dependentContent(measuredSize)
+            dependentContent(measuredSize, constraints)
         }.only().measure(constraints)
 
         layout(dependentPlaceable.width, dependentPlaceable.height) {

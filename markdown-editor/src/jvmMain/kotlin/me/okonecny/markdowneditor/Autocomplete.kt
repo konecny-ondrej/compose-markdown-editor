@@ -81,10 +81,10 @@ fun String.wordRangeAt(pos: Int): IntRange {
     val whitespacePadding = substring(0..pos)
         .takeLastWhile { !it.isLetterOrDigit() }
         .length
-    val charsTillStart = substring(0, pos - whitespacePadding)
+    val charsTillStart = substring(0, (pos - whitespacePadding).coerceAtLeast(0))
         .takeLastWhile { it.isLetterOrDigit() }
         .length
-    val wordStart = pos - whitespacePadding - charsTillStart
+    val wordStart = (pos - whitespacePadding - charsTillStart).coerceAtLeast(0)
     val wordLength = substring(wordStart..lastIndex)
         .takeWhile { it.isLetterOrDigit() }
         .length

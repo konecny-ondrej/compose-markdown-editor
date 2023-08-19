@@ -5,7 +5,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.platform.Font
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
@@ -13,6 +12,7 @@ import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.ext.emoji.internal.EmojiResolvedShortcut
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.internal.Emoji
 
 internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedText) {
     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
@@ -51,9 +51,7 @@ internal val EmojiReference.Emoji.annotatedString: AnnotatedString
     get() = buildAnnotatedString {
         pushStyle(
             SpanStyle(
-                fontFamily = FontFamily(
-                    Font("/NotoColorEmoji-Regular.ttf")
-                )
+                fontFamily = FontFamily.Emoji
             )
         )
         append(unicodeString)

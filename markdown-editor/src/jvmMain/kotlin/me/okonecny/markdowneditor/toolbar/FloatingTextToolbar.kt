@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.markdowneditor.toolbar
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.round
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.interactivetext.InteractiveScope
+import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.internal.Symbol

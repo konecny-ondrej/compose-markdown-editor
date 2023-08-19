@@ -16,6 +16,7 @@ import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.inline.annotatedString
 import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import me.okonecny.markdowneditor.inline.unicodeString
+import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
 import java.nio.file.Path
 import kotlin.math.abs
 

@@ -2,7 +2,6 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -73,4 +72,27 @@ fun String.wordBefore(pos: Int): String {
         .lastOrNull()
         ?.value
         ?: ""
+}
+
+fun String.wordRangeAt(pos: Int): IntRange {
+    if (isBlank()) return IntRange.EMPTY
+    if (pos < 0 || pos > lastIndex) return IntRange.EMPTY
+
+    val whitespacePadding = substring(0..pos)
+        .takeLastWhile { !it.isLetterOrDigit() }
+        .length
+    val charsTillStart = substring(0, pos - whitespacePadding)
+        .takeLastWhile { it.isLetterOrDigit() }
+        .length
+    val wordStart = pos - whitespacePadding - charsTillStart
+    val wordLength = substring(wordStart..lastIndex)
+        .takeWhile { it.isLetterOrDigit() }
+        .length
+    val wordEnd = wordStart + wordLength
+
+    return wordStart until wordEnd
+}
+
+fun String.wordAt(pos: Int): String {
+    return substring(wordRangeAt(pos))
 }

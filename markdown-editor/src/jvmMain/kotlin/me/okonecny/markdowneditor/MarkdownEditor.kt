@@ -44,7 +44,7 @@ fun MarkdownEditor(
     var visualSelection by interactiveScope.selection
     var sourceCursor by remember(interactiveScope) { mutableStateOf<Int?>(null) }
 
-    val nodeUnderCursor: Node? by remember {
+    val nodeUnderCursor: Node? by remember(interactiveScope) {
         derivedStateOf {
             val cursor = sourceCursor ?: return@derivedStateOf null
             val component = interactiveScope.componentUnderCursor ?: return@derivedStateOf null

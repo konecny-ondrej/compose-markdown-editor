@@ -22,6 +22,7 @@ import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.interactivetext.*
+import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
 import me.okonecny.markdowneditor.inline.appendEmoji
 import me.okonecny.markdowneditor.inline.appendImage
@@ -236,10 +237,7 @@ private fun UiTaskListItem(
             modifier = styles.taskListCheckbox.modifier,
             checked = taskListItem.isItemDoneMarker,
             onCheckedChange = { isChecked ->
-                val taskMarkerRange = TextRange(
-                    taskListItem.markerSuffix.startOffset,
-                    taskListItem.markerSuffix.endOffset,
-                )
+                val taskMarkerRange = taskListItem.markerSuffix.range
                 val newMarker = if (isChecked) "[X]" else "[ ]"
                 onInput(ReplaceRange(taskMarkerRange, newMarker))
             })
@@ -402,7 +400,7 @@ private fun UiUnparsedBlock(node: Node) {
     InteractiveText(
         text = text,
         textMapping = BoundedBlockTextMapping(
-            TextRange(node.startOffset, node.endOffset), // TODO +1?
+            node.range, // TODO +1?
             TextRange(0, text.length)
         ),
         style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)

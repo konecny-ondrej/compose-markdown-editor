@@ -13,29 +13,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.round
-import me.okonecny.interactivetext.CursorPosition
-import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.textInput
 
 @Composable
 internal fun <T> AutocompletePopup(
-    visualCursor: CursorPosition,
-    interactiveScope: InteractiveScope,
+    visualCursorRect: Rect?,
     suggestions: List<T>,
     onClick: (clickedItem: Int) -> Unit = {},
     renderItem: @Composable RowScope.(T) -> Unit
 ) {
-    if (!visualCursor.isValid) return
-    if (!interactiveScope.isPlaced) return
+    if (visualCursorRect == null) return
     if (suggestions.isEmpty()) return
 
-    val menuPosition = remember(visualCursor) {
-        visualCursor.visualRect(interactiveScope.requireComponentLayout()).bottomCenter
-    }
     val focusRequester = remember { FocusRequester() }
-    Box(Modifier.offset { menuPosition.round() }) {
+    Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
         DropdownMenu(
             state = remember {
                 DropdownMenuState(DropdownMenuState.Status.Open(Offset.Zero))

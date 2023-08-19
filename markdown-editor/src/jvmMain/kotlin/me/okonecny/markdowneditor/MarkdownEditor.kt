@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
@@ -41,9 +42,27 @@ fun MarkdownEditor(
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
-    var visualCursor by interactiveScope.cursorPosition
-    var visualSelection by interactiveScope.selection
-    var sourceCursor by remember(interactiveScope) { mutableStateOf<Int?>(null) }
+    var visualCursor: CursorPosition by interactiveScope.cursorPosition
+    val visualCursorRect: Rect? by remember(interactiveScope, visualCursor) {
+        derivedStateOf {
+            if (interactiveScope.isPlaced && visualCursor.isValid) {
+                visualCursor.visualRect(interactiveScope.requireComponentLayout())
+            } else {
+                null
+            }
+        }
+    }
+    var visualSelection: Selection by interactiveScope.selection
+    var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) }
+    val sourceSelection: TextRange by remember(interactiveScope, interactiveScope.isPlaced) {
+        derivedStateOf {
+            if (interactiveScope.isPlaced) {
+                computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
+            } else {
+                TextRange.Zero
+            }
+        }
+    }
 
     val nodeUnderCursor: Node? by remember(interactiveScope) {
         derivedStateOf {
@@ -97,16 +116,15 @@ fun MarkdownEditor(
                 )
                 FloatingTextToolbar(
                     nodeUnderCursor,
-                    visualCursor,
-                    sourceCursor,
+                    visualCursorRect,
                     sourceText,
-                    interactiveScope
+                    sourceSelection,
+                    sourceCursor
                 )
 
                 val handleInput = LocalInteractiveInputHandler.current
                 AutocompletePopup(
-                    visualCursor,
-                    interactiveScope,
+                    visualCursorRect,
                     emojiSuggestions,
                     onClick = { clickedItem ->
                         val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
@@ -139,7 +157,6 @@ fun MarkdownEditor(
         for (i in inputQueue.lastIndex downTo 0) {
             val textInputCommand = inputQueue.removeAt(i)
             if (!visualCursor.isValid && textInputCommand.needsValidCursor) break
-            val sourceSelection = computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
             val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, sourceSelection)
 
             var editedUndoManager = undoManager

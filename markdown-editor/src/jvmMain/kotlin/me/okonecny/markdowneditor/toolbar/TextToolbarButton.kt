@@ -21,7 +21,8 @@ internal fun TextToolbarButton(
     text: String,
     tooltip: String,
     modifier: Modifier = Modifier,
-    state: ToolbarButtonState = ToolbarButtonState.Normal,
+    disabledIf: () -> Boolean = { false },
+    activeIf: () -> Boolean = { false },
     textStyle: TextStyle = TextStyle.Default,
     onClick: () -> Unit
 ) {
@@ -29,6 +30,12 @@ internal fun TextToolbarButton(
     (TooltipArea(
         tooltip = { Tooltip(tooltip) }
     ) {
+        val state = when (true) {
+            disabledIf() -> ToolbarButtonState.Disabled
+            activeIf() -> ToolbarButtonState.Active
+            else -> ToolbarButtonState.Normal
+        }
+
         BasicText(
             text = text,
             style = TextStyle(
@@ -37,6 +44,7 @@ internal fun TextToolbarButton(
                 color = when (state) {
                     ToolbarButtonState.Normal -> MaterialTheme.colors.onSurface
                     ToolbarButtonState.Active -> MaterialTheme.colors.onPrimary
+                    ToolbarButtonState.Disabled -> MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
                 }
             ).merge(textStyle),
             modifier = Modifier.toolbarElement {
@@ -44,9 +52,16 @@ internal fun TextToolbarButton(
                     when (state) {
                         ToolbarButtonState.Normal -> MaterialTheme.colors.surface
                         ToolbarButtonState.Active -> MaterialTheme.colors.primarySurface
+                        ToolbarButtonState.Disabled -> MaterialTheme.colors.surface
                     }
                 )
-                    .clickable(onClick = onClick, role = Role.Button).then(modifier)
+                    .clickable(
+                        enabled = state != ToolbarButtonState.Disabled,
+                        onClick = onClick,
+                        onClickLabel = tooltip,
+                        role = Role.Button
+                    )
+                    .then(modifier)
             }
         )
     })
@@ -54,5 +69,6 @@ internal fun TextToolbarButton(
 
 internal enum class ToolbarButtonState {
     Normal,
-    Active
+    Active,
+    Disabled
 }

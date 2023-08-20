@@ -23,12 +23,14 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.markdowneditor.compose.Tooltip
 
 @Composable
 fun FloatingTextToolbar(
+    visualSelection: Selection,
     nodeUnderCursor: Node?,
     visualCursorRect: Rect?,
     source: String,
@@ -40,7 +42,7 @@ fun FloatingTextToolbar(
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(nodeUnderCursor, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
         }
     ) { measuredSize, constraints ->
         Box(Modifier.offset {
@@ -54,13 +56,19 @@ fun FloatingTextToolbar(
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
             ).round()
         }) {
-            ToolbarContent(nodeUnderCursor, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
         }
     }
 }
 
 @Composable
-private fun ToolbarContent(nodeUnderCursor: Node, source: String, sourceSelection: TextRange, sourceCursor: Int?) {
+private fun ToolbarContent(
+    visualSelection: Selection,
+    nodeUnderCursor: Node,
+    source: String,
+    sourceSelection: TextRange,
+    sourceCursor: Int?
+) {
     Row(
         Modifier
             .shadow(8.dp, MaterialTheme.shapes.medium)
@@ -70,7 +78,7 @@ private fun ToolbarContent(nodeUnderCursor: Node, source: String, sourceSelectio
     ) {
         ParagraphStyleCombo()
         Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(nodeUnderCursor, source, sourceSelection, sourceCursor)
+        StrongEmphasisButton(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("I", "Emphasis", textStyle = TextStyle(fontStyle = FontStyle.Italic)) {}
         Spacer(Modifier.width(3.dp))

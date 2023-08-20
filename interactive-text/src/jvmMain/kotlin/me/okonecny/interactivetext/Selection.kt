@@ -10,4 +10,7 @@ data class Selection(
 
     val isEmpty: Boolean
         get() = !start.isValid || !end.isValid || start == end
+
+    val spansMultipleComponents: Boolean
+        get() = !isEmpty && start.componentId != end.componentId
 }

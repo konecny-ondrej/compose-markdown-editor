@@ -115,6 +115,7 @@ fun MarkdownEditor(
                     linkHandlers
                 )
                 FloatingTextToolbar(
+                    visualSelection,
                     nodeUnderCursor,
                     visualCursorRect,
                     sourceText,

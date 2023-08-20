@@ -9,6 +9,7 @@ import com.vladsch.flexmark.ast.StrongEmphasis
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
+import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.flexmark.getAncestorOfType
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.wordAt
@@ -16,6 +17,7 @@ import me.okonecny.markdowneditor.wordRangeAt
 
 @Composable
 internal fun StrongEmphasisButton(
+    visualSelection: Selection,
     nodeUnderCursor: Node,
     source: String,
     sourceSelection: TextRange,
@@ -27,7 +29,8 @@ internal fun StrongEmphasisButton(
     TextToolbarButton(
         "B",
         "Strong Emphasis",
-        state = if (strongEmphasisNode == null) ToolbarButtonState.Normal else ToolbarButtonState.Active, // TODO: disabled state
+        disabledIf = { visualSelection.spansMultipleComponents },
+        activeIf = { strongEmphasisNode != null },
         textStyle = TextStyle(fontWeight = FontWeight.Bold)
     ) {
         // Emphasis OFF.

@@ -2,11 +2,9 @@ package me.okonecny.markdowneditor.toolbar
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -42,25 +40,17 @@ internal fun TextToolbarButton(
                 textAlign = TextAlign.Center,
                 fontFamily = FontFamily.Symbol,
                 color = when (state) {
-                    ToolbarButtonState.Normal -> MaterialTheme.colors.onSurface
                     ToolbarButtonState.Active -> MaterialTheme.colors.onPrimary
-                    ToolbarButtonState.Disabled -> MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                    else -> MaterialTheme.colors.onSurface
                 }
             ).merge(textStyle),
-            modifier = Modifier.toolbarElement {
-                background(
-                    when (state) {
-                        ToolbarButtonState.Normal -> MaterialTheme.colors.surface
-                        ToolbarButtonState.Active -> MaterialTheme.colors.primarySurface
-                        ToolbarButtonState.Disabled -> MaterialTheme.colors.surface
-                    }
+            modifier = Modifier.toolbarElement(state) {
+                clickable(
+                    enabled = state != ToolbarButtonState.Disabled,
+                    onClick = onClick,
+                    onClickLabel = tooltip,
+                    role = Role.Button
                 )
-                    .clickable(
-                        enabled = state != ToolbarButtonState.Disabled,
-                        onClick = onClick,
-                        onClickLabel = tooltip,
-                        role = Role.Button
-                    )
                     .then(modifier)
             }
         )

@@ -121,9 +121,10 @@ data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
 
 data class ReplaceRange(
     val sourceRange: TextRange,
-    val newSource: String
+    val newSource: String,
+    val sourceCursorOffset: Int = 0
 ) : TextInputCommand {
-    override val needsValidCursor: Boolean = false
+    override val needsValidCursor: Boolean = sourceCursorOffset != 0
 }
 
 object NewLine : TextInputCommand {

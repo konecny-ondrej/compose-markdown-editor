@@ -184,7 +184,12 @@ fun MarkdownEditor(
 
                 NewLine -> sourceEditor.typeNewLine()
                 is Type -> sourceEditor.type(textInputCommand.text)
-                is ReplaceRange -> sourceEditor.replaceRange(textInputCommand.sourceRange, textInputCommand.newSource)
+                is ReplaceRange -> sourceEditor.replaceRange(
+                    textInputCommand.sourceRange,
+                    textInputCommand.newSource,
+                    textInputCommand.sourceCursorOffset
+                )
+
                 is Undo -> if (undoManager.hasHistory) {
                     editedUndoManager = undoManager.undo()
                     editedUndoManager.currentHistory

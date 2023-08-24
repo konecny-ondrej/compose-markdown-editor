@@ -41,7 +41,8 @@ internal fun StrongEmphasisButton(
                     strongEmphasisNode.baseSequence.substring(
                         strongEmphasisNode.openingMarker.endOffset,
                         strongEmphasisNode.closingMarker.startOffset,
-                    )
+                    ),
+                    -2
                 )
             )
             return@TextToolbarButton
@@ -52,7 +53,8 @@ internal fun StrongEmphasisButton(
             handleInput(
                 ReplaceRange(
                     sourceSelection,
-                    "**" + source.substring(sourceSelection) + "**"
+                    "**" + source.substring(sourceSelection) + "**",
+                    2
                 )
             )
             return@TextToolbarButton
@@ -63,7 +65,8 @@ internal fun StrongEmphasisButton(
             handleInput(
                 ReplaceRange(
                     TextRange(wordRange.first, wordRange.last + 1),
-                    "**" + source.wordAt(sourceCursor) + "**"
+                    "**" + source.wordAt(sourceCursor) + "**",
+                    2
                 )
             )
         }

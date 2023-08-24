@@ -24,10 +24,11 @@ data class SourceEditor(
         return SourceEditor(newSourceText, newSourceCursor, sourceSelection)
     }
 
-    fun replaceRange(range: TextRange, newSourceRangeContent: String): SourceEditor {
+    fun replaceRange(range: TextRange, newSourceRangeContent: String, sourceCursorOffset: Int = 0): SourceEditor {
         val newSource = sourceText.replaceRange(range.start until range.end, newSourceRangeContent)
+        val newCursor = (sourceCursor + sourceCursorOffset).coerceAtMost(newSource.length)
         if (range.length == newSourceRangeContent.length) {
-            return SourceEditor(newSource, sourceCursor, sourceSelection)
+            return SourceEditor(newSource, newCursor, sourceSelection)
         }
 
         val newSelectionEnd = if (range.contains(sourceSelection.end)) {
@@ -41,7 +42,7 @@ data class SourceEditor(
             sourceSelection.start
         }
 
-        val newCursor = sourceCursor.coerceAtMost(newSource.length)
+
         return SourceEditor(newSource, newCursor, TextRange(newSelectionStart, newSelectionEnd))
     }
 

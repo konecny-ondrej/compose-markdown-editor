@@ -87,6 +87,13 @@ fun String.wordRangeAt(pos: Int): IntRange {
     return wordStart until wordEnd
 }
 
+fun String.isSurroundedBy(range: IntRange, left: String, right: String = left.reversed()): Boolean {
+    val leftRange = IntRange(range.first - left.length, range.first - 1)
+    val rightRange = IntRange(range.last + 1, range.last  + right.length)
+    if (leftRange.first < 0 || rightRange.last > lastIndex) return false
+    return substring(leftRange) == left && substring(rightRange) == right
+}
+
 fun String.wordAt(pos: Int): String {
     return substring(wordRangeAt(pos))
 }

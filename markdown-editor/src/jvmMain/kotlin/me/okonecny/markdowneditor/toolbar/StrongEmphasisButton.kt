@@ -12,6 +12,7 @@ import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.flexmark.getAncestorOfType
 import me.okonecny.markdowneditor.flexmark.range
+import me.okonecny.markdowneditor.isSurroundedBy
 import me.okonecny.markdowneditor.wordAt
 import me.okonecny.markdowneditor.wordRangeAt
 
@@ -25,12 +26,13 @@ internal fun StrongEmphasisButton(
 ) {
     val strongEmphasisNode = nodeUnderCursor.getAncestorOfType<StrongEmphasis>()
     val handleInput = LocalInteractiveInputHandler.current
+    val wordRange = sourceCursor?.let { source.wordRangeAt(sourceCursor) }
 
     TextToolbarButton(
         "B",
         "Strong Emphasis",
         disabledIf = { visualSelection.spansMultipleComponents },
-        activeIf = { strongEmphasisNode != null },
+        activeIf = { wordRange?.let { source.isSurroundedBy(wordRange, "**") } == true },
         textStyle = TextStyle(fontWeight = FontWeight.Bold)
     ) {
         // Emphasis OFF.
@@ -42,6 +44,16 @@ internal fun StrongEmphasisButton(
                         strongEmphasisNode.openingMarker.endOffset,
                         strongEmphasisNode.closingMarker.startOffset,
                     ),
+                    -2
+                )
+            )
+            return@TextToolbarButton
+        }
+        if (wordRange?.let { source.isSurroundedBy(wordRange, "**") } == true) {
+            handleInput(
+                ReplaceRange(
+                    IntRange(wordRange.first - 2, wordRange.last + 2).toTextRange(),
+                    source.substring(wordRange),
                     -2
                 )
             )
@@ -60,15 +72,16 @@ internal fun StrongEmphasisButton(
             return@TextToolbarButton
         }
 
-        if (sourceCursor != null) {
-            val wordRange = source.wordRangeAt(sourceCursor)
+        if (wordRange != null) {
             handleInput(
                 ReplaceRange(
                     TextRange(wordRange.first, wordRange.last + 1),
-                    "**" + source.wordAt(sourceCursor) + "**",
+                    "**" + source.substring(wordRange) + "**",
                     2
                 )
             )
         }
     }
 }
+
+private fun IntRange.toTextRange(): TextRange = TextRange(first, last + 1)

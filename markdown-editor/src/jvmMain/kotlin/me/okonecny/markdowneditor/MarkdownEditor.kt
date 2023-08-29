@@ -73,7 +73,7 @@ fun MarkdownEditor(
             return@derivedStateOf componentNode.descendants.minByOrNull { child ->
                 val range = child.sourceRange
                 if (range.contains(cursor)) range.span else Int.MAX_VALUE
-            }
+            } ?: componentNode
         }
     }
     val contextWord: String = remember(sourceCursor) {

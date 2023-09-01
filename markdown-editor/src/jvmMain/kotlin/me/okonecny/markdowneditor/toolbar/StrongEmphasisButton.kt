@@ -13,7 +13,7 @@ import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.nodeAtSource
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
-import me.okonecny.markdowneditor.interactive.touchesNodeOfType
+import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.markdowneditor.wordRangeAt
 
 @Composable
@@ -24,23 +24,25 @@ internal fun StrongEmphasisButton(
     sourceSelection: TextRange,
     sourceCursor: Int
 ) {
-    val componentUnderCursor = componentLayout.componentAtSource(sourceCursor)
-    val strongEmphasisNode = componentUnderCursor.nodeAtSource<StrongEmphasis>(sourceCursor)
+    val strongEmphasisNodes = visualSelection.touchedNodesOfType<StrongEmphasis>(componentLayout)
+        .ifEmpty {
+            val componentUnderCursor = componentLayout.componentAtSource(sourceCursor)
+            val strongEmphasis = componentUnderCursor.nodeAtSource<StrongEmphasis>(sourceCursor)
+            if (strongEmphasis == null) emptyList() else listOf(strongEmphasis)
+        }
 
     val handleInput = LocalInteractiveInputHandler.current
-    val wordRange = source.wordRangeAt(sourceCursor)
 
     TextToolbarButton(
         "B",
         "Strong Emphasis",
-        disabledIf = {
-            visualSelection.spansMultipleLeafNodes(componentLayout)
-        },
-        activeIf = { visualSelection.touchesNodeOfType<StrongEmphasis>(componentLayout) || strongEmphasisNode != null },
+        disabledIf = { visualSelection.spansMultipleLeafNodes(componentLayout) },
+        activeIf = { strongEmphasisNodes.size == 1 },
         textStyle = TextStyle(fontWeight = FontWeight.Bold)
     ) {
         // Emphasis OFF.
-        if (strongEmphasisNode != null) {
+        if (strongEmphasisNodes.size == 1) {
+            val strongEmphasisNode = strongEmphasisNodes.first()
             handleInput(
                 ReplaceRange(
                     strongEmphasisNode.range,
@@ -55,21 +57,15 @@ internal fun StrongEmphasisButton(
         }
 
         // Emphasis ON.
-        if (!sourceSelection.collapsed) {
-            handleInput(
-                ReplaceRange(
-                    sourceSelection,
-                    "**" + source.substring(sourceSelection) + "**",
-                    2
-                )
-            )
-            return@TextToolbarButton
+        val emphasisRange = if (sourceSelection.collapsed) {
+            source.wordRangeAt(sourceCursor).toTextRange()
+        } else {
+            sourceSelection
         }
-
         handleInput(
             ReplaceRange(
-                TextRange(wordRange.first, wordRange.last + 1),
-                "**" + source.substring(wordRange) + "**",
+                emphasisRange,
+                "**" + source.substring(emphasisRange) + "**",
                 2
             )
         )

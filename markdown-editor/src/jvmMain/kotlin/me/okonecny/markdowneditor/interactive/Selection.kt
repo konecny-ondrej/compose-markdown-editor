@@ -60,8 +60,6 @@ fun Selection.touchedNodes(layout: InteractiveComponentLayout): List<Node> {
     return touchedNodes
 }
 
-inline fun <reified T : Node> Selection.touchesNodeOfType(layout: InteractiveComponentLayout): Boolean {
-    return touchedNodes(layout)
+inline fun <reified T : Node> Selection.touchedNodesOfType(layout: InteractiveComponentLayout): List<T> =
+    touchedNodes(layout)
         .filterIsInstance<T>()
-        .isNotEmpty()
-}

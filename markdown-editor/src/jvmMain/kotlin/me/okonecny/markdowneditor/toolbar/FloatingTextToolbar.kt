@@ -22,7 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.MeasuringLayout
@@ -31,18 +31,18 @@ import me.okonecny.markdowneditor.compose.Tooltip
 @Composable
 fun FloatingTextToolbar(
     visualSelection: Selection,
-    nodeUnderCursor: Node?,
+    componentLayout: InteractiveComponentLayout,
     visualCursorRect: Rect?,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int?
 ) {
     if (visualCursorRect == null) return
-    if (nodeUnderCursor == null) return
+    if (sourceCursor == null) return
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         }
     ) { measuredSize, constraints ->
         Box(Modifier.offset {
@@ -56,7 +56,7 @@ fun FloatingTextToolbar(
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
             ).round()
         }) {
-            ToolbarContent(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         }
     }
 }
@@ -64,10 +64,10 @@ fun FloatingTextToolbar(
 @Composable
 private fun ToolbarContent(
     visualSelection: Selection,
-    nodeUnderCursor: Node,
+    componentLayout: InteractiveComponentLayout,
     source: String,
     sourceSelection: TextRange,
-    sourceCursor: Int?
+    sourceCursor: Int
 ) {
     Row(
         Modifier
@@ -78,7 +78,7 @@ private fun ToolbarContent(
     ) {
         ParagraphStyleCombo()
         Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(visualSelection, nodeUnderCursor, source, sourceSelection, sourceCursor)
+        StrongEmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("I", "Emphasis", textStyle = TextStyle(fontStyle = FontStyle.Italic)) {}
         Spacer(Modifier.width(3.dp))

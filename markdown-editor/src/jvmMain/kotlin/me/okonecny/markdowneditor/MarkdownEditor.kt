@@ -12,11 +12,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.inline.annotatedString
 import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import me.okonecny.markdowneditor.inline.unicodeString
+import me.okonecny.markdowneditor.interactive.computeSourceSelection
 import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
 import java.nio.file.Path
 import kotlin.math.abs
@@ -57,25 +57,13 @@ fun MarkdownEditor(
     val sourceSelection: TextRange by remember(interactiveScope, interactiveScope.isPlaced) {
         derivedStateOf {
             if (interactiveScope.isPlaced) {
-                computeSourceSelection(visualSelection, interactiveScope.requireComponentLayout())
+                visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
             } else {
                 TextRange.Zero
             }
         }
     }
 
-    val nodeUnderCursor: Node? by remember(interactiveScope) {
-        derivedStateOf {
-            val cursor = sourceCursor ?: return@derivedStateOf null
-            val component = interactiveScope.componentUnderCursor ?: return@derivedStateOf null
-            if (!component.hasData<Node>()) return@derivedStateOf null
-            val componentNode = component[Node::class]
-            return@derivedStateOf componentNode.descendants.minByOrNull { child ->
-                val range = child.sourceRange
-                if (range.contains(cursor)) range.span else Int.MAX_VALUE
-            } ?: componentNode
-        }
-    }
     val contextWord: String = remember(sourceCursor) {
         sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
     }
@@ -114,14 +102,16 @@ fun MarkdownEditor(
                     codeFenceRenderers,
                     linkHandlers
                 )
-                FloatingTextToolbar(
-                    visualSelection,
-                    nodeUnderCursor,
-                    visualCursorRect,
-                    sourceText,
-                    sourceSelection,
-                    sourceCursor
-                )
+                if (interactiveScope.isPlaced) {
+                    FloatingTextToolbar(
+                        visualSelection,
+                        interactiveScope.requireComponentLayout(),
+                        visualCursorRect,
+                        sourceText,
+                        sourceSelection,
+                        sourceCursor
+                    )
+                }
 
                 val handleInput = LocalInteractiveInputHandler.current
                 AutocompletePopup(
@@ -242,20 +232,6 @@ private fun WithOptionalSourceView(
     } else {
         content(modifier)
     }
-}
-
-private fun computeSourceSelection(
-    selection: Selection,
-    interactiveComponentLayout: InteractiveComponentLayout
-): TextRange {
-    if (selection.isEmpty) return TextRange.Zero
-    val (startMapping, endMapping) = listOf(selection.start.componentId, selection.end.componentId)
-        .map(interactiveComponentLayout::getComponent)
-        .map(InteractiveComponent::textMapping)
-    return TextRange(
-        startMapping.toSource(TextRange(selection.start.visualOffset))?.start ?: 0,
-        endMapping.toSource(TextRange(selection.end.visualOffset))?.end ?: 0
-    )
 }
 
 private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentLayout): CursorPosition {

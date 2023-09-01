@@ -6,33 +6,37 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.substring
 import com.vladsch.flexmark.ast.StrongEmphasis
-import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
-import me.okonecny.markdowneditor.flexmark.getAncestorOfType
 import me.okonecny.markdowneditor.flexmark.range
-import me.okonecny.markdowneditor.isSurroundedBy
-import me.okonecny.markdowneditor.wordAt
+import me.okonecny.markdowneditor.interactive.nodeAtSource
+import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
+import me.okonecny.markdowneditor.interactive.touchesNodeOfType
 import me.okonecny.markdowneditor.wordRangeAt
 
 @Composable
 internal fun StrongEmphasisButton(
     visualSelection: Selection,
-    nodeUnderCursor: Node,
+    componentLayout: InteractiveComponentLayout,
     source: String,
     sourceSelection: TextRange,
-    sourceCursor: Int?
+    sourceCursor: Int
 ) {
-    val strongEmphasisNode = nodeUnderCursor.getAncestorOfType<StrongEmphasis>()
+    val componentUnderCursor = componentLayout.componentAtSource(sourceCursor)
+    val strongEmphasisNode = componentUnderCursor.nodeAtSource<StrongEmphasis>(sourceCursor)
+
     val handleInput = LocalInteractiveInputHandler.current
-    val wordRange = sourceCursor?.let { source.wordRangeAt(sourceCursor) }
+    val wordRange = source.wordRangeAt(sourceCursor)
 
     TextToolbarButton(
         "B",
         "Strong Emphasis",
-        disabledIf = { visualSelection.spansMultipleComponents },
-        activeIf = { wordRange?.let { source.isSurroundedBy(wordRange, "**") } == true },
+        disabledIf = {
+            visualSelection.spansMultipleLeafNodes(componentLayout)
+        },
+        activeIf = { visualSelection.touchesNodeOfType<StrongEmphasis>(componentLayout) || strongEmphasisNode != null },
         textStyle = TextStyle(fontWeight = FontWeight.Bold)
     ) {
         // Emphasis OFF.
@@ -44,16 +48,6 @@ internal fun StrongEmphasisButton(
                         strongEmphasisNode.openingMarker.endOffset,
                         strongEmphasisNode.closingMarker.startOffset,
                     ),
-                    -2
-                )
-            )
-            return@TextToolbarButton
-        }
-        if (wordRange?.let { source.isSurroundedBy(wordRange, "**") } == true) {
-            handleInput(
-                ReplaceRange(
-                    IntRange(wordRange.first - 2, wordRange.last + 2).toTextRange(),
-                    source.substring(wordRange),
                     -2
                 )
             )
@@ -72,15 +66,13 @@ internal fun StrongEmphasisButton(
             return@TextToolbarButton
         }
 
-        if (wordRange != null) {
-            handleInput(
-                ReplaceRange(
-                    TextRange(wordRange.first, wordRange.last + 1),
-                    "**" + source.substring(wordRange) + "**",
-                    2
-                )
+        handleInput(
+            ReplaceRange(
+                TextRange(wordRange.first, wordRange.last + 1),
+                "**" + source.substring(wordRange) + "**",
+                2
             )
-        }
+        )
     }
 }
 

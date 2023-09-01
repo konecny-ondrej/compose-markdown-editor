@@ -193,6 +193,28 @@ class InteractiveComponentLayout(
         ]
     }
 
+    /**
+     * Returns all components between the specified borders, in line order, including the border components.
+     */
+    fun componentsBetween(
+        borderComponent1: InteractiveComponent,
+        borderComponent2: InteractiveComponent
+    ): List<InteractiveComponent> {
+        val (border1Index, border2Index) = listOf(borderComponent1, borderComponent2)
+            .map { component ->
+                registeredComponents[component.id]
+                    ?: throw IllegalStateException("Interactive component with id ${component.id} has not been registered.")
+            }
+            .map(componentsInLineOrder::indexOf)
+
+        val (startIndex, endIndex) = if (border1Index <= border2Index) {
+            listOf(border1Index, border2Index)
+        } else {
+            listOf(border2Index, border1Index)
+        }
+        return componentsInLineOrder.subList(startIndex, endIndex + 1).toList()
+    }
+
     fun componentAtSource(sourcePos: Int): InteractiveComponent {
         val directComponents = registeredComponents.values.filter { component ->
             component.textMapping.coveredSourceRange?.contains(sourcePos) ?: false

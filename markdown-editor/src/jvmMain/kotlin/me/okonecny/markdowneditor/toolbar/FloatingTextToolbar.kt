@@ -18,8 +18,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.InteractiveComponentLayout
@@ -80,13 +78,13 @@ private fun ToolbarContent(
         Spacer(Modifier.width(3.dp))
         StrongEmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        TextToolbarButton("I", "Emphasis", textStyle = TextStyle(fontStyle = FontStyle.Italic)) {}
+        EmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        Spacer(Modifier.width(3.dp))
+        CodeButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("\uf44c", "Link", Modifier.offset((-1).dp)) {}
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("\uf4e5", "Image", Modifier.offset((-2.5).dp)) {}
-        Spacer(Modifier.width(3.dp))
-        TextToolbarButton("\uf44f", "Inline Code", Modifier.offset((-2.5).dp)) {}
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("\uf525", "Table", Modifier.offset((-2).dp)) {}
     }

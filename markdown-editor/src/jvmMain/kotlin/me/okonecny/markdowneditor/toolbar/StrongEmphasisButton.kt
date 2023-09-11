@@ -10,6 +10,7 @@ import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
+import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.nodeAtSource
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
@@ -58,7 +59,7 @@ internal fun StrongEmphasisButton(
 
         // Emphasis ON.
         val emphasisRange = if (sourceSelection.collapsed) {
-            source.wordRangeAt(sourceCursor).toTextRange()
+            source.wordRangeAt(sourceCursor).textRange
         } else {
             sourceSelection
         }
@@ -71,5 +72,3 @@ internal fun StrongEmphasisButton(
         )
     }
 }
-
-private fun IntRange.toTextRange(): TextRange = TextRange(first, last + 1)

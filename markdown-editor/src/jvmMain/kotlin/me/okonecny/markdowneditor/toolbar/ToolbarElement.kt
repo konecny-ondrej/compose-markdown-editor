@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 
 internal fun Modifier.toolbarElement(
     state: ToolbarButtonState = ToolbarButtonState.Normal,
-    modifier: @Composable Modifier.() -> Modifier
+    modifier: @Composable Modifier.() -> Modifier = { this }
 ) = composed {
     border(ButtonDefaults.outlinedBorder, MaterialTheme.shapes.small)
         .clip(MaterialTheme.shapes.small)

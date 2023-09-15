@@ -7,6 +7,7 @@ import me.okonecny.interactivetext.InteractiveComponent
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.onlyIncludedIndexes
+import me.okonecny.markdowneditor.flexmark.includingParents
 
 fun Selection.computeSourceSelection(
     interactiveComponentLayout: InteractiveComponentLayout
@@ -57,14 +58,14 @@ fun Selection.touchedNodes(layout: InteractiveComponentLayout): List<Node> {
 
             componentRootNode.descendants + componentRootNode
         }
-    return touchedNodes
+    return touchedNodes.includingParents
 }
 
 inline fun <reified T : Node> Selection.touchedNodesOfType(
     layout: InteractiveComponentLayout,
     sourceCursor: Int? = null
-): List<T> =
-    touchedNodes(layout)
+): List<T> {
+    return touchedNodes(layout)
         .filterIsInstance<T>()
         .ifEmpty {
             if (sourceCursor == null) return@ifEmpty emptyList()
@@ -72,4 +73,4 @@ inline fun <reified T : Node> Selection.touchedNodesOfType(
             val nodeAtSource = componentUnderCursor.nodeAtSource<T>(sourceCursor)
             if (nodeAtSource == null) emptyList() else listOf(nodeAtSource)
         }
-
+}

@@ -19,7 +19,6 @@ import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
-import me.okonecny.markdowneditor.interactive.nodeAtSource
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.markdowneditor.wordRangeAt
@@ -95,13 +94,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     sourceCursor: Int,
     modifier: Modifier = Modifier
 ) {
-    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(componentLayout)
-        .ifEmpty {
-            val componentUnderCursor = componentLayout.componentAtSource(sourceCursor)
-            val nodeAtSource = componentUnderCursor.nodeAtSource<T>(sourceCursor)
-            if (nodeAtSource == null) emptyList() else listOf(nodeAtSource)
-        }
-
+    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(componentLayout, sourceCursor)
     val handleInput = LocalInteractiveInputHandler.current
 
     TextToolbarButton(

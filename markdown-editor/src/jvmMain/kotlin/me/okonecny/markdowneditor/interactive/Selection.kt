@@ -60,6 +60,16 @@ fun Selection.touchedNodes(layout: InteractiveComponentLayout): List<Node> {
     return touchedNodes
 }
 
-inline fun <reified T : Node> Selection.touchedNodesOfType(layout: InteractiveComponentLayout): List<T> =
+inline fun <reified T : Node> Selection.touchedNodesOfType(
+    layout: InteractiveComponentLayout,
+    sourceCursor: Int? = null
+): List<T> =
     touchedNodes(layout)
         .filterIsInstance<T>()
+        .ifEmpty {
+            if (sourceCursor == null) return@ifEmpty emptyList()
+            val componentUnderCursor = layout.componentAtSource(sourceCursor)
+            val nodeAtSource = componentUnderCursor.nodeAtSource<T>(sourceCursor)
+            if (nodeAtSource == null) emptyList() else listOf(nodeAtSource)
+        }
+

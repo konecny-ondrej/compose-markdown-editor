@@ -3,7 +3,7 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -65,7 +65,7 @@ private fun ToolbarContent(
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
-        ParagraphStyleCombo()
+        ParagraphStyleCombo(visualSelection, componentLayout, sourceCursor)
         Spacer(Modifier.width(3.dp))
         StrongEmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))

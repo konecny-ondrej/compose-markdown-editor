@@ -3,13 +3,14 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
@@ -58,8 +59,17 @@ private fun ToolbarContent(
     sourceSelection: TextRange,
     sourceCursor: Int
 ) {
+    var toolbarAlpha by remember { mutableStateOf(0.0f) }
     Row(
+        @OptIn(ExperimentalComposeUiApi::class)
         Modifier
+            .alpha(toolbarAlpha)
+            .onPointerEvent(PointerEventType.Enter) {
+                toolbarAlpha = 1.0f
+            }
+            .onPointerEvent(PointerEventType.Exit) {
+                toolbarAlpha = 0.0f
+            }
             .shadow(8.dp, MaterialTheme.shapes.medium)
             .pointerHoverIcon(PointerIcon.Default)
             .background(MaterialTheme.colors.surface)

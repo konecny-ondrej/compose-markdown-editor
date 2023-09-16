@@ -16,10 +16,15 @@ import com.vladsch.flexmark.ast.Heading
 import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.util.ast.Block
 import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.LocalInteractiveInputHandler
+import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.Tooltip
+import me.okonecny.markdowneditor.flexmark.range
+import me.okonecny.markdowneditor.flexmark.source
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+import kotlin.reflect.KClass
 
 private const val ARROW_DOWN = " \ueab4 "
 
@@ -29,20 +34,17 @@ internal fun ParagraphStyleCombo(
     componentLayout: InteractiveComponentLayout,
     sourceCursor: Int
 ) {
-    val allowedBlockTypes = setOf(Paragraph::class, Heading::class, BlockQuote::class, FencedCodeBlock::class)
     val touchedBlocks = visualSelection
         .touchedNodesOfType<Block>(componentLayout, sourceCursor)
-        .filter { it::class in allowedBlockTypes }
+        .filter { it::class in ParagraphStyle.allowedNodeTypes }
     val currentBlock = touchedBlocks.firstOrNull() ?: return BasicText(
         modifier = Modifier.toolbarElement(ToolbarButtonState.Disabled),
-        text = "Paragraph$ARROW_DOWN"
+        text = "${ParagraphStyle.PARAGRAPH.description()}$ARROW_DOWN"
     )
 
     val comboText = when (currentBlock) {
-        is Heading -> "Heading " + currentBlock.level
-        is BlockQuote -> "Quoted Text"
-        is FencedCodeBlock -> "Code Block"
-        else -> "Paragraph"
+        is Heading -> ParagraphStyle.HEADING.description(currentBlock.level)
+        else -> ParagraphStyle.forNode(currentBlock).description()
     }
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -63,36 +65,55 @@ internal fun ParagraphStyleCombo(
             onDismissRequest = { menuVisible = false }
         ) {
             val styles = DocumentTheme.current.styles
-            ParagraphOption()
-            HeadingOption(1, styles.h1)
-            HeadingOption(2, styles.h2)
-            HeadingOption(3, styles.h3)
-            HeadingOption(4, styles.h4)
-            HeadingOption(5, styles.h5)
-            HeadingOption(6, styles.h6)
-            FencedCodeBlockOption()
-            BlockQuoteOption()
+            ParagraphOption(currentBlock)
+            HeadingOption(currentBlock, 1, styles.h1)
+            HeadingOption(currentBlock, 2, styles.h2)
+            HeadingOption(currentBlock, 3, styles.h3)
+            HeadingOption(currentBlock, 4, styles.h4)
+            HeadingOption(currentBlock, 5, styles.h5)
+            HeadingOption(currentBlock, 6, styles.h6)
+            FencedCodeBlockOption(currentBlock)
+            BlockQuoteOption(currentBlock)
         }
     })
 }
 
 @Composable
-private fun ParagraphOption() {
+private fun ParagraphOption(currentBlock: Block) {
     val styles = DocumentTheme.current.styles
-    DropdownMenuItem({}) { Text("Paragraph", style = styles.paragraph) }
+    val handleInput = LocalInteractiveInputHandler.current
+
+    DropdownMenuItem({
+        handleInput(ReplaceRange(currentBlock.range, currentBlock.paragraphContent))
+    }) {
+        Text(ParagraphStyle.PARAGRAPH.description(), style = styles.paragraph)
+    }
 }
 
 @Composable
-private fun HeadingOption(level: Int, style: TextStyle) {
-    DropdownMenuItem({}) { Text("Heading $level", style = style) }
+private fun HeadingOption(currentBlock: Block, level: Int, style: TextStyle) {
+    val handleInput = LocalInteractiveInputHandler.current
+    DropdownMenuItem({
+        handleInput(ReplaceRange(currentBlock.range, "#".repeat(level) + " " + currentBlock.paragraphContent))
+    }) {
+        Text(ParagraphStyle.HEADING.description(level), style = style)
+    }
 }
 
 @Composable
-private fun FencedCodeBlockOption() {
+private fun FencedCodeBlockOption(currentBlock: Block) {
     val styles = DocumentTheme.current.styles
-    DropdownMenuItem({}) {
+    val handleInput = LocalInteractiveInputHandler.current
+    DropdownMenuItem({
+        handleInput(
+            ReplaceRange(
+                currentBlock.range,
+                "```" + System.lineSeparator() + currentBlock.paragraphContent + System.lineSeparator() + "```"
+            )
+        )
+    }) {
         Text(
-            "Code Block",
+            ParagraphStyle.FENCED_CODE_BLOCK.description(),
             style = styles.codeBlock.textStyle,
             modifier = styles.codeBlock.modifier
         )
@@ -100,7 +121,58 @@ private fun FencedCodeBlockOption() {
 }
 
 @Composable
-private fun BlockQuoteOption() {
+private fun BlockQuoteOption(currentBlock: Block) {
     val styles = DocumentTheme.current.styles
-    DropdownMenuItem({}) { Text("Quoted Text", modifier = styles.blockQuote.modifier) }
+    val handleInput = LocalInteractiveInputHandler.current
+    val quotedText = currentBlock.source
+        .lines()
+        .joinToString(System.lineSeparator()) { line -> "> $line" }
+
+    DropdownMenuItem({
+        handleInput(ReplaceRange(currentBlock.range, quotedText))
+    }) {
+        Text(ParagraphStyle.BLOCK_QUOTE.description(), modifier = styles.blockQuote.modifier)
+    }
+}
+
+private val Block.paragraphContent: String
+    get() {
+        return when (this) {
+            is Heading -> this.text.toString()
+            is FencedCodeBlock -> this.contentChars.toString()
+            is BlockQuote -> this.contentChars.toString()
+            else -> this.source
+        }
+    }
+
+private enum class ParagraphStyle(
+    val nodeType: KClass<out Block>,
+    private val descriptionFormat: String
+) {
+    HEADING(Heading::class, "Heading %s"),
+    FENCED_CODE_BLOCK(FencedCodeBlock::class, "Code Block"),
+    BLOCK_QUOTE(BlockQuote::class, "Quoted Text"),
+    PARAGRAPH(Paragraph::class, "Paragraph");
+
+    companion object {
+        fun forNode(node: Block): ParagraphStyle = when (node) {
+            is Heading -> HEADING
+            is FencedCodeBlock -> FENCED_CODE_BLOCK
+            is BlockQuote -> BLOCK_QUOTE
+            is Paragraph -> PARAGRAPH
+            else -> throw IllegalArgumentException("Unknown node type.")
+        }
+
+        val allowedParagraphStyles: Set<ParagraphStyle> by lazy {
+            values().toSet()
+        }
+
+        val allowedNodeTypes: Set<KClass<out Block>> by lazy {
+            allowedParagraphStyles
+                .map(ParagraphStyle::nodeType)
+                .toSet()
+        }
+    }
+
+    fun description(vararg args: Any?) = descriptionFormat.format(*args)
 }

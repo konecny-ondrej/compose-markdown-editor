@@ -3,7 +3,6 @@ package me.okonecny.interactivetext
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -12,7 +11,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 
 private val defaultSelectionStyle = TextStyle(color = Color.Cyan.copy(alpha = 0.5f))
-internal val LocalInteractiveScope = compositionLocalOf<InteractiveScope?> { null }
+val LocalInteractiveScope = compositionLocalOf<InteractiveScope?> { null }
 internal val LocalSelectionStyle = compositionLocalOf { defaultSelectionStyle }
 val LocalInteractiveInputHandler = compositionLocalOf<(TextInputCommand) -> Unit> { {} }
 
@@ -71,7 +70,7 @@ fun InteractiveContainer(
                 }
                 .onKeyEvent { keyEvent: KeyEvent ->
                     shouldResetSelection = !keyEvent.isShiftPressed
-                    if (keyEvent.key == @OptIn(ExperimentalComposeUiApi::class) Key.Escape) {
+                    if (keyEvent.key == Key.Escape) {
                         selection = updateSelection(
                             true,
                             selection,

@@ -10,7 +10,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
@@ -83,7 +86,7 @@ private fun ToolbarContent(
         Spacer(Modifier.width(3.dp))
         CodeButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        TextToolbarButton("\uf44c", "Link", Modifier.offset((-1).dp)) {}
+        LinkButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("\uf4e5", "Image", Modifier.offset((-2.5).dp)) {}
         Spacer(Modifier.width(3.dp))

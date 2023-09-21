@@ -1,3 +1,4 @@
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.settings
 import org.jetbrains.gradle.ext.taskTriggers
@@ -23,17 +24,15 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
+
+
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-        }
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-            kotlinOptions {
-                jvmTarget = kotlinJvmTarget
-            }
-        }
         withJava()
+    }
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
+        vendor = JvmVendorSpec.matching("JetBrains")
     }
     sourceSets {
         val jvmMain by getting {

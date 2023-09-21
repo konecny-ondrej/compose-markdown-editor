@@ -19,15 +19,11 @@ repositories {
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-        }
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-            kotlinOptions {
-                jvmTarget = kotlinJvmTarget
-            }
-        }
         withJava()
+    }
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
+        vendor = JvmVendorSpec.matching("JetBrains")
     }
     sourceSets {
         val commonMain by getting {

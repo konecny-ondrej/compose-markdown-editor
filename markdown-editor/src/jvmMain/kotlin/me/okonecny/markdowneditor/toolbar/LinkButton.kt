@@ -1,11 +1,16 @@
 package me.okonecny.markdowneditor.toolbar
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -89,6 +94,19 @@ internal fun LinkButton(
     )
 }
 
+private enum class LinkType(val prefix: String, val description: String) {
+    HTTPS("https://", "Web Link"),
+    HTTP("http://", "Unsafe Web Link"),
+    ANCHOR_LINK("#", "Internal Link"),
+    ANCHOR("@", "Internal Link Target"),
+    LOCAL_FILE("file://", "File");
+
+    companion object {
+        fun forUrl(url: String): LinkType = entries.first { url.startsWith(it.prefix) }
+        fun isKnown(url: String): Boolean = entries.any { url.startsWith(it.prefix) }
+    }
+}
+
 @Composable
 private fun LinkDialog(
     show: Boolean,
@@ -96,41 +114,76 @@ private fun LinkDialog(
     onDismiss: () -> Unit,
     onConfirm: (url: String) -> Unit
 ) {
-    if (show) {
-        var linkUrl by remember(initialUrl) { mutableStateOf(initialUrl) }
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            confirmButton = { Button(onClick = { onConfirm(linkUrl) }) { Text("OK") } },
-            dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-            title = { Text("Edit Link") },
-            text = {
-                Column(
-                    Modifier.padding(0.dp, 25.dp, 0.dp, 0.dp)
-                ) {
-                    Row {
-                        Text("")
-                        TextField(
-                            label = { Text("URL") },
-                            value = linkUrl,
-                            singleLine = true,
-                            placeholder = { Text("https://www.example.com") },
-                            onValueChange = { linkUrl = it },
-                            modifier = Modifier.fillMaxWidth(1f),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Uri,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(onDone = {
-                                onConfirm(linkUrl)
-                            })
-                        )
-                    }
-                    Spacer(Modifier.height(25.dp))
-                    Text("Web link: Write the full address, including the \"https://\".")
-                    Text("Link in this document: Start with #, e.g. \"#my-link\".")
-                    Text("Link target: Start with @, - e.g. \"@my-link\".")
-                }
-            }
-        )
+    if (!show) return
+
+    var linkPrefix by remember(initialUrl) {
+        val linkType = if (LinkType.isKnown(initialUrl)) {
+            LinkType.forUrl(initialUrl)
+        } else {
+            LinkType.HTTPS
+        }
+        mutableStateOf(linkType.prefix)
     }
+    var linkAddress by remember(initialUrl) {
+        mutableStateOf(if (initialUrl.length >= linkPrefix.length) initialUrl.substring(linkPrefix.length) else initialUrl)
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { Button(onClick = { onConfirm(linkPrefix + linkAddress) }) { Text("OK") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        title = { Text("Edit Link") },
+        text = {
+            Column(
+                Modifier.padding(0.dp, 25.dp, 0.dp, 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier.border(1.dp, MaterialTheme.colors.primary, MaterialTheme.shapes.small),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    var linkTypeMenuOpen by remember { mutableStateOf(false) }
+                    TextButton(
+                        onClick = { linkTypeMenuOpen = true }
+                    ) {
+                        Text(linkPrefix)
+                    }
+                    DropdownMenu(
+                        expanded = linkTypeMenuOpen,
+                        onDismissRequest = { linkTypeMenuOpen = false }
+                    ) {
+                        LinkType.entries.forEach { linkType ->
+                            DropdownMenuItem({ linkPrefix = linkType.prefix }) {
+                                Column {
+                                    Text(linkType.prefix)
+                                    Text(linkType.description, style = MaterialTheme.typography.caption)
+                                }
+                            }
+                        }
+                    }
+                    val addressFieldFocusRequester = remember { FocusRequester() }
+                    BasicTextField(
+                        value = linkAddress,
+                        singleLine = true,
+                        onValueChange = { linkAddress = it },
+                        modifier = Modifier
+                            .fillMaxWidth(1f)
+                            .focusRequester(addressFieldFocusRequester),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Uri,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = {
+                            onConfirm(linkAddress)
+                        })
+                    )
+                    LaunchedEffect(Unit) {
+                        addressFieldFocusRequester.requestFocus()
+                    }
+                }
+                Spacer(Modifier.height(25.dp))
+                Text("Web link: Write the full address, including the \"https://\".")
+                Text("Link in this document: Start with #, e.g. \"#my-link\".")
+                Text("Link target: Start with @, - e.g. \"@my-link\".")
+            }
+        }
+    )
 }

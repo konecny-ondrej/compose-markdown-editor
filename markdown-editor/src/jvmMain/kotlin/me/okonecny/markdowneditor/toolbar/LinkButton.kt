@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.substring
@@ -27,6 +28,7 @@ import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+import me.okonecny.markdowneditor.internal.Symbol
 import me.okonecny.markdowneditor.wordRangeAt
 
 @Composable
@@ -94,12 +96,12 @@ internal fun LinkButton(
     )
 }
 
-private enum class LinkType(val prefix: String, val description: String) {
-    HTTPS("https://", "Web Link"),
-    HTTP("http://", "Unsafe Web Link"),
-    ANCHOR_LINK("#", "Internal Link"),
-    ANCHOR("@", "Internal Link Target"),
-    LOCAL_FILE("file://", "File");
+private enum class LinkType(val icon: String, val prefix: String, val description: String) {
+    HTTPS("\udb81\udd9f", "https://", "Web Link"),
+    HTTP("\udb82\udfca", "http://", "Unsafe Web Link"),
+    ANCHOR_LINK("\uf44c", "#", "Internal Link"),
+    ANCHOR("\udb80\udc31", "@", "Internal Link Target"),
+    LOCAL_FILE("\uf4a5", "file://", "File");
 
     companion object {
         fun forUrl(url: String): LinkType = entries.first { url.startsWith(it.prefix) }
@@ -127,9 +129,14 @@ private fun LinkDialog(
     var linkAddress by remember(initialUrl) {
         mutableStateOf(if (initialUrl.length >= linkPrefix.length) initialUrl.substring(linkPrefix.length) else initialUrl)
     }
+
+    fun confirmLinkDialog() {
+        onConfirm(linkPrefix + linkAddress)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = { onConfirm(linkPrefix + linkAddress) }) { Text("OK") } },
+        confirmButton = { Button(onClick = ::confirmLinkDialog) { Text("OK") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
         title = { Text("Edit Link") },
         text = {
@@ -146,20 +153,34 @@ private fun LinkDialog(
                     ) {
                         Text(linkPrefix)
                     }
+                    val addressFieldFocusRequester = remember { FocusRequester() }
                     DropdownMenu(
                         expanded = linkTypeMenuOpen,
-                        onDismissRequest = { linkTypeMenuOpen = false }
+                        onDismissRequest = {
+                            linkTypeMenuOpen = false
+                            addressFieldFocusRequester.requestFocus()
+                        }
                     ) {
                         LinkType.entries.forEach { linkType ->
-                            DropdownMenuItem({ linkPrefix = linkType.prefix }) {
+                            DropdownMenuItem({
+                                linkPrefix = linkType.prefix
+                                linkTypeMenuOpen = false
+                                addressFieldFocusRequester.requestFocus()
+                            }) {
                                 Column {
-                                    Text(linkType.prefix)
+                                    Row {
+                                        Text(
+                                            linkType.icon,
+                                            style = LocalTextStyle.current.copy(fontFamily = FontFamily.Symbol)
+                                        )
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(linkType.prefix)
+                                    }
                                     Text(linkType.description, style = MaterialTheme.typography.caption)
                                 }
                             }
                         }
                     }
-                    val addressFieldFocusRequester = remember { FocusRequester() }
                     BasicTextField(
                         value = linkAddress,
                         singleLine = true,
@@ -171,9 +192,7 @@ private fun LinkDialog(
                             keyboardType = KeyboardType.Uri,
                             imeAction = ImeAction.Done
                         ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            onConfirm(linkAddress)
-                        })
+                        keyboardActions = KeyboardActions(onDone = { confirmLinkDialog() })
                     )
                     LaunchedEffect(Unit) {
                         addressFieldFocusRequester.requestFocus()

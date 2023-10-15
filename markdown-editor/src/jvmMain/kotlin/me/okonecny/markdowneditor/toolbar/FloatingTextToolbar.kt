@@ -90,7 +90,7 @@ private fun ToolbarContent(
         Spacer(Modifier.width(3.dp))
         TextToolbarButton("\uf4e5", "Image", Modifier.offset((-2.5).dp)) {}
         Spacer(Modifier.width(3.dp))
-        TextToolbarButton("\uf525", "Table", Modifier.offset((-2).dp)) {}
+        TableButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
     }
 }
 

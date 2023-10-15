@@ -465,11 +465,11 @@ private fun parseInlines(
                     )
                 )
 
-                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
+                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle(), visualStartOffset)
                 is SoftLineBreak -> append(System.lineSeparator())
-                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
-                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
-                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
+                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle(), visualStartOffset)
+                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle(), visualStartOffset)
+                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle(), visualStartOffset)
                 is HardLineBreak -> append(System.lineSeparator())
                 is Link -> appendLink(inline)
                 is AutoLink -> {
@@ -597,8 +597,8 @@ private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
     )
 
 @Composable
-private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    val parsedText = parseInlines(inlineNode.children, visualStartOffset = visualLength)
+private fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle, visualStartOffset: Int = 0) {
+    val parsedText = parseInlines(inlineNode.children, visualStartOffset = visualLength + visualStartOffset)
     appendStyled(parsedText, style)
 }
 

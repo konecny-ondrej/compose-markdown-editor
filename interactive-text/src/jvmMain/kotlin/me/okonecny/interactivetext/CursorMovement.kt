@@ -73,28 +73,15 @@ internal fun Modifier.keyboardCursorMovement(
 private fun moveCursor(
     scope: InteractiveScope,
     position: Offset,
-    isDrag: Boolean,
-    onCursorPositionChanged: (CursorPosition, Selection) -> Unit
-) {
+): CursorPosition {
     val layout = scope.requireComponentLayout()
-    if (!layout.hasAnyComponents) {
-        onCursorPositionChanged(CursorPosition.invalid, Selection.empty)
-        return
-    }
+    if (!layout.hasAnyComponents) return CursorPosition.invalid
+
     val tappedComponent = layout.componentAt(position)
     val textLayout = tappedComponent.textLayoutResult
 
-    fun select(newCursorPosition: CursorPosition): Selection = if (isDrag) updateSelection(
-        scope.selection.value,
-        scope.cursorPosition.value,
-        newCursorPosition,
-        scope.requireComponentLayout()
-    ) else Selection.empty
-
     if (!tappedComponent.hasText || textLayout == null) {
-        val newCursor = CursorPosition(tappedComponent.id, 0)
-        onCursorPositionChanged(newCursor, select(newCursor))
-        return
+        return CursorPosition(tappedComponent.id, 0)
     }
 
     val localOffset = tappedComponent.layoutCoordinates.localPositionOf(
@@ -102,9 +89,7 @@ private fun moveCursor(
         position
     )
     val textOffset = textLayout.getOffsetForPosition(localOffset)
-    val newCursor = CursorPosition(tappedComponent.id, textOffset)
-
-    onCursorPositionChanged(newCursor, select(newCursor))
+    return CursorPosition(tappedComponent.id, textOffset)
 }
 
 internal fun Modifier.pointerCursorMovement(
@@ -113,11 +98,23 @@ internal fun Modifier.pointerCursorMovement(
 ): Modifier =
     pointerInput(scope) {
         detectTapGestures(
-            onPress = { position -> moveCursor(scope, position, false, onCursorPositionChanged) },
+            onPress = { position ->
+                val newCursorPosition = moveCursor(scope, position)
+                onCursorPositionChanged(newCursorPosition, Selection.empty)
+            },
             onDoubleTap = { position -> Logger.d { "Double click" } }
         )
     }.pointerInput(scope) {
-        detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
+        detectDragGestures { change, _ ->
+            val newCursorPosition = moveCursor(scope, change.position)
+            val newSelection = updateSelection(
+                scope.selection.value,
+                scope.cursorPosition.value,
+                newCursorPosition,
+                scope.requireComponentLayout()
+            )
+            onCursorPositionChanged(newCursorPosition, newSelection)
+        }
     }.pointerHoverIcon(PointerIcon.Text)
 
 private fun InteractiveScope.moveCursorByCharsInComponent(
@@ -144,7 +141,6 @@ private fun InteractiveScope.moveCursorByCharsInComponent(
         && newOffset != component.visualTextRange.start
         && newOffset != component.visualTextRange.end
     )
-
 
     return CursorPosition(component.id, newOffset)
 }

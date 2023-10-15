@@ -6,6 +6,7 @@ internal fun updateSelection(
     newCursorPosition: CursorPosition,
     layout: InteractiveComponentLayout
 ): Selection {
+    if (!layout.hasAnyComponents) return Selection.empty
     if (selection.isEmpty) {
         return if (oldCursorPosition.isBefore(newCursorPosition, layout)) {
             Selection(oldCursorPosition, newCursorPosition)

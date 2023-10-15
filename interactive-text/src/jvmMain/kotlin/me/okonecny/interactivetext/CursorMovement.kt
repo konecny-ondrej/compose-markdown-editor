@@ -9,6 +9,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import co.touchlab.kermit.Logger
 
 
 /**
@@ -17,44 +18,54 @@ import androidx.compose.ui.input.pointer.pointerInput
 
 internal fun Modifier.keyboardCursorMovement(
     scope: InteractiveScope,
-    onCursorPositionChanged: (CursorPosition) -> Unit
+    onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
     val oldPosition by scope.cursorPosition
     if (!oldPosition.isValid) return@onKeyEvent false
-    when (keyEvent.key) {
+    val newPosition = when (keyEvent.key) {
         Key.DirectionLeft -> {
             if (keyEvent.isCtrlPressed) {
-                onCursorPositionChanged(scope.moveCursorLeftByWord(oldPosition))
+                scope.moveCursorLeftByWord(oldPosition)
             } else {
-                onCursorPositionChanged(scope.moveCursorLeft(oldPosition))
+                scope.moveCursorLeft(oldPosition)
             }
         }
 
         Key.DirectionRight -> {
             if (keyEvent.isCtrlPressed) {
-                onCursorPositionChanged(scope.moveCursorRightByWord(oldPosition))
+                scope.moveCursorRightByWord(oldPosition)
             } else {
-                onCursorPositionChanged(scope.moveCursorRight(oldPosition))
+                scope.moveCursorRight(oldPosition)
             }
         }
 
         Key.DirectionDown -> {
-            onCursorPositionChanged(scope.moveCursorDown(oldPosition))
+            scope.moveCursorDown(oldPosition)
         }
 
         Key.DirectionUp -> {
-            onCursorPositionChanged(scope.moveCursorUp(oldPosition))
+            scope.moveCursorUp(oldPosition)
         }
 
         Key.MoveHome -> {
-            onCursorPositionChanged(scope.moveCursorHome(oldPosition))
+            scope.moveCursorHome(oldPosition)
         }
 
         Key.MoveEnd -> {
-            onCursorPositionChanged(scope.moveCursorToEnd(oldPosition))
+            scope.moveCursorToEnd(oldPosition)
         }
         // TODO: handle page up and page down, too.
+        else -> oldPosition
+    }
+    if (newPosition != oldPosition) {
+        val newSelection = if (keyEvent.isShiftPressed) updateSelection(
+            scope.selection.value,
+            oldPosition,
+            newPosition,
+            scope.requireComponentLayout()
+        ) else Selection.empty
+        onCursorPositionChanged(newPosition, newSelection)
     }
     false
 }
@@ -63,17 +74,26 @@ private fun moveCursor(
     scope: InteractiveScope,
     position: Offset,
     isDrag: Boolean,
-    onCursorPositionChanged: (CursorPosition, Boolean) -> Unit
+    onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ) {
     val layout = scope.requireComponentLayout()
     if (!layout.hasAnyComponents) {
-        onCursorPositionChanged(CursorPosition.invalid, isDrag)
+        onCursorPositionChanged(CursorPosition.invalid, Selection.empty)
         return
     }
     val tappedComponent = layout.componentAt(position)
     val textLayout = tappedComponent.textLayoutResult
+
+    fun select(newCursorPosition: CursorPosition): Selection = if (isDrag) updateSelection(
+        scope.selection.value,
+        scope.cursorPosition.value,
+        newCursorPosition,
+        scope.requireComponentLayout()
+    ) else Selection.empty
+
     if (!tappedComponent.hasText || textLayout == null) {
-        onCursorPositionChanged(CursorPosition(tappedComponent.id, 0), isDrag)
+        val newCursor = CursorPosition(tappedComponent.id, 0)
+        onCursorPositionChanged(newCursor, select(newCursor))
         return
     }
 
@@ -82,16 +102,20 @@ private fun moveCursor(
         position
     )
     val textOffset = textLayout.getOffsetForPosition(localOffset)
+    val newCursor = CursorPosition(tappedComponent.id, textOffset)
 
-    onCursorPositionChanged(CursorPosition(tappedComponent.id, textOffset), isDrag)
+    onCursorPositionChanged(newCursor, select(newCursor))
 }
 
 internal fun Modifier.pointerCursorMovement(
     scope: InteractiveScope,
-    onCursorPositionChanged: (CursorPosition, Boolean) -> Unit
+    onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier =
     pointerInput(scope) {
-        detectTapGestures(onPress = { position -> moveCursor(scope, position, false, onCursorPositionChanged) })
+        detectTapGestures(
+            onPress = { position -> moveCursor(scope, position, false, onCursorPositionChanged) },
+            onDoubleTap = { position -> Logger.d { "Double click" } }
+        )
     }.pointerInput(scope) {
         detectDragGestures { change, _ -> moveCursor(scope, change.position, true, onCursorPositionChanged) }
     }.pointerHoverIcon(PointerIcon.Text)

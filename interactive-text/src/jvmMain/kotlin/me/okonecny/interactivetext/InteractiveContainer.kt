@@ -6,7 +6,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 
@@ -38,46 +41,25 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = scope.focusRequester
-            var shouldResetSelection = true
             var selection by scope.selection
-            val cursorPosition by scope.cursorPosition
             Modifier
                 .focusRequester(requester)
                 .focusable()
                 .onGloballyPositioned { layoutCoordinates ->
                     scope.place(layoutCoordinates)
                 }
-                .keyboardCursorMovement(scope) { newCursorPosition ->
-                    selection = updateSelection(
-                        shouldResetSelection,
-                        selection,
-                        cursorPosition,
-                        newCursorPosition,
-                        scope.requireComponentLayout()
-                    )
+                .keyboardCursorMovement(scope) { newCursorPosition, newSelection ->
+                    selection = newSelection
                     onCursorMovement(newCursorPosition)
                 }
-                .pointerCursorMovement(scope) { newCursorPosition, isDrag ->
+                .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
                     requester.requestFocus()
-                    selection = updateSelection(
-                        !isDrag,
-                        selection,
-                        cursorPosition,
-                        newCursorPosition,
-                        scope.requireComponentLayout()
-                    )
+                    selection = newSelection
                     onCursorMovement(newCursorPosition)
                 }
                 .onKeyEvent { keyEvent: KeyEvent ->
-                    shouldResetSelection = !keyEvent.isShiftPressed
                     if (keyEvent.key == Key.Escape) {
-                        selection = updateSelection(
-                            true,
-                            selection,
-                            CursorPosition.invalid,
-                            CursorPosition.invalid,
-                            scope.requireComponentLayout()
-                        )
+                        selection = Selection.empty
                     }
                     false
                 }

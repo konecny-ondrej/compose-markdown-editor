@@ -1,13 +1,11 @@
 package me.okonecny.interactivetext
 
 internal fun updateSelection(
-    shouldReset: Boolean,
     selection: Selection,
     oldCursorPosition: CursorPosition,
     newCursorPosition: CursorPosition,
     layout: InteractiveComponentLayout
 ): Selection {
-    if (shouldReset) return Selection.empty
     if (selection.isEmpty) {
         return if (oldCursorPosition.isBefore(newCursorPosition, layout)) {
             Selection(oldCursorPosition, newCursorPosition)

@@ -3,7 +3,6 @@ package me.okonecny.interactivetext
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
@@ -24,7 +23,6 @@ internal fun Modifier.keyboardCursorMovement(
     val oldPosition by scope.cursorPosition
     if (!oldPosition.isValid) return@onKeyEvent false
     when (keyEvent.key) {
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionLeft -> {
             if (keyEvent.isCtrlPressed) {
                 onCursorPositionChanged(scope.moveCursorLeftByWord(oldPosition))
@@ -33,7 +31,6 @@ internal fun Modifier.keyboardCursorMovement(
             }
         }
 
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionRight -> {
             if (keyEvent.isCtrlPressed) {
                 onCursorPositionChanged(scope.moveCursorRightByWord(oldPosition))
@@ -42,22 +39,18 @@ internal fun Modifier.keyboardCursorMovement(
             }
         }
 
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionDown -> {
             onCursorPositionChanged(scope.moveCursorDown(oldPosition))
         }
 
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.DirectionUp -> {
             onCursorPositionChanged(scope.moveCursorUp(oldPosition))
         }
 
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveHome -> {
             onCursorPositionChanged(scope.moveCursorHome(oldPosition))
         }
 
-        @OptIn(ExperimentalComposeUiApi::class)
         Key.MoveEnd -> {
             onCursorPositionChanged(scope.moveCursorToEnd(oldPosition))
         }

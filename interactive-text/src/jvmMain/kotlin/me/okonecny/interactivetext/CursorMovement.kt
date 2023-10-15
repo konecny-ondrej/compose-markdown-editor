@@ -9,7 +9,6 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import co.touchlab.kermit.Logger
 
 
 /**
@@ -102,7 +101,14 @@ internal fun Modifier.pointerCursorMovement(
                 val newCursorPosition = moveCursor(scope, position)
                 onCursorPositionChanged(newCursorPosition, Selection.empty)
             },
-            onDoubleTap = { position -> Logger.d { "Double click" } }
+            onDoubleTap = { position ->
+                val clickedCursorPosition = moveCursor(scope, position)
+                if (!clickedCursorPosition.isValid) return@detectTapGestures
+
+                val wordStartCursorPosition = scope.moveCursorLeftByWord(clickedCursorPosition)
+                val wordEndCursorPosition = scope.moveCursorRightByWord(wordStartCursorPosition)
+                onCursorPositionChanged(wordEndCursorPosition, Selection(wordStartCursorPosition, wordEndCursorPosition))
+            }
         )
     }.pointerInput(scope) {
         detectDragGestures { change, _ ->

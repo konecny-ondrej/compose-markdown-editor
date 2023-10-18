@@ -12,13 +12,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import com.vladsch.flexmark.ext.tables.TableCell
 import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.Selection
+import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 
@@ -26,8 +26,6 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 internal fun TableButton(
     visualSelection: Selection,
     componentLayout: InteractiveComponentLayout,
-    source: String,
-    sourceSelection: TextRange,
     sourceCursor: Int
 ) {
     val touchedTables = visualSelection.touchedNodesOfType<TableCell>(componentLayout, sourceCursor)
@@ -48,6 +46,7 @@ internal fun TableButton(
             var rows by remember { mutableStateOf(1) }
             var cols by remember { mutableStateOf(1) }
             val tableStyle = LocalDocumentTheme.current.styles.table
+            val handleInput = LocalInteractiveInputHandler.current
 
             Column(tableStyle.modifier) {
                 for (i in 1..rows) {
@@ -65,13 +64,19 @@ internal fun TableButton(
                                 style = cellStyle,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .onPointerEvent(PointerEventType.Move) { event ->
+                                    .onPointerEvent(PointerEventType.Move) {
                                         rows = i + 1
                                         cols = j + 1
                                     }
                                     .clickable {
-                                        Logger.d { "Create table ${i}x${j}" }
-                                        // TODO: generate a table for the selected number of rows and cols.
+                                        menuVisible = false
+                                        handleInput(
+                                            Type(
+                                                System.lineSeparator().repeat(2) +
+                                                        generateTable(i, j)
+                                                        + System.lineSeparator().repeat(2)
+                                            )
+                                        )
                                     }
                                     .then(rowStyle.modifier)
                             )
@@ -81,4 +86,25 @@ internal fun TableButton(
             }
         }
     }
+}
+
+private fun generateTable(rows: Int, cols: Int): String {
+    require(rows >= 1)
+    require(cols >= 1)
+
+    val lineItems = mutableListOf<String>()
+    val headerSeparatorItems = mutableListOf<String>()
+    for (col in 0..<cols) {
+        lineItems.add(" ")
+        headerSeparatorItems.add("-----")
+    }
+    val line = "|" + lineItems.joinToString("|") + "|"
+    val headerSeparator = "|" + headerSeparatorItems.joinToString("|") + "|"
+
+    var table = line + System.lineSeparator() + headerSeparator + System.lineSeparator()
+    for (row in 1..<rows) {
+        table += line + System.lineSeparator()
+    }
+
+    return table
 }

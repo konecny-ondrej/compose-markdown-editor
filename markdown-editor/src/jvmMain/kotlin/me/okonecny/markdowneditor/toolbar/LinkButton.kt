@@ -1,20 +1,9 @@
 package me.okonecny.markdowneditor.toolbar
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.AutoLink
@@ -28,7 +17,6 @@ import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
-import me.okonecny.markdowneditor.internal.Symbol
 import me.okonecny.markdowneditor.wordRangeAt
 
 @Composable
@@ -69,6 +57,7 @@ internal fun LinkButton(
     LinkDialog(
         show = showLinkDialog,
         initialUrl = linkUrl,
+        linkTypes = ClickableLinkType.entries,
         onDismiss = { showLinkDialog = false },
         onConfirm = { newUrl ->
             showLinkDialog = false
@@ -96,113 +85,21 @@ internal fun LinkButton(
     )
 }
 
-private enum class LinkType(val icon: String, val prefix: String, val description: String) {
-    HTTPS("\udb81\udd9f", "https://", "Web Link"),
-    HTTP("\udb82\udfca", "http://", "Unsafe Web Link"),
-    ANCHOR_LINK("\uf44c", "#", "Internal Link"),
-    ANCHOR("\udb80\udc31", "@", "Internal Link Target"),
-    LOCAL_FILE("\uf4a5", "file://", "File");
-
-    companion object {
-        fun forUrl(url: String): LinkType = entries.first { url.startsWith(it.prefix) }
-        fun isKnown(url: String): Boolean = entries.any { url.startsWith(it.prefix) }
-    }
+private enum class ClickableLinkType(
+    override val icon: String,
+    override val prefix: String,
+    override val description: String,
+    override val longDescription: String,
+) : LinkType {
+    HTTPS("\udb81\udd9f", "https://", "Web Link", "Web link: Link to a page using the secure connection."),
+    HTTP(
+        "\udb82\udfca",
+        "http://",
+        "Unsafe Web Link",
+        "Unsafe Web link: Link to a web page using unsecure connection."
+    ),
+    ANCHOR_LINK("\uf44c", "#", "Internal Link", "Internal Link: Link to a target inside this document."),
+    ANCHOR("\udb80\udc31", "@", "Internal Link Target", "Internal Link Target: The target to which you can link."),
+    LOCAL_FILE("\uf4a5", "file://", "File", "File: A link to a file on your computer.");
 }
 
-@Composable
-private fun LinkDialog(
-    show: Boolean,
-    initialUrl: String,
-    onDismiss: () -> Unit,
-    onConfirm: (url: String) -> Unit
-) {
-    if (!show) return
-
-    var linkPrefix by remember(initialUrl) {
-        val linkType = if (LinkType.isKnown(initialUrl)) {
-            LinkType.forUrl(initialUrl)
-        } else {
-            LinkType.HTTPS
-        }
-        mutableStateOf(linkType.prefix)
-    }
-    var linkAddress by remember(initialUrl) {
-        mutableStateOf(if (initialUrl.length >= linkPrefix.length) initialUrl.substring(linkPrefix.length) else initialUrl)
-    }
-
-    fun confirmLinkDialog() {
-        onConfirm(linkPrefix + linkAddress)
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = ::confirmLinkDialog) { Text("OK") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        title = { Text("Edit Link") },
-        text = {
-            Column(
-                Modifier.padding(0.dp, 25.dp, 0.dp, 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier.border(1.dp, MaterialTheme.colors.primary, MaterialTheme.shapes.small),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    var linkTypeMenuOpen by remember { mutableStateOf(false) }
-                    TextButton(
-                        onClick = { linkTypeMenuOpen = true }
-                    ) {
-                        Text(linkPrefix)
-                    }
-                    val addressFieldFocusRequester = remember { FocusRequester() }
-                    DropdownMenu(
-                        expanded = linkTypeMenuOpen,
-                        onDismissRequest = {
-                            linkTypeMenuOpen = false
-                            addressFieldFocusRequester.requestFocus()
-                        }
-                    ) {
-                        LinkType.entries.forEach { linkType ->
-                            DropdownMenuItem({
-                                linkPrefix = linkType.prefix
-                                linkTypeMenuOpen = false
-                                addressFieldFocusRequester.requestFocus()
-                            }) {
-                                Column {
-                                    Row {
-                                        Text(
-                                            linkType.icon,
-                                            style = LocalTextStyle.current.copy(fontFamily = FontFamily.Symbol)
-                                        )
-                                        Spacer(Modifier.width(10.dp))
-                                        Text(linkType.prefix)
-                                    }
-                                    Text(linkType.description, style = MaterialTheme.typography.caption)
-                                }
-                            }
-                        }
-                    }
-                    BasicTextField(
-                        value = linkAddress,
-                        singleLine = true,
-                        onValueChange = { linkAddress = it },
-                        modifier = Modifier
-                            .fillMaxWidth(1f)
-                            .focusRequester(addressFieldFocusRequester),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Uri,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { confirmLinkDialog() })
-                    )
-                    LaunchedEffect(Unit) {
-                        addressFieldFocusRequester.requestFocus()
-                    }
-                }
-                Spacer(Modifier.height(25.dp))
-                Text("Web link: Write the full address, including the \"https://\".")
-                Text("Link in this document: Start with #, e.g. \"#my-link\".")
-                Text("Link target: Start with @, - e.g. \"@my-link\".")
-            }
-        }
-    )
-}

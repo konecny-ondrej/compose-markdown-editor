@@ -30,6 +30,7 @@ private fun Collection<LinkType>.forUrl(url: String): LinkType = first { url.sta
 @Composable
 internal fun LinkDialog(
     show: Boolean,
+    title: String,
     initialUrl: String,
     linkTypes: Collection<LinkType>,
     defaultLinkType: LinkType = linkTypes.first(),
@@ -58,7 +59,7 @@ internal fun LinkDialog(
         onDismissRequest = onDismiss,
         confirmButton = { Button(onClick = ::confirmLinkDialog) { Text("OK") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        title = { Text("Edit Link") },
+        title = { Text(title) },
         text = {
             Column(
                 Modifier.padding(0.dp, 25.dp, 0.dp, 0.dp)

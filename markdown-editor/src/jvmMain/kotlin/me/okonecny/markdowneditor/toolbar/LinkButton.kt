@@ -56,6 +56,7 @@ internal fun LinkButton(
     val handleInput = LocalInteractiveInputHandler.current
     LinkDialog(
         show = showLinkDialog,
+        title = "Edit Link",
         initialUrl = linkUrl,
         linkTypes = ClickableLinkType.entries,
         onDismiss = { showLinkDialog = false },

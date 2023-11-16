@@ -1,4 +1,3 @@
-import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.settings
 import org.jetbrains.gradle.ext.taskTriggers

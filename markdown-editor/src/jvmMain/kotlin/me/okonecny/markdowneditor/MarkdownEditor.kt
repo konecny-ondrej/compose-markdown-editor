@@ -1,6 +1,9 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -18,7 +21,6 @@ import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import me.okonecny.markdowneditor.inline.unicodeString
 import me.okonecny.markdowneditor.interactive.computeSourceSelection
 import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
-import java.nio.file.Path
 import kotlin.math.abs
 
 
@@ -28,16 +30,13 @@ import kotlin.math.abs
 @Composable
 fun MarkdownEditor(
     sourceText: String,
-    basePath: Path,
     interactiveScope: InteractiveScope,
     undoManager: UndoManager = remember { UndoManager() },
     modifier: Modifier = Modifier,
     showSource: Boolean = false,
     documentTheme: DocumentTheme = DocumentTheme.default,
-    scrollable: Boolean = true,
-    codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
-    linkHandlers: List<LinkHandler> = emptyList(),
-    onChange: (String, UndoManager) -> Unit
+    onChange: (String, UndoManager) -> Unit,
+    view: @Composable () -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
@@ -93,15 +92,7 @@ fun MarkdownEditor(
     ) {
         WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
             Box(contentModifier) {
-                MarkdownView(
-                    sourceText,
-                    basePath,
-                    Modifier.fillMaxSize(1f),
-                    documentTheme,
-                    scrollable,
-                    codeFenceRenderers,
-                    linkHandlers
-                )
+                view()
                 if (interactiveScope.isPlaced) {
                     FloatingTextToolbar(
                         visualSelection,

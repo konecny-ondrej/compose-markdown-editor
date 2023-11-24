@@ -6,6 +6,7 @@ val kspVersion: String by project
 val kotlinInjectVersion: String by project
 val kotlinJvmTarget: String by project
 val kermitVersion: String by project
+val jewelVersion: String by project
 
 plugins {
     kotlin("multiplatform")
@@ -21,6 +22,7 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://packages.jetbrains.team/maven/p/kpm/public/")
 }
 
 
@@ -40,6 +42,8 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation("co.touchlab:kermit:${kermitVersion}")
                 implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
+                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
+                implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window:${jewelVersion}")
                 implementation(project("markdown-editor"))
             }
         }

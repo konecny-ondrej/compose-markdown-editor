@@ -1,93 +1,65 @@
 package me.okonecny.whodoes
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import me.okonecny.whodoes.components.DetectedDensity
-import me.okonecny.whodoes.components.WindowControls
-import me.okonecny.whodoes.components.windowShadow
 import me.tatarka.inject.annotations.Component
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
+import org.jetbrains.jewel.intui.window.decoratedWindow
+import org.jetbrains.jewel.intui.window.styling.light
+import org.jetbrains.jewel.ui.ComponentStyling
+import org.jetbrains.jewel.window.DecoratedWindow
+import org.jetbrains.jewel.window.TitleBar
+import org.jetbrains.jewel.window.styling.DecoratedWindowStyle
+import org.jetbrains.jewel.window.styling.LocalTitleBarStyle
+import org.jetbrains.jewel.window.styling.TitleBarStyle
 
 fun main() = application {
     MainComponent::class.create()
     val appTitle = "WhoDoes"
-    val drawCustomShadow = false
-    var maximized by remember { mutableStateOf(false) }
 
     val windowState = WindowState(
-        placement = if (maximized) WindowPlacement.Maximized else WindowPlacement.Floating,
         width = (1024 * DetectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
         height = (768 * DetectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
     )
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = appTitle,
-        undecorated = drawCustomShadow,
-        transparent = drawCustomShadow,
-        state = windowState,
-        icon = painterResource("/app-icon.xml")
-        /**
-         * Vectors and icons by <a href="https://dribbble.com/trianglesquad?ref=svgrepo.com" target="_blank">Trianglesquad</a>
-         * in CC Attribution License via <a href="https://www.svgrepo.com/" target="_blank">SVG Repo</a>
-         */
+
+    IntUiTheme(
+        theme = JewelTheme.lightThemeDefinition(),
+        styling = ComponentStyling.decoratedWindow(
+            windowStyle = DecoratedWindowStyle.light(),
+            titleBarStyle = TitleBarStyle.light()
+        )
     ) {
-        CompositionLocalProvider(
-            LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
+        DecoratedWindow(
+            onCloseRequest = ::exitApplication,
+            title = appTitle,
+            state = windowState,
+            icon = painterResource("/app-icon.xml")
         ) {
-            Column(
-                if (maximized || !drawCustomShadow) {
-                    Modifier
-                } else {
-                    Modifier
-                        .windowShadow(10.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                }
-                    .background(Color.White)
+            CompositionLocalProvider(
+                LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
             ) {
-                if (drawCustomShadow) {
-                    WindowDraggableArea(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(Color.LightGray)
-                            .padding(5.dp)
-                    ) {
-                        Row {
-                            Text(
-                                appTitle,
-                                modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
-                                style = TextStyle(
-                                    color = Color.DarkGray,
-                                    fontSize = 15.sp,
-//                                fontWeight = FontWeight.Bold
-                                )
-                            )
-                            WindowControls(
-                                isMaximized = maximized,
-                                minimize = { windowState.isMinimized = true },
-                                maximize = { maximized = !maximized },
-                                close = { exitApplication() }
-                            )
-                        }
-                    }
+                TitleBar {
+                    Image(icon!!, title, modifier = Modifier.padding(5.dp))
+                    Text(
+                        text = title,
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(color = LocalTitleBarStyle.current.colors.content),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 App()
             }

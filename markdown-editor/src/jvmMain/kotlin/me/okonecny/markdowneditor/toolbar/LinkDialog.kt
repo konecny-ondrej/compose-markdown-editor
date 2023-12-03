@@ -32,10 +32,11 @@ internal fun LinkDialog(
     show: Boolean,
     title: String,
     initialUrl: String,
+    initialText: String,
     linkTypes: Collection<LinkType>,
     defaultLinkType: LinkType = linkTypes.first(),
     onDismiss: () -> Unit,
-    onConfirm: (url: String) -> Unit
+    onConfirm: (url: String, text: String) -> Unit
 ) {
     if (!show) return
 
@@ -50,9 +51,10 @@ internal fun LinkDialog(
     var linkAddress by remember(initialUrl) {
         mutableStateOf(if (initialUrl.length >= linkPrefix.length) initialUrl.substring(linkPrefix.length) else initialUrl)
     }
+    var linkText by remember(initialText) { mutableStateOf(initialText) }
 
     fun confirmLinkDialog() {
-        onConfirm(linkPrefix + linkAddress)
+        onConfirm(linkPrefix + linkAddress, linkText)
     }
 
     AlertDialog(
@@ -64,6 +66,15 @@ internal fun LinkDialog(
             Column(
                 Modifier.padding(0.dp, 25.dp, 0.dp, 0.dp)
             ) {
+                BasicTextField(
+                    value = linkText,
+                    onValueChange = { linkText = it },
+                    modifier = Modifier
+                        .fillMaxWidth(1f)
+                        .border(1.dp, MaterialTheme.colors.primary, MaterialTheme.shapes.small)
+                        .padding(8.dp)
+                )
+                Spacer(Modifier.height(5.dp))
                 Row(
                     modifier = Modifier.border(1.dp, MaterialTheme.colors.primary, MaterialTheme.shapes.small),
                     verticalAlignment = Alignment.CenterVertically

@@ -33,6 +33,14 @@ internal fun LinkButton(
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var linkUrl by remember { mutableStateOf("") }
+    val linkTextRange = if (sourceSelection.collapsed) {
+        source.wordRangeAt(sourceCursor).textRange
+    } else {
+        sourceSelection
+    }
+    var linkText by remember(linkTextRange) {
+        mutableStateOf(source.substring(linkTextRange))
+    }
 
     TextToolbarButton(
         text = "\uf44c",
@@ -49,6 +57,11 @@ internal fun LinkButton(
                 is AutoLink -> linkElement.text.toString()
                 else -> ""
             }
+            linkText = when (linkElement) {
+                is Link -> linkElement.text.toString()
+                is AutoLink -> linkElement.text.toString()
+                else -> ""
+            }
         }
         showLinkDialog = true
     }
@@ -58,29 +71,25 @@ internal fun LinkButton(
         show = showLinkDialog,
         title = "Edit Link",
         initialUrl = linkUrl,
+        initialText = linkText,
         linkTypes = ClickableLinkType.entries,
         onDismiss = { showLinkDialog = false },
-        onConfirm = { newUrl ->
+        onConfirm = { newUrl, newText ->
             showLinkDialog = false
 
             if (touchedLinks.size == 1) { // Edit existing link.
                 when (val linkElement = touchedLinks.first()) {
                     is Link -> handleInput(
                         ReplaceRange(
-                            linkElement.url.range,
-                            newUrl
+                            linkElement.range,
+                            "[$newText]($newUrl)"
                         )
                     )
                     // TODO: Support LinkRef sometime.
-                    is AutoLink -> handleInput(ReplaceRange(linkElement.text.range, newUrl))
+                    is AutoLink -> handleInput(ReplaceRange(linkElement.range, "[$newText]($newUrl)"))
                 }
             } else { // Create new link.
-                val range = if (sourceSelection.collapsed) {
-                    source.wordRangeAt(sourceCursor).textRange
-                } else {
-                    sourceSelection
-                }
-                handleInput(ReplaceRange(range, "[" + source.substring(range) + "](" + newUrl + ")"))
+                handleInput(ReplaceRange(linkTextRange, "[$newText]($newUrl)"))
             }
         }
     )

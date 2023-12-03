@@ -8,7 +8,6 @@ import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.Image
 import com.vladsch.flexmark.ast.ImageRef
-import com.vladsch.flexmark.ast.Link
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
@@ -32,6 +31,14 @@ internal fun ImageButton(
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var imageUrl by remember { mutableStateOf("") }
+    val imageAltTextRange = if (sourceSelection.collapsed) {
+        source.wordRangeAt(sourceCursor).textRange
+    } else {
+        sourceSelection
+    }
+    var imageAltText by remember(imageAltTextRange) {
+        mutableStateOf(source.substring(imageAltTextRange))
+    }
 
     TextToolbarButton(
         text = "\uf4e5",
@@ -47,6 +54,11 @@ internal fun ImageButton(
                 // TODO: Support ImageRef sometime.
                 else -> ""
             }
+            imageAltText = when (imageElement) {
+                is Image -> imageElement.text.toString()
+                // TODO: Support ImageRef sometime.
+                else -> ""
+            }
         }
         showLinkDialog = true
     }
@@ -56,28 +68,24 @@ internal fun ImageButton(
         show = showLinkDialog,
         title = "Edit Image",
         initialUrl = imageUrl,
+        initialText = imageAltText,
         linkTypes = ImageUrlType.entries,
         onDismiss = { showLinkDialog = false },
-        onConfirm = { newUrl ->
+        onConfirm = { newUrl, newAltText ->
             showLinkDialog = false
 
             if (touchedImages.size == 1) { // Edit existing image.
                 when (val imageElement = touchedImages.first()) {
-                    is Link -> handleInput(
+                    is Image -> handleInput(
                         ReplaceRange(
-                            imageElement.url.range,
-                            newUrl
+                            imageElement.range,
+                            "![$newAltText]($newUrl)"
                         )
                     )
                     // TODO: Support ImageRef sometime.
                 }
             } else { // Create new image.
-                val range = if (sourceSelection.collapsed) {
-                    source.wordRangeAt(sourceCursor).textRange
-                } else {
-                    sourceSelection
-                }
-                handleInput(ReplaceRange(range, "![" + source.substring(range) + "](" + newUrl + ")"))
+                handleInput(ReplaceRange(imageAltTextRange, "![$newAltText]($newUrl)"))
             }
         }
     )

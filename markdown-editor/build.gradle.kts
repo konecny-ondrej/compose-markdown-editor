@@ -23,7 +23,7 @@ kotlin {
     }
     jvmToolchain {
         languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
-        vendor = JvmVendorSpec.matching("JetBrains")
+        vendor = JvmVendorSpec.JETBRAINS
     }
     sourceSets {
         val commonMain by getting {

@@ -33,7 +33,7 @@ kotlin {
     }
     jvmToolchain {
         languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
-        vendor = JvmVendorSpec.matching("JetBrains")
+        vendor = JvmVendorSpec.JETBRAINS
     }
     sourceSets {
         val jvmMain by getting {

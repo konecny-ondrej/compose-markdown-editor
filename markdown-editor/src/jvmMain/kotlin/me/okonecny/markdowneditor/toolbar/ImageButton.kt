@@ -97,6 +97,7 @@ private enum class ImageUrlType(
     override val description: String,
     override val longDescription: String,
 ) : LinkType {
+    LOCAL_FILE("\uf4a5", "", "File", "File: Use an image from your computer."),
     HTTPS(
         "\udb81\udd9f",
         "https://",
@@ -108,7 +109,6 @@ private enum class ImageUrlType(
         "http://",
         "Unsafe Web Link",
         "Unsafe Web link: Download the image from the Internet using unsecure connection."
-    ),
-    LOCAL_FILE("\uf4a5", "file://", "File", "File: Use an image from your computer.");
+    );
 }
 

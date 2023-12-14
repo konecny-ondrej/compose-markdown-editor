@@ -40,14 +40,15 @@ internal fun LinkDialog(
 ) {
     if (!show) return
 
-    var linkPrefix: String by remember(initialUrl) {
-        val linkType = if (linkTypes.isKnown(initialUrl)) {
+    var linkType: LinkType by remember(initialUrl) {
+        mutableStateOf(if (linkTypes.isKnown(initialUrl)) {
             linkTypes.forUrl(initialUrl)
         } else {
             defaultLinkType
-        }
-        mutableStateOf(linkType.prefix)
+        })
     }
+
+    val linkPrefix: String = linkType.prefix
     var linkAddress by remember(initialUrl) {
         mutableStateOf(if (initialUrl.length >= linkPrefix.length) initialUrl.substring(linkPrefix.length) else initialUrl)
     }
@@ -83,7 +84,7 @@ internal fun LinkDialog(
                     TextButton(
                         onClick = { linkTypeMenuOpen = true }
                     ) {
-                        Text(linkPrefix)
+                        Text(linkPrefix.ifBlank { linkType.description })
                     }
                     val addressFieldFocusRequester = remember { FocusRequester() }
                     DropdownMenu(
@@ -93,22 +94,22 @@ internal fun LinkDialog(
                             addressFieldFocusRequester.requestFocus()
                         }
                     ) {
-                        linkTypes.forEach { linkType ->
+                        linkTypes.forEach { selectedLinkType ->
                             DropdownMenuItem({
-                                linkPrefix = linkType.prefix
+                                linkType = selectedLinkType
                                 linkTypeMenuOpen = false
                                 addressFieldFocusRequester.requestFocus()
                             }) {
                                 Column {
                                     Row {
                                         Text(
-                                            linkType.icon,
+                                            selectedLinkType.icon,
                                             style = LocalTextStyle.current.copy(fontFamily = FontFamily.Symbol)
                                         )
                                         Spacer(Modifier.width(10.dp))
-                                        Text(linkType.prefix)
+                                        Text(selectedLinkType.prefix)
                                     }
-                                    Text(linkType.description, style = MaterialTheme.typography.caption)
+                                    Text(selectedLinkType.description, style = MaterialTheme.typography.caption)
                                 }
                             }
                         }

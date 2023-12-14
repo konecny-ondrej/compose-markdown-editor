@@ -25,7 +25,7 @@ internal interface LinkType {
 }
 
 private fun Collection<LinkType>.isKnown(url: String): Boolean = any { url.startsWith(it.prefix) }
-private fun Collection<LinkType>.forUrl(url: String): LinkType = first { url.startsWith(it.prefix) }
+private fun Collection<LinkType>.forUrl(url: String): LinkType = filter { url.startsWith(it.prefix) }.maxByOrNull { it.prefix.length }!!
 
 @Composable
 internal fun LinkDialog(

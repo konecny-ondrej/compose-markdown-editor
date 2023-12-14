@@ -147,7 +147,10 @@ fun MarkdownEditor(
                     clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
                     sourceEditor
                 }
-
+                Cut -> {
+                    clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
+                    sourceEditor.deleteSelection()
+                }
                 Paste -> sourceEditor.type(clipboardManager.getText()?.text ?: "")
                 is Delete -> {
                     when (textInputCommand.size) {

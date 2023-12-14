@@ -2,7 +2,6 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.text.isTypedEvent
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.key.*
@@ -19,8 +18,7 @@ fun Modifier.textInput(
 
     if (textInputSession == null && textInputService != null) {
         Logger.d("Start text input.")
-        textInputSession = textInputService.startInput(
-            value = TextFieldValue(""),
+        textInputSession = textInputService.startInput(value = TextFieldValue(""),
             imeOptions = ImeOptions.Default,
             onEditCommand = { editCommands ->
                 editCommands.forEach { command: EditCommand ->
@@ -31,8 +29,7 @@ fun Modifier.textInput(
                     }
                 }
             },
-            onImeActionPerformed = { _ -> }
-        )
+            onImeActionPerformed = { _ -> })
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -50,11 +47,9 @@ fun Modifier.textInput(
             onInput(Type(StringBuilder().appendCodePoint(keyEvent.utf16CodePoint).toString()))
         } else if (keyEvent.type == KeyEventType.KeyDown) {
             when (keyEvent.key) {
-                @OptIn(ExperimentalComposeUiApi::class)
                 Key.Backspace -> onInput(
                     Delete(
-                        Delete.Direction.BEFORE_CURSOR,
-                        if (keyEvent.isCtrlPressed) {
+                        Delete.Direction.BEFORE_CURSOR, if (keyEvent.isCtrlPressed) {
                             Delete.Size.WORD
                         } else {
                             Delete.Size.LETTER
@@ -62,11 +57,9 @@ fun Modifier.textInput(
                     )
                 )
 
-                @OptIn(ExperimentalComposeUiApi::class)
                 Key.Delete -> onInput(
                     Delete(
-                        Delete.Direction.AFTER_CURSOR,
-                        if (keyEvent.isCtrlPressed) {
+                        Delete.Direction.AFTER_CURSOR, if (keyEvent.isCtrlPressed) {
                             Delete.Size.WORD
                         } else {
                             Delete.Size.LETTER
@@ -74,18 +67,11 @@ fun Modifier.textInput(
                     )
                 )
 
-                @OptIn(ExperimentalComposeUiApi::class)
-                Key.Enter,
-                @OptIn(ExperimentalComposeUiApi::class)
-                Key.NumPadEnter -> onInput(NewLine)
+                Key.Enter, Key.NumPadEnter -> onInput(NewLine)
 
-                @OptIn(ExperimentalComposeUiApi::class)
                 Key.C -> if (keyEvent.isCtrlPressed) onInput(Copy)
-
-                @OptIn(ExperimentalComposeUiApi::class)
+                Key.X -> if (keyEvent.isCtrlPressed) onInput(Cut)
                 Key.V -> if (keyEvent.isCtrlPressed) onInput(Paste)
-
-                @OptIn(ExperimentalComposeUiApi::class)
                 Key.Z -> if (keyEvent.isCtrlPressed) {
                     if (keyEvent.isShiftPressed) {
                         onInput(Redo)
@@ -120,29 +106,31 @@ data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
 }
 
 data class ReplaceRange(
-    val sourceRange: TextRange,
-    val newSource: String,
-    val sourceCursorOffset: Int = 0
+    val sourceRange: TextRange, val newSource: String, val sourceCursorOffset: Int = 0
 ) : TextInputCommand {
     override val needsValidCursor: Boolean = sourceCursorOffset != 0
 }
 
-object NewLine : TextInputCommand {
+data object NewLine : TextInputCommand {
     override val needsValidCursor: Boolean = true
 }
 
-object Copy : TextInputCommand {
+data object Copy : TextInputCommand {
     override val needsValidCursor: Boolean = true
 }
 
-object Paste : TextInputCommand {
+data object Cut : TextInputCommand {
     override val needsValidCursor: Boolean = true
 }
 
-object Undo : TextInputCommand {
+data object Paste : TextInputCommand {
+    override val needsValidCursor: Boolean = true
+}
+
+data object Undo : TextInputCommand {
     override val needsValidCursor: Boolean = false
 }
 
-object Redo : TextInputCommand {
+data object Redo : TextInputCommand {
     override val needsValidCursor: Boolean = false
 }

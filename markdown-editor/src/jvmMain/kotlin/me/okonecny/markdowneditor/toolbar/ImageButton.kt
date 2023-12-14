@@ -31,13 +31,13 @@ internal fun ImageButton(
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var imageUrl by remember { mutableStateOf("") }
-    val imageAltTextRange = if (sourceSelection.collapsed) {
+    val imageTitleRange = if (sourceSelection.collapsed) {
         source.wordRangeAt(sourceCursor).textRange
     } else {
         sourceSelection
     }
-    var imageAltText by remember(imageAltTextRange) {
-        mutableStateOf(source.substring(imageAltTextRange))
+    var imageTitle by remember(imageTitleRange) {
+        mutableStateOf(source.substring(imageTitleRange))
     }
 
     TextToolbarButton(
@@ -54,8 +54,8 @@ internal fun ImageButton(
                 // TODO: Support ImageRef sometime.
                 else -> ""
             }
-            imageAltText = when (imageElement) {
-                is Image -> imageElement.text.toString()
+            imageTitle = when (imageElement) {
+                is Image -> imageElement.title.toString()
                 // TODO: Support ImageRef sometime.
                 else -> ""
             }
@@ -68,10 +68,10 @@ internal fun ImageButton(
         show = showLinkDialog,
         title = "Edit Image",
         initialUrl = imageUrl,
-        initialText = imageAltText,
+        initialText = imageTitle,
         linkTypes = ImageUrlType.entries,
         onDismiss = { showLinkDialog = false },
-        onConfirm = { newUrl, newAltText ->
+        onConfirm = { newUrl, newTitle ->
             showLinkDialog = false
 
             if (touchedImages.size == 1) { // Edit existing image.
@@ -79,13 +79,13 @@ internal fun ImageButton(
                     is Image -> handleInput(
                         ReplaceRange(
                             imageElement.range,
-                            "![$newAltText]($newUrl)"
+                            "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"
                         )
                     )
                     // TODO: Support ImageRef sometime.
                 }
             } else { // Create new image.
-                handleInput(ReplaceRange(imageAltTextRange, "![$newAltText]($newUrl)"))
+                handleInput(ReplaceRange(imageTitleRange, "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"))
             }
         }
     )

@@ -1,18 +1,20 @@
 package me.okonecny.markdowneditor.toolbar
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
@@ -62,17 +64,13 @@ private fun ToolbarContent(
     sourceSelection: TextRange,
     sourceCursor: Int
 ) {
-    var toolbarAlpha by remember { mutableStateOf(0.0f) }
+    val toolbarInteractionSource = remember { MutableInteractionSource() }
+    val isHovered by toolbarInteractionSource.collectIsHoveredAsState()
+    val toolbarAlpha = if (isHovered) 1.0f else 0.0f
     Row(
-        @OptIn(ExperimentalComposeUiApi::class)
         Modifier
             .alpha(toolbarAlpha)
-            .onPointerEvent(PointerEventType.Enter) {
-                toolbarAlpha = 1.0f
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                toolbarAlpha = 0.0f
-            }
+            .hoverable(toolbarInteractionSource)
             .shadow(8.dp, MaterialTheme.shapes.medium)
             .pointerHoverIcon(PointerIcon.Default)
             .background(MaterialTheme.colors.surface)

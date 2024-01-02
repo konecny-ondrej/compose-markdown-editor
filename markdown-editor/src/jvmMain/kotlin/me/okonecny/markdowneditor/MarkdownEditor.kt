@@ -1,10 +1,7 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -12,7 +9,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import me.okonecny.interactivetext.*
@@ -33,7 +29,6 @@ fun MarkdownEditor(
     interactiveScope: InteractiveScope,
     undoManager: UndoManager = remember { UndoManager() },
     modifier: Modifier = Modifier,
-    showSource: Boolean = false,
     documentTheme: DocumentTheme = DocumentTheme.default,
     onChange: (String, UndoManager) -> Unit,
     view: @Composable () -> Unit
@@ -81,6 +76,7 @@ fun MarkdownEditor(
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
+        modifier = modifier,
         onCursorMovement = { newVisualCursor ->
             visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
@@ -90,37 +86,31 @@ fun MarkdownEditor(
         },
         onInput = inputQueue::add
     ) {
-        WithOptionalSourceView(showSource, sourceText, sourceCursor, modifier) { contentModifier ->
-            Box(contentModifier) {
-                view()
-                if (interactiveScope.isPlaced) {
-                    FloatingTextToolbar(
-                        visualSelection,
-                        interactiveScope.requireComponentLayout(),
-                        visualCursorRect,
-                        sourceText,
-                        sourceSelection,
-                        sourceCursor
-                    )
-                }
+        view()
+        if (interactiveScope.isPlaced) {
+            FloatingTextToolbar(
+                visualSelection,
+                interactiveScope.requireComponentLayout(),
+                visualCursorRect,
+                sourceText,
+                sourceSelection,
+                sourceCursor
+            )
+        }
 
-                val handleInput = LocalInteractiveInputHandler.current
-                AutocompletePopup(
-                    visualCursorRect,
-                    emojiSuggestions,
-                    onClick = { clickedItem ->
-                        val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
-                        handleInput(Type(emojiTag.remainingText(contextWord)))
-                        interactiveScope.focusRequester.requestFocus()
-                    }
-                ) { emoji ->
-                    Text(emoji.annotatedString)
-                    Spacer(Modifier.width(3.dp))
-                    Text(":${emoji.shortcut}:")
-                }
-
+        val handleInput = LocalInteractiveInputHandler.current
+        AutocompletePopup(
+            visualCursorRect,
+            emojiSuggestions,
+            onClick = { clickedItem ->
+                val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
+                handleInput(Type(emojiTag.remainingText(contextWord)))
+                interactiveScope.focusRequester.requestFocus()
             }
-
+        ) { emoji ->
+            Text(emoji.annotatedString)
+            Spacer(Modifier.width(3.dp))
+            Text(":${emoji.shortcut}:")
         }
     }
     LaunchedEffect(sourceCursorRequest) {
@@ -147,10 +137,12 @@ fun MarkdownEditor(
                     clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
                     sourceEditor
                 }
+
                 Cut -> {
                     clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
                     sourceEditor.deleteSelection()
                 }
+
                 Paste -> sourceEditor.type(clipboardManager.getText()?.text ?: "")
                 is Delete -> {
                     when (textInputCommand.size) {
@@ -199,32 +191,6 @@ fun MarkdownEditor(
                 onChange(editedSourceEditor.sourceText, editedUndoManager)
             }
         }
-    }
-}
-
-@Composable
-private fun WithOptionalSourceView(
-    showSource: Boolean,
-    sourceText: String,
-    sourceCursor: Int?,
-    modifier: Modifier,
-    content: @Composable (Modifier) -> Unit
-) {
-    if (showSource) {
-        Row(modifier) {
-            content(Modifier.weight(0.5f))
-            val debuggingCursor = sourceCursor ?: 0
-            BasicTextField(
-                value = TextFieldValue(
-                    text = sourceText,
-                    selection = TextRange(debuggingCursor, debuggingCursor + 1)
-                ),
-                onValueChange = {},
-                modifier = Modifier.weight(0.5f)
-            )
-        }
-    } else {
-        content(modifier)
     }
 }
 

@@ -45,13 +45,13 @@ fun App() {
                 sourceText = markdownSource,
                 interactiveScope = interactiveScope,
                 undoManager = undoManager,
-                showSource = true,
                 documentTheme = documentTheme,
                 onChange = { newSource, newUndoManager ->
                     markdownSource = newSource
                     undoManager = newUndoManager
                 }
             ) {
+                // TODO: implement proper WYSIWYG / source / both modes.
                 MarkdownView(
                     sourceText = markdownSource,
                     basePath = Path("markdown-editor/src/jvmMain/resources"),

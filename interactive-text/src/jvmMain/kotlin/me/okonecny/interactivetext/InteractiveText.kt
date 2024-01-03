@@ -2,7 +2,6 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.material.LocalTextStyle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -17,7 +16,7 @@ import androidx.compose.ui.text.TextStyle
 fun InteractiveText(
     text: AnnotatedString,
     textMapping: TextMapping,
-    style: TextStyle = LocalTextStyle.current,
+    style: TextStyle,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
@@ -115,7 +114,7 @@ private fun Modifier.paintSelection(
 fun InteractiveText(
     text: String,
     textMapping: TextMapping,
-    style: TextStyle = LocalTextStyle.current,
+    style: TextStyle,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     userData: UserData = UserData.empty,

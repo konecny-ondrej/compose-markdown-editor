@@ -1,8 +1,8 @@
 package me.okonecny.interactivetext
 
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -11,7 +11,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 
 
 @Composable
@@ -22,7 +21,6 @@ fun InteractiveText(
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
-    textAlign: TextAlign? = null,
     userData: UserData = UserData.empty,
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
@@ -63,7 +61,7 @@ fun InteractiveText(
         }
     }
 
-    Text( // TODO: use BasicText?
+    BasicText(
         text = text,
         style = style,
         modifier = modifier.then(interactiveModifier).annotationClickDetector(
@@ -71,7 +69,6 @@ fun InteractiveText(
             activeAnnotationTags,
             onClick = onAnnotationCLick
         ),
-        textAlign = textAlign,
         inlineContent = inlineContent,
         onTextLayout = { layoutResult: TextLayoutResult ->
             textLayoutResult = layoutResult
@@ -121,7 +118,6 @@ fun InteractiveText(
     style: TextStyle = LocalTextStyle.current,
     selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
-    textAlign: TextAlign? = null,
     userData: UserData = UserData.empty,
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
@@ -132,7 +128,6 @@ fun InteractiveText(
     selectionStyle,
     modifier,
     mapOf(),
-    textAlign,
     userData,
     activeAnnotationTags,
     onAnnotationCLick

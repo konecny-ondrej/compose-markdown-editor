@@ -3,9 +3,7 @@ package me.okonecny.whodoes
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -17,6 +15,8 @@ import me.okonecny.markdowneditor.MarkdownView
 import me.okonecny.markdowneditor.UndoManager
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
+import org.jetbrains.jewel.ui.component.DefaultButton
+import org.jetbrains.jewel.ui.component.Text
 import kotlin.io.path.Path
 
 @Composable
@@ -33,7 +33,7 @@ fun App() {
 
     MaterialTheme {
         Column {
-            Button(onClick = {
+            DefaultButton(onClick = {
                 isLong = !isLong
             }) {
                 Text(if (isLong) "GFM Spec" else "Short demo")

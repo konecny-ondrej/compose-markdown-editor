@@ -64,7 +64,6 @@ fun InteractiveContainer(
                     false
                 }
                 .textInput(onInput = onInput)
-            // TODO: select word on double click
         }
         Box(modifier = interactiveModifier.then(modifier)) {
             interactiveContent()

@@ -8,13 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.useResource
-import me.okonecny.interactivetext.rememberInteractiveScope
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.MarkdownView
-import me.okonecny.markdowneditor.UndoManager
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
+import me.okonecny.markdowneditor.rememberMarkdownEditorState
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
 import kotlin.io.path.Path
@@ -26,10 +25,11 @@ fun App() {
     val shortFilename = "/short.md"
     val longFilename = "/gfmSpec.md"
     val filename = if (isLong) longFilename else shortFilename
-    var markdownSource by mutableStateOf(useResource(filename) { md ->
+    val markdownSource by mutableStateOf(useResource(filename) { md ->
         md.bufferedReader().readText()
     })
-    val interactiveScope = rememberInteractiveScope()
+
+    var editorState by rememberMarkdownEditorState(markdownSource, filename)
 
     MaterialTheme {
         Column {
@@ -40,21 +40,22 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
-            var undoManager by remember(filename) { mutableStateOf(UndoManager()) }
             MarkdownEditor(
-                sourceText = markdownSource,
-                interactiveScope = interactiveScope,
-                undoManager = undoManager,
+                sourceText = editorState.sourceText,
+                interactiveScope = editorState.interactiveScope,
+                undoManager = editorState.undoManager,
                 documentTheme = documentTheme,
                 onChange = { newSource, newUndoManager ->
-                    markdownSource = newSource
-                    undoManager = newUndoManager
+                    editorState = editorState.copy(
+                        sourceText = newSource,
+                        undoManager = newUndoManager
+                    )
                 }
             ) {
                 // TODO: implement proper WYSIWYG / source / both modes.
                 WysiwygView {
                     MarkdownView(
-                        sourceText = markdownSource,
+                        sourceText = editorState.sourceText,
                         basePath = Path("markdown-editor/src/jvmMain/resources"),
                         modifier = Modifier.fillMaxSize(1f),
                         documentTheme = documentTheme,

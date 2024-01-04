@@ -219,6 +219,8 @@ private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentL
     return CursorPosition(componentAtCursor.id, visualOffset)
 }
 
+// region dsl
+
 interface MarkdownEditorScope {
     @Composable
     fun WysiwygView(view: @Composable () -> Unit)
@@ -235,4 +237,21 @@ private class MarkdownEditorScopeImpl : MarkdownEditorScope {
     override fun WysiwygView(view: @Composable () -> Unit) {
         this.view = view
     }
+}
+
+// endregion dsl
+
+data class MarkdownEditorState(
+    val sourceText: String,
+    val interactiveScope: InteractiveScope = InteractiveScope(),
+    val undoManager: UndoManager = UndoManager()
+)
+
+@Composable
+fun rememberMarkdownEditorState(initialSourceText: String, vararg keys: Any?) = remember(keys) {
+    mutableStateOf(
+        MarkdownEditorState(
+            sourceText = initialSourceText
+        )
+    )
 }

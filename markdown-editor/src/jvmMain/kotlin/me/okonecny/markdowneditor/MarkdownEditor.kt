@@ -222,6 +222,9 @@ private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentL
 interface MarkdownEditorScope {
     @Composable
     fun WysiwygView(view: @Composable () -> Unit)
+
+    // TODO: add Toolbar
+    // TODO: add SourceView?
 }
 
 private class MarkdownEditorScopeImpl : MarkdownEditorScope {

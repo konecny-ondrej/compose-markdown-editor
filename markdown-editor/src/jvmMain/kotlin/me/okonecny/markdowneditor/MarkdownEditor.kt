@@ -31,7 +31,7 @@ fun MarkdownEditor(
     modifier: Modifier = Modifier,
     documentTheme: DocumentTheme = DocumentTheme.default,
     onChange: (String, UndoManager) -> Unit,
-    view: @Composable () -> Unit
+    components: @Composable MarkdownEditorScope.() -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
@@ -86,7 +86,9 @@ fun MarkdownEditor(
         },
         onInput = inputQueue::add
     ) {
-        view()
+        val editorScope = MarkdownEditorScopeImpl()
+        editorScope.components()
+        editorScope.view!!()
         if (interactiveScope.isPlaced) {
             FloatingTextToolbar(
                 visualSelection,
@@ -215,4 +217,19 @@ private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentL
         }
     }
     return CursorPosition(componentAtCursor.id, visualOffset)
+}
+
+interface MarkdownEditorScope {
+    @Composable
+    fun WysiwygView(view: @Composable () -> Unit)
+}
+
+private class MarkdownEditorScopeImpl : MarkdownEditorScope {
+    var view: @Composable (() -> Unit)? = null
+        get() = if (field == null) throw IllegalStateException("You must set the View for the editor.") else field
+
+    @Composable
+    override fun WysiwygView(view: @Composable () -> Unit) {
+        this.view = view
+    }
 }

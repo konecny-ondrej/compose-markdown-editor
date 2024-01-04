@@ -52,15 +52,17 @@ fun App() {
                 }
             ) {
                 // TODO: implement proper WYSIWYG / source / both modes.
-                MarkdownView(
-                    sourceText = markdownSource,
-                    basePath = Path("markdown-editor/src/jvmMain/resources"),
-                    modifier = Modifier.fillMaxSize(1f),
-                    documentTheme = documentTheme,
-                    scrollable = true,
-                    codeFenceRenderers = listOf(ExampleRenderer()),
-                    linkHandlers = listOf(WebLink(LocalUriHandler.current))
-                )
+                WysiwygView {
+                    MarkdownView(
+                        sourceText = markdownSource,
+                        basePath = Path("markdown-editor/src/jvmMain/resources"),
+                        modifier = Modifier.fillMaxSize(1f),
+                        documentTheme = documentTheme,
+                        scrollable = true,
+                        codeFenceRenderers = listOf(ExampleRenderer()),
+                        linkHandlers = listOf(WebLink(LocalUriHandler.current))
+                    )
+                }
             }
         }
     }

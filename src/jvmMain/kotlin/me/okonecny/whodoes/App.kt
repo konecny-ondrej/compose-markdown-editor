@@ -41,15 +41,10 @@ fun App() {
 
             val documentTheme = DocumentTheme.default
             MarkdownEditor(
-                sourceText = editorState.sourceText,
-                interactiveScope = editorState.interactiveScope,
-                undoManager = editorState.undoManager,
+                editorState = editorState,
                 documentTheme = documentTheme,
-                onChange = { newSource, newUndoManager ->
-                    editorState = editorState.copy(
-                        sourceText = newSource,
-                        undoManager = newUndoManager
-                    )
+                onChange = { newEditorState ->
+                    editorState = newEditorState
                 }
             ) {
                 // TODO: implement proper WYSIWYG / source / both modes.

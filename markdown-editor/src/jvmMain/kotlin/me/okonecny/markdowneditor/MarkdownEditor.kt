@@ -25,18 +25,23 @@ import kotlin.math.abs
  */
 @Composable
 fun MarkdownEditor(
-    sourceText: String,
-    interactiveScope: InteractiveScope,
-    undoManager: UndoManager = remember { UndoManager() },
+    editorState: MarkdownEditorState,
     modifier: Modifier = Modifier,
     documentTheme: DocumentTheme = DocumentTheme.default,
-    onChange: (String, UndoManager) -> Unit,
+    onChange: (MarkdownEditorState) -> Unit,
     components: @Composable MarkdownEditorScope.() -> Unit
 ) {
+    val (
+        sourceText,
+        interactiveScope,
+        undoManager
+    ) = editorState
+
     val clipboardManager = LocalClipboardManager.current
+
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
-    var visualCursor: CursorPosition by interactiveScope.cursorPosition
+    var visualCursor: CursorPosition by interactiveScope.cursorPosition // TODO: rename cursorPosition to visualCursor?
     val visualCursorRect: Rect? by remember(interactiveScope, visualCursor) {
         derivedStateOf {
             if (interactiveScope.isPlaced && visualCursor.isValid) {
@@ -46,9 +51,12 @@ fun MarkdownEditor(
             }
         }
     }
-    var visualSelection: Selection by interactiveScope.selection
-    var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) }
-    val sourceSelection: TextRange by remember(interactiveScope, interactiveScope.isPlaced) {
+    var visualSelection: Selection by interactiveScope.selection // TODO: rename to visualSelection?
+    var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) } // TODO: make part of MarkdownEditorState?
+    val sourceSelection: TextRange by remember(
+        interactiveScope,
+        interactiveScope.isPlaced
+    ) { // TODO: make part of MarkdownEditorState?
         derivedStateOf {
             if (interactiveScope.isPlaced) {
                 visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
@@ -190,7 +198,12 @@ fun MarkdownEditor(
                 sourceCursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor
                 }
-                onChange(editedSourceEditor.sourceText, editedUndoManager)
+                onChange(
+                    editorState.copy(
+                        sourceText = editedSourceEditor.sourceText,
+                        undoManager = editedUndoManager
+                    )
+                )
             }
         }
     }

@@ -41,15 +41,7 @@ fun MarkdownEditor(
 
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
-    val visualCursorRect: Rect? by remember(interactiveScope, editorState.visualCursor) {
-        derivedStateOf {
-            if (interactiveScope.isPlaced && editorState.visualCursor.isValid) {
-                editorState.visualCursor.visualRect(interactiveScope.requireComponentLayout())
-            } else {
-                null
-            }
-        }
-    }
+
     var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) } // TODO: make part of MarkdownEditorState?
     val sourceSelection: TextRange by remember(
         interactiveScope,
@@ -99,7 +91,7 @@ fun MarkdownEditor(
             FloatingTextToolbar(
                 editorState.visualSelection,
                 interactiveScope.requireComponentLayout(),
-                visualCursorRect,
+                editorState.visualCursorRect,
                 sourceText,
                 sourceSelection,
                 sourceCursor
@@ -108,7 +100,7 @@ fun MarkdownEditor(
 
         val handleInput = LocalInteractiveInputHandler.current
         AutocompletePopup(
-            visualCursorRect,
+            editorState.visualCursorRect,
             emojiSuggestions,
             onClick = { clickedItem ->
                 val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
@@ -259,6 +251,13 @@ data class MarkdownEditorState(
 ) {
     var visualCursor by interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
     var visualSelection by interactiveScope.selection
+    val visualCursorRect: Rect?
+        get() =
+            if (interactiveScope.isPlaced && visualCursor.isValid) {
+                visualCursor.visualRect(interactiveScope.requireComponentLayout())
+            } else {
+                null
+            }
 }
 
 @Composable

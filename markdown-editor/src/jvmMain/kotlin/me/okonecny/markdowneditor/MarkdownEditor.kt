@@ -43,18 +43,7 @@ fun MarkdownEditor(
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
 
     var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) } // TODO: make part of MarkdownEditorState?
-    val sourceSelection: TextRange by remember(
-        interactiveScope,
-        interactiveScope.isPlaced
-    ) { // TODO: make part of MarkdownEditorState?
-        derivedStateOf {
-            if (interactiveScope.isPlaced) {
-                editorState.visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
-            } else {
-                TextRange.Zero
-            }
-        }
-    }
+
 
     val contextWord: String = remember(sourceCursor) {
         sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
@@ -93,7 +82,7 @@ fun MarkdownEditor(
                 interactiveScope.requireComponentLayout(),
                 editorState.visualCursorRect,
                 sourceText,
-                sourceSelection,
+                editorState.sourceSelection,
                 sourceCursor
             )
         }
@@ -129,7 +118,7 @@ fun MarkdownEditor(
         for (i in inputQueue.lastIndex downTo 0) {
             val textInputCommand = inputQueue.removeAt(i)
             if (!editorState.visualCursor.isValid && textInputCommand.needsValidCursor) break
-            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, sourceSelection)
+            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, editorState.sourceSelection)
 
             var editedUndoManager = undoManager
             val editedSourceEditor = when (textInputCommand) {
@@ -257,6 +246,13 @@ data class MarkdownEditorState(
                 visualCursor.visualRect(interactiveScope.requireComponentLayout())
             } else {
                 null
+            }
+    val sourceSelection: TextRange
+        get() =
+            if (interactiveScope.isPlaced) {
+                visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
+            } else {
+                TextRange.Zero
             }
 }
 

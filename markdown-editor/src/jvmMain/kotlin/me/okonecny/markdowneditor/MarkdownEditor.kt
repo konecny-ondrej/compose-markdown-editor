@@ -41,17 +41,15 @@ fun MarkdownEditor(
 
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
     var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
-    var visualCursor: CursorPosition by interactiveScope.cursorPosition // TODO: rename cursorPosition to visualCursor?
-    val visualCursorRect: Rect? by remember(interactiveScope, visualCursor) {
+    val visualCursorRect: Rect? by remember(interactiveScope, editorState.visualCursor) {
         derivedStateOf {
-            if (interactiveScope.isPlaced && visualCursor.isValid) {
-                visualCursor.visualRect(interactiveScope.requireComponentLayout())
+            if (interactiveScope.isPlaced && editorState.visualCursor.isValid) {
+                editorState.visualCursor.visualRect(interactiveScope.requireComponentLayout())
             } else {
                 null
             }
         }
     }
-    var visualSelection: Selection by interactiveScope.selection // TODO: rename to visualSelection?
     var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) } // TODO: make part of MarkdownEditorState?
     val sourceSelection: TextRange by remember(
         interactiveScope,
@@ -59,7 +57,7 @@ fun MarkdownEditor(
     ) { // TODO: make part of MarkdownEditorState?
         derivedStateOf {
             if (interactiveScope.isPlaced) {
-                visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
+                editorState.visualSelection.computeSourceSelection(interactiveScope.requireComponentLayout())
             } else {
                 TextRange.Zero
             }
@@ -86,7 +84,7 @@ fun MarkdownEditor(
         selectionStyle = documentTheme.styles.selection,
         modifier = modifier,
         onCursorMovement = { newVisualCursor ->
-            visualCursor = newVisualCursor
+            editorState.visualCursor = newVisualCursor
             if (!newVisualCursor.isValid) return@InteractiveContainer
             val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
             val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
@@ -99,7 +97,7 @@ fun MarkdownEditor(
         editorScope.view!!()
         if (interactiveScope.isPlaced) {
             FloatingTextToolbar(
-                visualSelection,
+                editorState.visualSelection,
                 interactiveScope.requireComponentLayout(),
                 visualCursorRect,
                 sourceText,
@@ -128,7 +126,7 @@ fun MarkdownEditor(
             sourceCursorRequest?.apply {
                 invoke()
                 sourceCursorRequest = null
-                visualCursor = computeVisualCursor(
+                editorState.visualCursor = computeVisualCursor(
                     sourceCursor ?: return@apply,
                     interactiveScope.requireComponentLayout()
                 )
@@ -138,7 +136,7 @@ fun MarkdownEditor(
     LaunchedEffect(inputQueue.size) {
         for (i in inputQueue.lastIndex downTo 0) {
             val textInputCommand = inputQueue.removeAt(i)
-            if (!visualCursor.isValid && textInputCommand.needsValidCursor) break
+            if (!editorState.visualCursor.isValid && textInputCommand.needsValidCursor) break
             val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, sourceSelection)
 
             var editedUndoManager = undoManager
@@ -194,7 +192,7 @@ fun MarkdownEditor(
                 editedUndoManager = editedUndoManager.add(editedSourceEditor)
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
-                visualSelection = Selection.empty
+                editorState.visualSelection = Selection.empty
                 sourceCursorRequest = {
                     sourceCursor = editedSourceEditor.sourceCursor
                 }
@@ -258,7 +256,10 @@ data class MarkdownEditorState(
     val sourceText: String,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager = UndoManager()
-)
+) {
+    var visualCursor by interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
+    var visualSelection by interactiveScope.selection
+}
 
 @Composable
 fun rememberMarkdownEditorState(initialSourceText: String, vararg keys: Any?) = remember(keys) {

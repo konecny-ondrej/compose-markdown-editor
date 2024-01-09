@@ -34,16 +34,13 @@ fun MarkdownEditor(
     val (
         sourceText,
         interactiveScope,
-        undoManager
+        undoManager,
+        sourceCursor,
+        sourceCursorRequest
     ) = editorState
 
     val clipboardManager = LocalClipboardManager.current
-
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
-    var sourceCursorRequest: (() -> Unit)? by remember { mutableStateOf(null) }
-
-    var sourceCursor: Int? by remember(interactiveScope) { mutableStateOf(null) } // TODO: make part of MarkdownEditorState?
-
 
     val contextWord: String = remember(sourceCursor) {
         sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
@@ -69,7 +66,7 @@ fun MarkdownEditor(
             if (!newVisualCursor.isValid) return@InteractiveContainer
             val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
             val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
-            sourceCursor = newSourceCursor?.start
+            onChange(editorState.copy(sourceCursor = newSourceCursor?.start))
         },
         onInput = inputQueue::add
     ) {
@@ -105,11 +102,15 @@ fun MarkdownEditor(
     LaunchedEffect(sourceCursorRequest) {
         if (interactiveScope.isPlaced) {
             sourceCursorRequest?.apply {
-                invoke()
-                sourceCursorRequest = null
                 editorState.visualCursor = computeVisualCursor(
-                    sourceCursor ?: return@apply,
+                    this,
                     interactiveScope.requireComponentLayout()
+                )
+                onChange(
+                    editorState.copy(
+                        sourceCursor = sourceCursorRequest,
+                        sourceCursorRequest = null
+                    )
                 )
             }
         }
@@ -174,13 +175,12 @@ fun MarkdownEditor(
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
                 editorState.visualSelection = Selection.empty
-                sourceCursorRequest = {
-                    sourceCursor = editedSourceEditor.sourceCursor
-                }
                 onChange(
                     editorState.copy(
                         sourceText = editedSourceEditor.sourceText,
-                        undoManager = editedUndoManager
+                        undoManager = editedUndoManager,
+                        sourceCursor = null,
+                        sourceCursorRequest = editedSourceEditor.sourceCursor
                     )
                 )
             }
@@ -236,7 +236,9 @@ private class MarkdownEditorScopeImpl : MarkdownEditorScope {
 data class MarkdownEditorState(
     val sourceText: String,
     val interactiveScope: InteractiveScope = InteractiveScope(),
-    val undoManager: UndoManager = UndoManager()
+    val undoManager: UndoManager = UndoManager(),
+    val sourceCursor: Int? = null,
+    val sourceCursorRequest: Int? = null
 ) {
     var visualCursor by interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
     var visualSelection by interactiveScope.selection

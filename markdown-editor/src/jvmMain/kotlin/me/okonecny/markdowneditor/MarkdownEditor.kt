@@ -38,13 +38,11 @@ fun MarkdownEditor(
         sourceCursor,
         sourceCursorRequest
     ) = editorState
+    val contextWord = editorState.contextWord
 
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
 
-    val contextWord: String = remember(sourceCursor) {
-        sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
-    }
     val emojiSuggestions by remember(contextWord) {
         derivedStateOf {
             if (!contextWord.isMaybeEmojiStart()) return@derivedStateOf emptyList()
@@ -256,6 +254,9 @@ data class MarkdownEditorState(
             } else {
                 TextRange.Zero
             }
+    val contextWord: String by lazy {
+        sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
+    }
 }
 
 @Composable

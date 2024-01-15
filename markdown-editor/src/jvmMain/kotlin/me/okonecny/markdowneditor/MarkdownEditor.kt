@@ -43,18 +43,6 @@ fun MarkdownEditor(
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
 
-    val emojiSuggestions by remember(contextWord) {
-        derivedStateOf {
-            if (!contextWord.isMaybeEmojiStart()) return@derivedStateOf emptyList()
-            val emojiNamePrefix = contextWord.substring(1)
-            if (emojiNamePrefix.isEmpty()) return@derivedStateOf emptyList()
-            EmojiReference.getEmojiList()
-                .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
-                .filter { it.unicodeString.isNotEmpty() }
-                .take(5)
-        }
-    }
-
     InteractiveContainer(
         scope = interactiveScope,
         selectionStyle = documentTheme.styles.selection,
@@ -85,7 +73,7 @@ fun MarkdownEditor(
         val handleInput = LocalInteractiveInputHandler.current
         AutocompletePopup(
             editorState.visualCursorRect,
-            emojiSuggestions,
+            editorState.emojiSuggestions,
             onClick = { clickedItem ->
                 val emojiTag = ":" + clickedItem.shortcut + ":"
                 handleInput(Type(emojiTag.remainingText(contextWord)))
@@ -254,7 +242,18 @@ data class MarkdownEditorState(
             } else {
                 TextRange.Zero
             }
-    val contextWord: String get() = (sourceCursor ?: sourceCursorRequest)?.let { sourceText.wordBefore(it) } ?: ""
+    val contextWord: String by lazy {
+        (sourceCursor ?: sourceCursorRequest)?.let { sourceText.wordBefore(it) } ?: ""
+    }
+    val emojiSuggestions by lazy { // TODO: more suggestion types than just emoji.
+        if (!contextWord.isMaybeEmojiStart()) return@lazy emptyList()
+        val emojiNamePrefix = contextWord.substring(1)
+        if (emojiNamePrefix.isEmpty()) return@lazy emptyList()
+        EmojiReference.getEmojiList()
+            .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
+            .filter { it.unicodeString.isNotEmpty() }
+            .take(5)
+    }
 }
 
 @Composable

@@ -3,6 +3,7 @@ val kotlinJvmTarget: String by project
 val kermitVersion: String by project
 val ktorVersion: String by project
 val flexmarkVersion: String by project
+val jewelVersion: String by project
 
 plugins {
     kotlin("multiplatform")
@@ -15,6 +16,7 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://packages.jetbrains.team/maven/p/kpm/public/")
 }
 
 kotlin {
@@ -39,6 +41,7 @@ kotlin {
                 api(compose.desktop.currentOs)
                 api(project(":interactive-text"))
                 implementation("me.tatarka.inject:kotlin-inject-runtime:$kotlinInjectVersion")
+                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.ktor:ktor-client-logging:$ktorVersion")

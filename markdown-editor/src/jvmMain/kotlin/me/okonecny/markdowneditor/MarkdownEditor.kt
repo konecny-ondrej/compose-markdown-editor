@@ -87,7 +87,7 @@ fun MarkdownEditor(
             editorState.visualCursorRect,
             emojiSuggestions,
             onClick = { clickedItem ->
-                val emojiTag = ":" + emojiSuggestions[clickedItem].shortcut + ":"
+                val emojiTag = ":" + clickedItem.shortcut + ":"
                 handleInput(Type(emojiTag.remainingText(contextWord)))
                 interactiveScope.focusRequester.requestFocus()
             }
@@ -254,9 +254,7 @@ data class MarkdownEditorState(
             } else {
                 TextRange.Zero
             }
-    val contextWord: String by lazy {
-        sourceCursor?.let { sourceText.wordBefore(it) } ?: ""
-    }
+    val contextWord: String get() = (sourceCursor ?: sourceCursorRequest)?.let { sourceText.wordBefore(it) } ?: ""
 }
 
 @Composable

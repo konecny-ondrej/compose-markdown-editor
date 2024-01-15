@@ -1,53 +1,43 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.DropdownMenuState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.textInput
+import org.jetbrains.jewel.ui.component.PopupMenu
 
 @Composable
 internal fun <T> AutocompletePopup(
     visualCursorRect: Rect?,
     suggestions: List<T>,
-    onClick: (clickedItem: Int) -> Unit = {},
+    onClick: (clickedItem: T) -> Unit = {},
     renderItem: @Composable RowScope.(T) -> Unit
 ) {
     if (visualCursorRect == null) return
     if (suggestions.isEmpty()) return
+    var dismissed by remember(suggestions) { mutableStateOf(false) }
+    if (dismissed) return
 
-    val focusRequester = remember { FocusRequester() }
     Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
-        DropdownMenu(
-            state = remember {
-                DropdownMenuState(DropdownMenuState.Status.Open(Offset.Zero))
-            },
-            focusable = true,
-            modifier = Modifier
-                .focusRequester(focusRequester)
-                .textInput(LocalInteractiveInputHandler.current)
+        PopupMenu(
+            onDismissRequest = { _ -> dismissed = true; true },
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.textInput(LocalInteractiveInputHandler.current)
         ) {
-            suggestions.forEachIndexed { index, item ->
-                DropdownMenuItem(
-                    onClick = { onClick(index) }
+            suggestions.forEachIndexed { index, suggestion ->
+                selectableItem(
+                    selected = index == 0,
+                    onClick = { onClick(suggestion) }
                 ) {
-                    this.renderItem(item)
+                    Row { renderItem(suggestion) }
                 }
-            }
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
             }
         }
     }
@@ -89,7 +79,7 @@ fun String.wordRangeAt(pos: Int): IntRange {
 
 fun String.isSurroundedBy(range: IntRange, left: String, right: String = left.reversed()): Boolean {
     val leftRange = IntRange(range.first - left.length, range.first - 1)
-    val rightRange = IntRange(range.last + 1, range.last  + right.length)
+    val rightRange = IntRange(range.last + 1, range.last + right.length)
     if (leftRange.first < 0 || rightRange.last > lastIndex) return false
     return substring(leftRange) == left && substring(rightRange) == right
 }

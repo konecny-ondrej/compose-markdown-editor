@@ -1,20 +1,13 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.unit.dp
-import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import me.okonecny.interactivetext.*
-import me.okonecny.markdowneditor.inline.annotatedString
-import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
-import me.okonecny.markdowneditor.inline.unicodeString
+import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.interactive.computeSourceSelection
 import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
 import kotlin.math.abs
@@ -28,6 +21,7 @@ fun MarkdownEditor(
     editorState: MarkdownEditorState,
     modifier: Modifier = Modifier,
     documentTheme: DocumentTheme = DocumentTheme.default,
+    autocompletePlugins: List<AutocompletePlugin> = listOf(EmojiAutocompletePlugin()),
     onChange: (MarkdownEditorState) -> Unit,
     components: @Composable MarkdownEditorScope.() -> Unit
 ) {
@@ -38,7 +32,6 @@ fun MarkdownEditor(
         sourceCursor,
         sourceCursorRequest
     ) = editorState
-    val contextWord = editorState.contextWord
 
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
@@ -70,20 +63,10 @@ fun MarkdownEditor(
             )
         }
 
-        val handleInput = LocalInteractiveInputHandler.current
         AutocompletePopup(
-            editorState.visualCursorRect,
-            editorState.emojiSuggestions,
-            onClick = { clickedItem ->
-                val emojiTag = ":" + clickedItem.shortcut + ":"
-                handleInput(Type(emojiTag.remainingText(contextWord)))
-                interactiveScope.focusRequester.requestFocus()
-            }
-        ) { emoji ->
-            Text(emoji.annotatedString)
-            Spacer(Modifier.width(3.dp))
-            Text(":${emoji.shortcut}:")
-        }
+            editorState,
+            autocompletePlugins
+        )
     }
     LaunchedEffect(sourceCursorRequest) {
         if (interactiveScope.isPlaced) {
@@ -242,18 +225,6 @@ data class MarkdownEditorState(
             } else {
                 TextRange.Zero
             }
-    val contextWord: String by lazy {
-        (sourceCursor ?: sourceCursorRequest)?.let { sourceText.wordBefore(it) } ?: ""
-    }
-    val emojiSuggestions by lazy { // TODO: more suggestion types than just emoji.
-        if (!contextWord.isMaybeEmojiStart()) return@lazy emptyList()
-        val emojiNamePrefix = contextWord.substring(1)
-        if (emojiNamePrefix.isEmpty()) return@lazy emptyList()
-        EmojiReference.getEmojiList()
-            .filter { it.shortcut?.startsWith(emojiNamePrefix) ?: false }
-            .filter { it.unicodeString.isNotEmpty() }
-            .take(5)
-    }
 }
 
 @Composable

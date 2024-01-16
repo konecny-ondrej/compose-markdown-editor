@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.textInput
@@ -27,9 +28,16 @@ internal fun <T> AutocompletePopup(
 
     Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
         PopupMenu(
-            onDismissRequest = { _ -> dismissed = true; true },
+            onDismissRequest = { _ -> dismissed = true; false },
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier.textInput(LocalInteractiveInputHandler.current)
+            modifier = Modifier
+                .textInput(LocalInteractiveInputHandler.current)
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Escape) {
+                        dismissed = true
+                    }
+                    false
+                }
         ) {
             suggestions.forEachIndexed { index, suggestion ->
                 selectableItem(

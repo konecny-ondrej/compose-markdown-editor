@@ -8,9 +8,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.round
+import kotlinx.coroutines.delay
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.textInput
 import org.jetbrains.jewel.ui.component.PopupMenu
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun AutocompletePopup(
@@ -26,6 +28,19 @@ internal fun AutocompletePopup(
     if (suggestionsByPlugin.flatMap { it.value }.isEmpty()) return
     var dismissed by remember(editorState.sourceText) { mutableStateOf(false) }
     if (dismissed) return
+
+    /*
+     * Workaround for a bug in PopupMenu where it would crash the app when a key event is received just before the popup
+     * is shown. That happens quite often, because the autocomplete is shown in response to the "KEY_TYPED" event,
+     * where "KEY_UP" follows right after it.
+     * Both Jewel and Material 3 suffer from this issue.
+     */
+    var openMenu by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(200.milliseconds)
+        openMenu = true
+    }
+    if (!openMenu) return
 
     Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
         val handleInput = LocalInteractiveInputHandler.current

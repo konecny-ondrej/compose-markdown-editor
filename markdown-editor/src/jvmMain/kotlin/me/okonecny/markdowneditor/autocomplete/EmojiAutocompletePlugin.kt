@@ -7,16 +7,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import me.okonecny.interactivetext.Type
-import me.okonecny.markdowneditor.*
 import me.okonecny.markdowneditor.inline.annotatedString
 import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import me.okonecny.markdowneditor.inline.unicodeString
+import me.okonecny.wysiwyg.*
 import org.jetbrains.jewel.ui.component.Text
 
 class EmojiAutocompletePlugin : AutocompletePlugin {
     override val name: String = "Emoji"
 
-    override fun generateSuggestions(editorState: MarkdownEditorState): List<AutocompleteSuggestion> {
+    override fun generateSuggestions(editorState: WysiwygEditorState): List<AutocompleteSuggestion> {
         val contextWord = editorState.autocompleteContextWord
         if (!contextWord.isMaybeEmojiStart()) return emptyList()
         val emojiNamePrefix = contextWord.substring(1)

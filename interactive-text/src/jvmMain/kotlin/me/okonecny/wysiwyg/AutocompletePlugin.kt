@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.wysiwyg
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
@@ -15,7 +15,7 @@ interface AutocompletePlugin {
     /**
      * Generate the suggestions to show to the user.
      */
-    fun generateSuggestions(editorState: MarkdownEditorState): List<AutocompleteSuggestion>
+    fun generateSuggestions(editorState: WysiwygEditorState): List<AutocompleteSuggestion>
 }
 
 /**

@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.wysiwyg
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring

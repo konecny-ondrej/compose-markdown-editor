@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.wysiwyg
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun AutocompletePopup(
-    editorState: MarkdownEditorState,
+    editorState: WysiwygEditorState,
     plugins: List<AutocompletePlugin>
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return
@@ -86,7 +86,7 @@ internal fun AutocompletePopup(
     }
 }
 
-val MarkdownEditorState.autocompleteContextWord: String
+val WysiwygEditorState.autocompleteContextWord: String
     get() = (sourceCursor ?: sourceCursorRequest)?.let { cursor ->
         sourceText.wordBefore(cursor)
     } ?: ""

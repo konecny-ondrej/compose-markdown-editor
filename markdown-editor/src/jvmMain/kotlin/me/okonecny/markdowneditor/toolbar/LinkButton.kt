@@ -17,7 +17,7 @@ import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
-import me.okonecny.markdowneditor.wordRangeAt
+import me.okonecny.wysiwyg.wordRangeAt
 
 @Composable
 internal fun LinkButton(

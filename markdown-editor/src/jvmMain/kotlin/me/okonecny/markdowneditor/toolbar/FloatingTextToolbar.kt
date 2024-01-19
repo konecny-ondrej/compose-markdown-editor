@@ -20,21 +20,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
-import me.okonecny.markdowneditor.MarkdownEditorState
+import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 
 @Composable
 fun FloatingTextToolbar(
-    editorState: MarkdownEditorState
+    editorState: WysiwygEditorState
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return
-    if (editorState.sourceCursor == null) return
+    val sourceCursor = editorState.sourceCursor ?: return
 
     val visualSelection = editorState.visualSelection
     val componentLayout = editorState.interactiveScope.requireComponentLayout()
     val source = editorState.sourceText
     val sourceSelection = editorState.sourceSelection
-    val sourceCursor = editorState.sourceCursor
 
     MeasuringLayout(
         measuredContent = {

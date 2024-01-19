@@ -1,26 +1,11 @@
 package me.okonecny.markdowneditor.interactive
 
-import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.CursorPosition
-import me.okonecny.interactivetext.InteractiveComponent
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.onlyIncludedIndexes
 import me.okonecny.markdowneditor.flexmark.includingParents
-
-fun Selection.computeSourceSelection(
-    interactiveComponentLayout: InteractiveComponentLayout
-): TextRange {
-    if (isEmpty) return TextRange.Zero
-    val (startMapping, endMapping) = listOf(start.componentId, end.componentId)
-        .map(interactiveComponentLayout::getComponent)
-        .map(InteractiveComponent::textMapping)
-    return TextRange(
-        startMapping.toSource(TextRange(start.visualOffset))?.start ?: 0,
-        endMapping.toSource(TextRange(end.visualOffset))?.end ?: 0
-    )
-}
 
 fun Selection.spansMultipleLeafNodes(layout: InteractiveComponentLayout): Boolean {
     return touchedNodes(layout)

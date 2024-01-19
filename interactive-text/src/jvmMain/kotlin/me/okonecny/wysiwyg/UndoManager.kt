@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor
+package me.okonecny.wysiwyg
 
 data class UndoManager(
     val stack: List<SourceEditor> = emptyList(),

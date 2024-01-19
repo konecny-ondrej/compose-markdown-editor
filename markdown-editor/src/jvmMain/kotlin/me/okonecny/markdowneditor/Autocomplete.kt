@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,7 +12,11 @@ import androidx.compose.ui.unit.round
 import kotlinx.coroutines.delay
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.textInput
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.MenuItemState
 import org.jetbrains.jewel.ui.component.PopupMenu
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.theme.menuStyle
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -57,6 +62,13 @@ internal fun AutocompletePopup(
                 }
         ) {
             suggestionsByPlugin.entries.forEachIndexed { pluginIndex, (plugin, suggestions) ->
+                passiveItem {
+                    Text(
+                        text = plugin.name,
+                        modifier = Modifier.padding(JewelTheme.menuStyle.metrics.itemMetrics.contentPadding),
+                        color = JewelTheme.menuStyle.colors.itemColors.contentFor(MenuItemState.of(selected = false, enabled = false)).value
+                    )
+                }
                 suggestions.forEachIndexed { suggestionIndex, suggestion ->
                     selectableItem(
                         selected = pluginIndex == 0 && suggestionIndex == 0,

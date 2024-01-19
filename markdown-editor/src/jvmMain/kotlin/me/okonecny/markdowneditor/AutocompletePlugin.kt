@@ -9,6 +9,10 @@ import me.okonecny.interactivetext.TextInputCommand
  */
 interface AutocompletePlugin {
     /**
+     * Name of the plugin to be shown to the user in the autocomplete menu.
+     */
+    val name: String
+    /**
      * Generate the suggestions to show to the user.
      */
     fun generateSuggestions(editorState: MarkdownEditorState): List<AutocompleteSuggestion>

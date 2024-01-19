@@ -30,8 +30,8 @@ fun InteractiveText(
 
     if (interactiveScope != null) {
         val interactiveId = interactiveScope.rememberInteractiveId()
-        val cursorPosition by interactiveScope.cursorPosition
-        val selection by interactiveScope.selection
+        val cursorPosition = interactiveScope.cursorPosition
+        val selection = interactiveScope.selection
 
         interactiveModifier = Modifier
             .cursorLine(

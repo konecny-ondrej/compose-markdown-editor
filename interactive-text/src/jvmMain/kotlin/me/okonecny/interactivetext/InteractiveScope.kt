@@ -1,9 +1,10 @@
 package me.okonecny.interactivetext
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.LayoutCoordinates
 import java.util.concurrent.atomic.AtomicLong
@@ -14,16 +15,17 @@ internal const val firstInteractiveId: InteractiveId = 0
 internal const val invalidInteractiveId: InteractiveId = -1
 
 class InteractiveScope(
-    val cursorPosition: MutableState<CursorPosition> = mutableStateOf(CursorPosition.invalid),
-    val selection: MutableState<Selection> = mutableStateOf(Selection.empty),
     val focusRequester: FocusRequester = FocusRequester()
 ) {
+    var cursorPosition: CursorPosition by mutableStateOf(CursorPosition.invalid)
+    var selection: Selection by mutableStateOf(Selection.empty)
+
     private var componentLayout: InteractiveComponentLayout? = null
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
 
     val componentUnderCursor: InteractiveComponent?
-        get() = if (!isPlaced || !cursorPosition.value.isValid) null else {
-            getComponent(cursorPosition.value.componentId)
+        get() = if (!isPlaced || !cursorPosition.isValid) null else {
+            getComponent(cursorPosition.componentId)
         }
 
 
@@ -56,9 +58,9 @@ class InteractiveScope(
 
     fun unregister(componentId: InteractiveId) {
         componentLayout?.remove(componentId)
-        if (cursorPosition.value.componentId != componentId) return
-        cursorPosition.value = CursorPosition.invalid
-        selection.value = Selection.empty
+        if (cursorPosition.componentId != componentId) return
+        cursorPosition = CursorPosition.invalid
+        selection = Selection.empty
     }
 
     fun getComponent(id: InteractiveId): InteractiveComponent = requireComponentLayout().getComponent(id)

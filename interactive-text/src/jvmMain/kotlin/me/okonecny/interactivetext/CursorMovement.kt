@@ -2,7 +2,6 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
@@ -20,7 +19,7 @@ internal fun Modifier.keyboardCursorMovement(
     onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-    val oldPosition by scope.cursorPosition
+    val oldPosition = scope.cursorPosition
     if (!oldPosition.isValid) return@onKeyEvent false
     val newPosition = when (keyEvent.key) {
         Key.DirectionLeft -> {
@@ -59,7 +58,7 @@ internal fun Modifier.keyboardCursorMovement(
     }
     if (newPosition != oldPosition) {
         val newSelection = if (keyEvent.isShiftPressed) updateSelection(
-            scope.selection.value,
+            scope.selection,
             oldPosition,
             newPosition,
             scope.requireComponentLayout()
@@ -107,15 +106,18 @@ internal fun Modifier.pointerCursorMovement(
 
                 val wordStartCursorPosition = scope.moveCursorLeftByWord(clickedCursorPosition)
                 val wordEndCursorPosition = scope.moveCursorRightByWord(wordStartCursorPosition)
-                onCursorPositionChanged(wordEndCursorPosition, Selection(wordStartCursorPosition, wordEndCursorPosition))
+                onCursorPositionChanged(
+                    wordEndCursorPosition,
+                    Selection(wordStartCursorPosition, wordEndCursorPosition)
+                )
             }
         )
-    }.pointerInput(scope, onCursorPositionChanged) {
+    }.pointerInput(scope) {// FIXME! remembers old onCursorPositionChanged!
         detectDragGestures { change, _ ->
             val newCursorPosition = moveCursor(scope, change.position)
             val newSelection = updateSelection(
-                scope.selection.value,
-                scope.cursorPosition.value,
+                scope.selection,
+                scope.cursorPosition,
                 newCursorPosition,
                 scope.requireComponentLayout()
             )

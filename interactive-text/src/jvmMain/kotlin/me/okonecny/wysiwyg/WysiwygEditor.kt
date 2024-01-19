@@ -207,8 +207,17 @@ data class WysiwygEditorState(
     val sourceCursor: Int? = null,
     val sourceCursorRequest: Int? = null
 ) {
-    var visualCursor by interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
-    var visualSelection by interactiveScope.selection
+    var visualCursor
+        get() = interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
+        set(value) {
+            interactiveScope.cursorPosition = value
+        }
+    var visualSelection
+        get() = interactiveScope.selection
+        set(value) {
+            interactiveScope.selection = value
+        }
+
     val visualCursorRect: Rect?
         get() =
             if (interactiveScope.isPlaced && visualCursor.isValid) {

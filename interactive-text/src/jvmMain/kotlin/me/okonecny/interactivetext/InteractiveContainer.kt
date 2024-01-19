@@ -2,7 +2,10 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -29,7 +32,7 @@ fun InteractiveContainer(
     selectionStyle: TextStyle = defaultSelectionStyle,
     modifier: Modifier = Modifier,
     onInput: (TextInputCommand) -> Unit = {},
-    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition?.value = it },
+    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition = it },
     interactiveContent: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
@@ -41,7 +44,7 @@ fun InteractiveContainer(
             Modifier
         } else {
             val requester = scope.focusRequester
-            var selection by scope.selection
+
             Modifier
                 .focusRequester(requester)
                 .focusable()
@@ -49,17 +52,17 @@ fun InteractiveContainer(
                     scope.place(layoutCoordinates)
                 }
                 .keyboardCursorMovement(scope) { newCursorPosition, newSelection ->
-                    selection = newSelection
+                    scope.selection = newSelection
                     onCursorMovement(newCursorPosition)
                 }
                 .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
                     requester.requestFocus()
-                    selection = newSelection
+                    scope.selection = newSelection
                     onCursorMovement(newCursorPosition)
                 }
                 .onKeyEvent { keyEvent: KeyEvent ->
                     if (keyEvent.key == Key.Escape) {
-                        selection = Selection.empty
+                        scope.selection = Selection.empty
                     }
                     false
                 }

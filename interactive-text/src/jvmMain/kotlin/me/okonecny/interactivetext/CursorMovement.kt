@@ -95,7 +95,7 @@ internal fun Modifier.pointerCursorMovement(
     scope: InteractiveScope,
     onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier =
-    pointerInput(scope) {
+    pointerInput(scope, onCursorPositionChanged) {
         detectTapGestures(
             onPress = { position ->
                 val newCursorPosition = moveCursor(scope, position)
@@ -110,7 +110,7 @@ internal fun Modifier.pointerCursorMovement(
                 onCursorPositionChanged(wordEndCursorPosition, Selection(wordStartCursorPosition, wordEndCursorPosition))
             }
         )
-    }.pointerInput(scope) {
+    }.pointerInput(scope, onCursorPositionChanged) {
         detectDragGestures { change, _ ->
             val newCursorPosition = moveCursor(scope, change.position)
             val newSelection = updateSelection(

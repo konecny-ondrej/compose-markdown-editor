@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
@@ -21,19 +20,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
+import me.okonecny.markdowneditor.MarkdownEditorState
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 
 @Composable
 fun FloatingTextToolbar(
-    visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
-    visualCursorRect: Rect?,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int?
+    editorState: MarkdownEditorState
 ) {
-    if (visualCursorRect == null) return
-    if (sourceCursor == null) return
+    val visualCursorRect = editorState.visualCursorRect ?: return
+    if (editorState.sourceCursor == null) return
+
+    val visualSelection = editorState.visualSelection
+    val componentLayout = editorState.interactiveScope.requireComponentLayout()
+    val source = editorState.sourceText
+    val sourceSelection = editorState.sourceSelection
+    val sourceCursor = editorState.sourceCursor
 
     MeasuringLayout(
         measuredContent = {

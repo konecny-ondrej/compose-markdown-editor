@@ -9,7 +9,6 @@ import androidx.compose.ui.text.TextRange
 import me.okonecny.interactivetext.*
 import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.interactive.computeSourceSelection
-import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
 import kotlin.math.abs
 
 
@@ -52,16 +51,7 @@ fun MarkdownEditor(
         val editorScope = MarkdownEditorScopeImpl()
         editorScope.components()
         editorScope.view!!()
-        if (interactiveScope.isPlaced) {
-            FloatingTextToolbar(
-                editorState.visualSelection,
-                interactiveScope.requireComponentLayout(),
-                editorState.visualCursorRect,
-                sourceText,
-                editorState.sourceSelection,
-                sourceCursor
-            )
-        }
+        editorScope.floatingToolbar()
 
         AutocompletePopup(
             editorState,
@@ -186,17 +176,25 @@ interface MarkdownEditorScope {
     @Composable
     fun WysiwygView(view: @Composable () -> Unit)
 
-    // TODO: add Toolbar
+    @Composable
+    fun FloatingToolbar(toolbar: @Composable () -> Unit)
+
     // TODO: add SourceView?
 }
 
 private class MarkdownEditorScopeImpl : MarkdownEditorScope {
     var view: @Composable (() -> Unit)? = null
         get() = if (field == null) throw IllegalStateException("You must set the View for the editor.") else field
+    var floatingToolbar: @Composable () -> Unit = {}
 
     @Composable
     override fun WysiwygView(view: @Composable () -> Unit) {
         this.view = view
+    }
+
+    @Composable
+    override fun FloatingToolbar(toolbar: @Composable () -> Unit) {
+        this.floatingToolbar = toolbar
     }
 }
 

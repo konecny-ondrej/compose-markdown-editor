@@ -14,6 +14,7 @@ import me.okonecny.markdowneditor.MarkdownView
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.rememberMarkdownEditorState
+import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
 import kotlin.io.path.Path
@@ -58,6 +59,9 @@ fun App() {
                         codeFenceRenderers = listOf(ExampleRenderer()),
                         linkHandlers = listOf(WebLink(LocalUriHandler.current))
                     )
+                }
+                FloatingToolbar {
+                    FloatingTextToolbar(editorState)
                 }
             }
         }

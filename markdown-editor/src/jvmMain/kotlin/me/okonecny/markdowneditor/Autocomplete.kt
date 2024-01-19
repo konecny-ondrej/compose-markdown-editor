@@ -42,7 +42,7 @@ internal fun AutocompletePopup(
      */
     var openMenu by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(200.milliseconds)
+        delay(300.milliseconds)
         openMenu = true
     }
     if (!openMenu) return

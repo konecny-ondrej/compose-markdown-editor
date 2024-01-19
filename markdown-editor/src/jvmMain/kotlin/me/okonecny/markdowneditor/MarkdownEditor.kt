@@ -7,7 +7,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
-import me.okonecny.markdowneditor.toolbar.FloatingTextToolbar
+import me.okonecny.markdowneditor.toolbar.MarkdownFloatingToolbar
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.WysiwygEditor
@@ -38,7 +38,7 @@ fun MarkdownEditor(
             )
         }
         FloatingToolbar {
-            FloatingTextToolbar(editorState)
+            MarkdownFloatingToolbar(editorState)
         }
     }
 }

@@ -24,7 +24,7 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 
 @Composable
-fun FloatingTextToolbar(
+fun MarkdownFloatingToolbar(
     editorState: WysiwygEditorState
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return

@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.InteractiveComponentLayout
 import me.okonecny.interactivetext.Selection
-import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.markdowneditor.compose.MeasuringLayout
+import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 fun MarkdownFloatingToolbar(
@@ -31,7 +31,7 @@ fun MarkdownFloatingToolbar(
     val sourceCursor = editorState.sourceCursor ?: return
 
     val visualSelection = editorState.visualSelection
-    val componentLayout = editorState.interactiveScope.requireComponentLayout()
+    val componentLayout = editorState.interactiveScope.componentLayout
     val source = editorState.sourceText
     val sourceSelection = editorState.sourceSelection
 

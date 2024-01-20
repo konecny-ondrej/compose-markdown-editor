@@ -3,7 +3,6 @@ package me.okonecny.interactivetext
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -65,7 +64,7 @@ internal fun Modifier.keyboardCursorMovement(
             scope.selection,
             oldPosition,
             newPosition,
-            scope.requireComponentLayout()
+            scope.componentLayout
         ) else Selection.empty
         onCursorPositionChanged(newPosition, newSelection)
     }
@@ -76,7 +75,7 @@ private fun moveCursor(
     scope: InteractiveScope,
     position: Offset,
 ): CursorPosition {
-    val layout = scope.requireComponentLayout()
+    val layout = scope.componentLayout
     if (!layout.hasAnyComponents) return CursorPosition.invalid
 
     val tappedComponent = layout.componentAt(position)
@@ -124,7 +123,7 @@ internal fun Modifier.pointerCursorMovement(
                 scope.selection,
                 scope.cursorPosition,
                 newCursorPosition,
-                scope.requireComponentLayout()
+                scope.componentLayout
             )
             onCursorChangeCallback(newCursorPosition, newSelection)
         }
@@ -181,7 +180,7 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
-    val newComponent: InteractiveComponent = requireComponentLayout().componentPreviousOnLineFrom(oldComponent)
+    val newComponent: InteractiveComponent = componentLayout.componentPreviousOnLineFrom(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
@@ -195,7 +194,7 @@ fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPositio
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
-    val newComponent: InteractiveComponent = requireComponentLayout().componentNextOnLineTo(oldComponent)
+    val newComponent: InteractiveComponent = componentLayout.componentNextOnLineTo(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
@@ -214,7 +213,7 @@ fun InteractiveScope.moveCursorByWord(
     val stopChar = ' '
 
     while (prevPosition != newPosition) {
-        val component = requireComponentLayout().getComponent(newPosition.componentId)
+        val component = componentLayout.getComponent(newPosition.componentId)
         val text = component.textLayoutResult?.layoutInput?.text ?: stopChar.toString()
         val currentChar = text[newPosition.visualOffset.coerceAtMost(text.lastIndex)]
         if (currentChar == stopChar) break
@@ -229,7 +228,7 @@ fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition
     val lineCursorPosition = moveCursorByLine(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val componentLayout = requireComponentLayout()
+    val componentLayout = componentLayout
     val cursorVisualOffset = oldPosition.visualRect(componentLayout).center
     val componentBelow = componentLayout.componentBelow(cursorVisualOffset)
 
@@ -246,7 +245,7 @@ fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByLine(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val componentLayout = requireComponentLayout()
+    val componentLayout = componentLayout
     val cursorVisualOffset = oldPosition.visualRect(componentLayout).center
     val componentAbove = componentLayout.componentAbove(cursorVisualOffset)
 

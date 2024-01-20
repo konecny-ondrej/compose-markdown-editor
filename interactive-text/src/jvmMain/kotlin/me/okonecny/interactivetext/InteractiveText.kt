@@ -86,7 +86,7 @@ private fun Modifier.paintSelection(
     if (
         textLayoutResult == null
         || selection.isEmpty
-        || !interactiveScope.requireComponentLayout().isComponentBetween(
+        || !interactiveScope.componentLayout.isComponentBetween(
             interactiveId,
             selection.start.componentId,
             selection.end.componentId

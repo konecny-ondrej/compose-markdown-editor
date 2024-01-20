@@ -20,7 +20,12 @@ class InteractiveScope(
     var cursorPosition: CursorPosition by mutableStateOf(CursorPosition.invalid)
     var selection: Selection by mutableStateOf(Selection.empty)
 
-    private var componentLayout: InteractiveComponentLayout? = null
+    private var interactiveComponentLayout: InteractiveComponentLayout? = null
+    val componentLayout: InteractiveComponentLayout
+        get() = checkNotNull(interactiveComponentLayout) { "You must place the interactive scope first." }
+
+    val isPlaced: Boolean get() = interactiveComponentLayout != null
+
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
 
     val componentUnderCursor: InteractiveComponent?
@@ -43,26 +48,21 @@ class InteractiveScope(
             newId
         }
 
-    fun requireComponentLayout(): InteractiveComponentLayout =
-        componentLayout ?: throw IllegalStateException("You must place the interactive scope first.")
-
-    val isPlaced: Boolean get() = componentLayout != null
-
     internal fun place(containerLayoutCoordinates: LayoutCoordinates) {
-        componentLayout = InteractiveComponentLayout(containerLayoutCoordinates)
+        interactiveComponentLayout = InteractiveComponentLayout(containerLayoutCoordinates)
     }
 
     fun register(component: InteractiveComponent) {
-        requireComponentLayout().put(component)
+        componentLayout.put(component)
     }
 
     fun unregister(componentId: InteractiveId) {
-        componentLayout?.remove(componentId)
+        interactiveComponentLayout?.remove(componentId)
         if (cursorPosition.componentId != componentId) return
         cursorPosition = CursorPosition.invalid
         selection = Selection.empty
     }
 
-    fun getComponent(id: InteractiveId): InteractiveComponent = requireComponentLayout().getComponent(id)
+    fun getComponent(id: InteractiveId): InteractiveComponent = componentLayout.getComponent(id)
 }
 

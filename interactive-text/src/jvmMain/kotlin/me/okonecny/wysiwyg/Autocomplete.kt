@@ -41,7 +41,7 @@ internal fun AutocompletePopup(
      * Both Jewel and Material 3 suffer from this issue.
      */
     var openMenu by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(editorState.sourceText) {
         delay(300.milliseconds)
         openMenu = true
     }
@@ -66,7 +66,12 @@ internal fun AutocompletePopup(
                     Text(
                         text = plugin.name,
                         modifier = Modifier.padding(JewelTheme.menuStyle.metrics.itemMetrics.contentPadding),
-                        color = JewelTheme.menuStyle.colors.itemColors.contentFor(MenuItemState.of(selected = false, enabled = false)).value
+                        color = JewelTheme.menuStyle.colors.itemColors.contentFor(
+                            MenuItemState.of(
+                                selected = false,
+                                enabled = false
+                            )
+                        ).value
                     )
                 }
                 suggestions.forEachIndexed { suggestionIndex, suggestion ->

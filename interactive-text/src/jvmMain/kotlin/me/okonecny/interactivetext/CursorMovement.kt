@@ -2,7 +2,11 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -93,12 +97,13 @@ private fun moveCursor(
 internal fun Modifier.pointerCursorMovement(
     scope: InteractiveScope,
     onCursorPositionChanged: (CursorPosition, Selection) -> Unit
-): Modifier =
-    pointerInput(scope, onCursorPositionChanged) {
+): Modifier = composed {
+    val onCursorChangeCallback by rememberUpdatedState(onCursorPositionChanged)
+    pointerInput(scope) {
         detectTapGestures(
             onPress = { position ->
                 val newCursorPosition = moveCursor(scope, position)
-                onCursorPositionChanged(newCursorPosition, Selection.empty)
+                onCursorChangeCallback(newCursorPosition, Selection.empty)
             },
             onDoubleTap = { position ->
                 val clickedCursorPosition = moveCursor(scope, position)
@@ -106,13 +111,13 @@ internal fun Modifier.pointerCursorMovement(
 
                 val wordStartCursorPosition = scope.moveCursorLeftByWord(clickedCursorPosition)
                 val wordEndCursorPosition = scope.moveCursorRightByWord(wordStartCursorPosition)
-                onCursorPositionChanged(
+                onCursorChangeCallback(
                     wordEndCursorPosition,
                     Selection(wordStartCursorPosition, wordEndCursorPosition)
                 )
             }
         )
-    }.pointerInput(scope) {// FIXME! remembers old onCursorPositionChanged!
+    }.pointerInput(scope) {
         detectDragGestures { change, _ ->
             val newCursorPosition = moveCursor(scope, change.position)
             val newSelection = updateSelection(
@@ -121,9 +126,10 @@ internal fun Modifier.pointerCursorMovement(
                 newCursorPosition,
                 scope.requireComponentLayout()
             )
-            onCursorPositionChanged(newCursorPosition, newSelection)
+            onCursorChangeCallback(newCursorPosition, newSelection)
         }
     }.pointerHoverIcon(PointerIcon.Text)
+}
 
 private fun InteractiveScope.moveCursorByCharsInComponent(
     cursorPosition: CursorPosition,

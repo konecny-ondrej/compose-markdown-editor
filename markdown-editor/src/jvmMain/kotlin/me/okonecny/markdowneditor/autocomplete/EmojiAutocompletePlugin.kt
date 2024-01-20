@@ -10,7 +10,9 @@ import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.inline.annotatedString
 import me.okonecny.markdowneditor.inline.isMaybeEmojiStart
 import me.okonecny.markdowneditor.inline.unicodeString
-import me.okonecny.wysiwyg.*
+import me.okonecny.wysiwyg.AutocompletePlugin
+import me.okonecny.wysiwyg.AutocompleteSuggestion
+import me.okonecny.wysiwyg.WysiwygEditorState
 import org.jetbrains.jewel.ui.component.Text
 
 class EmojiAutocompletePlugin : AutocompletePlugin {
@@ -42,4 +44,24 @@ class EmojiAutocompletePlugin : AutocompletePlugin {
             )
         }
     }
+}
+
+val WysiwygEditorState.autocompleteContextWord: String
+    get() = (sourceCursor ?: sourceCursorRequest)?.let { cursor ->
+        sourceText.wordBefore(cursor)
+    } ?: ""
+
+fun String.remainingText(prefix: String): String {
+    if (startsWith(prefix)) return substring(prefix.length)
+    return this
+}
+
+fun String.wordBefore(pos: Int): String {
+    if (pos <= 0) return ""
+    if ("\\s".toRegex().matches(this.substring(pos - 1, pos))) return ""
+    return "\\S+".toRegex()
+        .findAll(this.substring(0, pos))
+        .lastOrNull()
+        ?.value
+        ?: ""
 }

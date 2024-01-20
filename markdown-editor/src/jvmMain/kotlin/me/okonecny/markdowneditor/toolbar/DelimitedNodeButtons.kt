@@ -21,7 +21,7 @@ import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
-import me.okonecny.wysiwyg.wordRangeAt
+
 
 @Composable
 internal fun EmphasisButton(
@@ -135,4 +135,23 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
             )
         )
     }
+}
+
+fun String.wordRangeAt(pos: Int): IntRange {
+    if (isBlank()) return IntRange.EMPTY
+    if (pos < 0 || pos > lastIndex) return IntRange.EMPTY
+
+    val whitespacePadding = substring(0..pos)
+        .takeLastWhile { !it.isLetterOrDigit() }
+        .length
+    val charsTillStart = substring(0, (pos - whitespacePadding).coerceAtLeast(0))
+        .takeLastWhile { it.isLetterOrDigit() }
+        .length
+    val wordStart = (pos - whitespacePadding - charsTillStart).coerceAtLeast(0)
+    val wordLength = substring(wordStart..lastIndex)
+        .takeWhile { it.isLetterOrDigit() }
+        .length
+    val wordEnd = wordStart + wordLength
+
+    return wordStart until wordEnd
 }

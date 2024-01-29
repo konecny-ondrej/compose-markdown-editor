@@ -47,11 +47,11 @@ data class InteractiveScope(
     }
 
     fun register(component: InteractiveComponent) {
-        componentLayout.put(component)
+        componentLayout.register(component)
     }
 
     fun unregister(componentId: InteractiveId) {
-        interactiveComponentLayout?.remove(componentId)
+        interactiveComponentLayout?.unregister(componentId)
         if (cursorPosition.componentId != componentId) return
         cursorPosition = CursorPosition.invalid
         selection = Selection.empty

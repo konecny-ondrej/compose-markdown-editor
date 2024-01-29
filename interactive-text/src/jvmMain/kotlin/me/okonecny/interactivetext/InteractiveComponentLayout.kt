@@ -15,14 +15,14 @@ class InteractiveComponentLayout(
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = sortInteractiveComponentsToLines()
 
-    internal fun put(component: InteractiveComponent) {
+    internal fun register(component: InteractiveComponent) {
         registeredComponents[component.id] = component
         orderedComponents.removeIf { component.id == it.id }
         orderedComponents.add(component)
         sortedInLineOrder = false
     }
 
-    internal fun remove(componentId: InteractiveId) {
+    internal fun unregister(componentId: InteractiveId) {
         registeredComponents.remove(componentId)?.let { removedComponent ->
             orderedComponents.remove(removedComponent)
         }

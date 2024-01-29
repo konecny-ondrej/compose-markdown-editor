@@ -1,10 +1,7 @@
 package me.okonecny.interactivetext
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.LayoutCoordinates
 import java.util.concurrent.atomic.AtomicLong
@@ -17,22 +14,19 @@ internal const val invalidInteractiveId: InteractiveId = -1
 data class InteractiveScope(
     val focusRequester: FocusRequester = FocusRequester(),
     var cursorPosition: CursorPosition = CursorPosition.invalid,
-    private var interactiveComponentLayout: InteractiveComponentLayout? = null
+    var selection: Selection = Selection.empty,
+    private var interactiveComponentLayout: InteractiveComponentLayout? = null,
+    private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
 ) {
-    var selection: Selection by mutableStateOf(Selection.empty)
-
     val componentLayout: InteractiveComponentLayout
         get() = checkNotNull(interactiveComponentLayout) { "You must place the interactive scope first." }
 
     val isPlaced: Boolean get() = interactiveComponentLayout != null
 
-    private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
-
     val componentUnderCursor: InteractiveComponent?
         get() = if (!isPlaced || !cursorPosition.isValid) null else {
             getComponent(cursorPosition.componentId)
         }
-
 
     /**
      * Generates ID for interactive components.

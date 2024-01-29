@@ -106,8 +106,8 @@ private fun Modifier.paintSelection(
         text.length
     }
     val selectionPath = textLayoutResult.getPathForRange(selectionStart, selectionEnd)
-    drawPath(selectionPath, selectionStyle.background)
     drawContent()
+    drawPath(selectionPath, selectionStyle.background)
 }
 
 @Composable

@@ -14,13 +14,13 @@ internal typealias InteractiveId = Long
 internal const val firstInteractiveId: InteractiveId = 0
 internal const val invalidInteractiveId: InteractiveId = -1
 
-class InteractiveScope(
-    val focusRequester: FocusRequester = FocusRequester()
+data class InteractiveScope(
+    val focusRequester: FocusRequester = FocusRequester(),
+    var cursorPosition: CursorPosition = CursorPosition.invalid,
+    private var interactiveComponentLayout: InteractiveComponentLayout? = null
 ) {
-    var cursorPosition: CursorPosition by mutableStateOf(CursorPosition.invalid)
     var selection: Selection by mutableStateOf(Selection.empty)
 
-    private var interactiveComponentLayout: InteractiveComponentLayout? = null
     val componentLayout: InteractiveComponentLayout
         get() = checkNotNull(interactiveComponentLayout) { "You must place the interactive scope first." }
 

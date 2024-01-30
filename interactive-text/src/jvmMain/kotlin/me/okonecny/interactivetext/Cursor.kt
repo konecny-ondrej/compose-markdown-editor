@@ -27,22 +27,6 @@ data class CursorPosition(
         val invalid: CursorPosition? = null
     }
 
-    /**
-     * Find the visual position of the cursor in the layout.
-     */
-    fun visualRect(scope: InteractiveScope): Rect {
-        val component = scope.getComponent(componentId)
-        val componentTextLayout = component.textLayoutResult
-        if (!component.hasText || componentTextLayout == null) {
-            return Rect(scope.containerCoordinates.localCenterPointOf(component), 0f)
-        }
-        val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
-        return Rect(
-            scope.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
-            scope.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
-        )
-    }
-
     internal fun isBefore(other: CursorPosition, scope: InteractiveScope): Boolean {
         if (componentId == other.componentId) return visualOffset < other.visualOffset
         return scope.isComponentBefore(componentId, other.componentId)
@@ -121,3 +105,18 @@ private val cursorAnimationSpec: AnimationSpec<Float> = infiniteRepeatable(
     }
 )
 
+/**
+ * Find the visual position of the cursor in the layout.
+ */
+fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect {
+    val component = getComponent(cursorPosition.componentId)
+    val componentTextLayout = component.textLayoutResult
+    if (!component.hasText || componentTextLayout == null) {
+        return Rect(containerCoordinates.localCenterPointOf(component), 0f)
+    }
+    val componentCursorRect = componentTextLayout.getCursorRect(cursorPosition.visualOffset)
+    return Rect(
+        containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
+        containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
+    )
+}

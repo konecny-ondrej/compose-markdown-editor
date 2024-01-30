@@ -218,12 +218,12 @@ data class WysiwygEditorState(
         }
 
     val visualCursorRect: Rect?
-        get() =
-            if (interactiveScope.isPlaced) {
-                visualCursor?.visualRect(interactiveScope)
-            } else {
-                null
-            }
+        get() {
+            if (!interactiveScope.isPlaced) return null
+            val cursor = visualCursor ?: return null
+            return interactiveScope.cursorVisualRect(cursor)
+        }
+
     val sourceSelection: TextRange
         get() =
             if (interactiveScope.isPlaced) {

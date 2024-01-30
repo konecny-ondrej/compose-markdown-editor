@@ -40,7 +40,6 @@ fun WysiwygEditor(
         modifier = modifier,
         onCursorMovement = { newVisualCursor ->
             editorState.visualCursor = newVisualCursor
-            if (!newVisualCursor.isValid) return@InteractiveContainer
             val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
             val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
             onChange(editorState.copy(sourceCursor = newSourceCursor?.start))
@@ -76,7 +75,7 @@ fun WysiwygEditor(
     LaunchedEffect(inputQueue.size) {
         for (i in inputQueue.lastIndex downTo 0) {
             val textInputCommand = inputQueue.removeAt(i)
-            if (!editorState.visualCursor.isValid && textInputCommand.needsValidCursor) break
+            if (editorState.visualCursor == null && textInputCommand.needsValidCursor) break
             val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, editorState.sourceSelection)
 
             var editedUndoManager = undoManager
@@ -220,8 +219,8 @@ data class WysiwygEditorState(
 
     val visualCursorRect: Rect?
         get() =
-            if (interactiveScope.isPlaced && visualCursor.isValid) {
-                visualCursor.visualRect(interactiveScope)
+            if (interactiveScope.isPlaced) {
+                visualCursor?.visualRect(interactiveScope)
             } else {
                 null
             }

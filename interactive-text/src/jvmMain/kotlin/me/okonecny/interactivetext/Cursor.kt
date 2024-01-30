@@ -24,10 +24,8 @@ data class CursorPosition(
     val visualOffset: Int
 ) {
     companion object {
-        val invalid = CursorPosition(invalidInteractiveId, 0)
+        val invalid: CursorPosition? = null
     }
-
-    val isValid: Boolean get() = componentId != invalidInteractiveId
 
     /**
      * Find the visual position of the cursor in the layout.
@@ -77,10 +75,9 @@ data class CursorPosition(
  */
 internal fun Modifier.cursorLine(
     textLayoutResult: TextLayoutResult?,
-    offset: Int,
-    enabled: Boolean
+    offset: Int
 ): Modifier {
-    if (!enabled || textLayoutResult == null || offset < 0) return Modifier
+    if (textLayoutResult == null || offset < 0) return Modifier
 
     return composed {
         val cursorAlpha = remember { Animatable(1f) }

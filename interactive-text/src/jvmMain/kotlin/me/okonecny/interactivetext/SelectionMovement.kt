@@ -2,11 +2,12 @@ package me.okonecny.interactivetext
 
 internal fun updateSelection(
     selection: Selection,
-    oldCursorPosition: CursorPosition,
-    newCursorPosition: CursorPosition,
+    oldCursorPosition: CursorPosition?,
+    newCursorPosition: CursorPosition?,
     scope: InteractiveScope
 ): Selection {
     if (!scope.hasAnyComponents) return Selection.empty
+    if (oldCursorPosition == null || newCursorPosition == null) return Selection.empty
     if (selection.isEmpty) {
         return if (oldCursorPosition.isBefore(newCursorPosition, scope)) {
             Selection(oldCursorPosition, newCursorPosition)

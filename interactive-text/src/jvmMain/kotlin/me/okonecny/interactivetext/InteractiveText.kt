@@ -34,13 +34,23 @@ fun InteractiveText(
         val selection = interactiveScope.selection
 
         interactiveModifier = Modifier
-            .cursorLine(
-                textLayoutResult,
-                cursorPosition.visualOffset,
-                cursorPosition.componentId == interactiveId
-            )
-            .paintSelection(selection, interactiveId, textLayoutResult, text, interactiveScope, selectionStyle)
+        if (cursorPosition != null && cursorPosition.componentId == interactiveId) {
+            interactiveModifier = interactiveModifier
+                .cursorLine(
+                    textLayoutResult,
+                    cursorPosition.visualOffset
+                )
+        }
 
+        interactiveModifier = interactiveModifier
+            .paintSelection(
+                selection,
+                interactiveId,
+                textLayoutResult,
+                text,
+                interactiveScope,
+                selectionStyle
+            )
             .onGloballyPositioned { layoutCoordinates ->
                 interactiveScope.register(
                     InteractiveComponent(

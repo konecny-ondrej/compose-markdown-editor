@@ -17,7 +17,7 @@ internal const val invalidInteractiveId: InteractiveId = -1
 
 data class InteractiveScope(
     val focusRequester: FocusRequester = FocusRequester(),
-    var cursorPosition: CursorPosition = CursorPosition.invalid,
+    var cursorPosition: CursorPosition? = null,
     var selection: Selection = Selection.empty,
     private var containerLayoutCoordinates: LayoutCoordinates? = null,
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
@@ -28,8 +28,11 @@ data class InteractiveScope(
     val isPlaced: Boolean get() = containerLayoutCoordinates != null
 
     val componentUnderCursor: InteractiveComponent?
-        get() = if (!isPlaced || !cursorPosition.isValid) null else {
-            getComponent(cursorPosition.componentId)
+        get() {
+            val cursor = cursorPosition ?: return null
+            return if (!isPlaced) null else {
+                getComponent(cursor.componentId)
+            }
         }
 
     /**
@@ -56,7 +59,7 @@ data class InteractiveScope(
 
     fun unregister(componentId: InteractiveId) {
         layoutUnregister(componentId)
-        if (cursorPosition.componentId != componentId) return
+        if (cursorPosition?.componentId != componentId) return
         cursorPosition = CursorPosition.invalid
         selection = Selection.empty
     }

@@ -22,8 +22,7 @@ internal fun Modifier.keyboardCursorMovement(
     onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-    val oldPosition = scope.cursorPosition
-    if (!oldPosition.isValid) return@onKeyEvent false
+    val oldPosition = scope.cursorPosition ?: return@onKeyEvent false
     val newPosition = when (keyEvent.key) {
         Key.DirectionLeft -> {
             if (keyEvent.isCtrlPressed) {
@@ -74,7 +73,7 @@ internal fun Modifier.keyboardCursorMovement(
 private fun moveCursor(
     scope: InteractiveScope,
     position: Offset,
-): CursorPosition {
+): CursorPosition? {
     if (!scope.hasAnyComponents) return CursorPosition.invalid
 
     val tappedComponent = scope.componentAt(position)
@@ -100,12 +99,11 @@ internal fun Modifier.pointerCursorMovement(
     pointerInput(scope) {
         detectTapGestures(
             onPress = { position ->
-                val newCursorPosition = moveCursor(scope, position)
+                val newCursorPosition = moveCursor(scope, position) ?: return@detectTapGestures
                 onCursorChangeCallback(newCursorPosition, Selection.empty)
             },
             onDoubleTap = { position ->
-                val clickedCursorPosition = moveCursor(scope, position)
-                if (!clickedCursorPosition.isValid) return@detectTapGestures
+                val clickedCursorPosition = moveCursor(scope, position) ?: return@detectTapGestures
 
                 val wordStartCursorPosition = scope.moveCursorLeftByWord(clickedCursorPosition)
                 val wordEndCursorPosition = scope.moveCursorRightByWord(wordStartCursorPosition)
@@ -117,7 +115,7 @@ internal fun Modifier.pointerCursorMovement(
         )
     }.pointerInput(scope) {
         detectDragGestures { change, _ ->
-            val newCursorPosition = moveCursor(scope, change.position)
+            val newCursorPosition = moveCursor(scope, change.position) ?: return@detectDragGestures
             val newSelection = updateSelection(
                 scope.selection,
                 scope.cursorPosition,

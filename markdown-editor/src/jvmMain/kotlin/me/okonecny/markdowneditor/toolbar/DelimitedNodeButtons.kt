@@ -3,7 +3,6 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -13,71 +12,40 @@ import com.vladsch.flexmark.ast.Code
 import com.vladsch.flexmark.ast.DelimitedNodeImpl
 import com.vladsch.flexmark.ast.Emphasis
 import com.vladsch.flexmark.ast.StrongEmphasis
-import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
-import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+import me.okonecny.wysiwyg.WysiwygEditorState
 
 
 @Composable
-internal fun EmphasisButton(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int
-) = DelimitedNodeButton<Emphasis>(
+internal fun EmphasisButton(editorState: WysiwygEditorState) = DelimitedNodeButton<Emphasis>(
     "I",
     "Emphasis",
     TextStyle(fontStyle = FontStyle.Italic),
     "_",
-    visualSelection,
-    scope,
-    source,
-    sourceSelection,
-    sourceCursor
+    editorState
 )
 
 @Composable
-internal fun StrongEmphasisButton(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int
-) = DelimitedNodeButton<StrongEmphasis>(
+internal fun StrongEmphasisButton(editorState: WysiwygEditorState) = DelimitedNodeButton<StrongEmphasis>(
     "B",
     "Strong Emphasis",
     TextStyle(fontWeight = FontWeight.Bold),
     "**",
-    visualSelection,
-    scope,
-    source,
-    sourceSelection,
-    sourceCursor
+    editorState
 )
 
 @Composable
-internal fun CodeButton(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int
-) = DelimitedNodeButton<Code>(
+internal fun CodeButton(editorState: WysiwygEditorState) = DelimitedNodeButton<Code>(
     "\uf44f",
     "Inline Code",
     TextStyle.Default,
     "`",
-    visualSelection,
-    scope,
-    source,
-    sourceSelection,
-    sourceCursor,
+    editorState,
     Modifier.offset((-2.5).dp)
 )
 
@@ -87,13 +55,16 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     tooltip: String,
     textStyle: TextStyle,
     delimiter: String,
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int,
+    editorState: WysiwygEditorState,
     modifier: Modifier = Modifier
 ) {
+    val visualSelection = editorState.visualSelection
+    val scope = editorState.interactiveScope
+    val sourceCursor =
+        editorState.sourceCursor ?: throw IllegalStateException("DelimitedNodeButton needs a source cursor.")
+    val source = editorState.sourceText
+    val sourceSelection = editorState.sourceSelection
+
     val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
     val handleInput = LocalInteractiveInputHandler.current
 

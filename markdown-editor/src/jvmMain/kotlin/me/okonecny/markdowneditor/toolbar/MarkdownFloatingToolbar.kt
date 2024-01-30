@@ -15,11 +15,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import me.okonecny.interactivetext.InteractiveScope
-import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.wysiwyg.WysiwygEditorState
 
@@ -28,16 +25,11 @@ fun MarkdownFloatingToolbar(
     editorState: WysiwygEditorState
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return
-    val sourceCursor = editorState.sourceCursor ?: return
-
-    val visualSelection = editorState.visualSelection
-    val interactiveScope = editorState.interactiveScope
-    val source = editorState.sourceText
-    val sourceSelection = editorState.sourceSelection
+    if (editorState.sourceCursor == null) return
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(visualSelection, interactiveScope, source, sourceSelection, sourceCursor)
+            ToolbarContent(editorState)
         }
     ) { measuredSize, constraints ->
         Box(Modifier.offset {
@@ -51,19 +43,13 @@ fun MarkdownFloatingToolbar(
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
             ).round()
         }) {
-            ToolbarContent(visualSelection, interactiveScope, source, sourceSelection, sourceCursor)
+            ToolbarContent(editorState)
         }
     }
 }
 
 @Composable
-private fun ToolbarContent(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    source: String,
-    sourceSelection: TextRange,
-    sourceCursor: Int
-) {
+private fun ToolbarContent(editorState: WysiwygEditorState) {
     val toolbarInteractionSource = remember { MutableInteractionSource() }
     val isHovered by toolbarInteractionSource.collectIsHoveredAsState()
     val toolbarAlpha = if (isHovered) 1.0f else 0.0f
@@ -76,19 +62,19 @@ private fun ToolbarContent(
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
-        ParagraphStyleCombo(visualSelection, scope, sourceCursor)
+        ParagraphStyleCombo(editorState)
         Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(visualSelection, scope, source, sourceSelection, sourceCursor)
+        StrongEmphasisButton(editorState)
         Spacer(Modifier.width(3.dp))
-        EmphasisButton(visualSelection, scope, source, sourceSelection, sourceCursor)
+        EmphasisButton(editorState)
         Spacer(Modifier.width(3.dp))
-        CodeButton(visualSelection, scope, source, sourceSelection, sourceCursor)
+        CodeButton(editorState)
         Spacer(Modifier.width(3.dp))
-        LinkButton(visualSelection, scope, source, sourceSelection, sourceCursor)
+        LinkButton(editorState)
         Spacer(Modifier.width(3.dp))
-        ImageButton(visualSelection, scope, source, sourceSelection, sourceCursor)
+        ImageButton(editorState)
         Spacer(Modifier.width(3.dp))
-        TableButton(visualSelection, scope, sourceCursor)
+        TableButton(editorState)
     }
 }
 

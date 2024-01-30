@@ -15,27 +15,23 @@ import com.vladsch.flexmark.ast.FencedCodeBlock
 import com.vladsch.flexmark.ast.Heading
 import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.util.ast.Block
-import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
-import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.flexmark.source
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+import me.okonecny.wysiwyg.WysiwygEditorState
 import kotlin.reflect.KClass
 
 private const val ARROW_DOWN = " \ueab4 "
 
 @Composable
-internal fun ParagraphStyleCombo(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    sourceCursor: Int
-) {
-    val touchedBlocks = visualSelection
-        .touchedNodesOfType<Block>(scope, sourceCursor)
+internal fun ParagraphStyleCombo(editorState: WysiwygEditorState) {
+
+    val touchedBlocks = editorState.visualSelection
+        .touchedNodesOfType<Block>(editorState.interactiveScope, editorState.sourceCursor)
         .filter { it::class in ParagraphStyle.allowedNodeTypes }
     val currentBlock = touchedBlocks.firstOrNull() ?: return BasicText(
         modifier = Modifier.toolbarElement(ToolbarButtonState.Disabled),

@@ -15,19 +15,18 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.tables.TableCell
-import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
-import me.okonecny.interactivetext.Selection
 import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun TableButton(
-    visualSelection: Selection,
-    scope: InteractiveScope,
-    sourceCursor: Int
-) {
+internal fun TableButton(editorState: WysiwygEditorState) {
+    val visualSelection = editorState.visualSelection
+    val scope = editorState.interactiveScope
+    val sourceCursor = editorState.sourceCursor
+
     val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
     var menuVisible by remember { mutableStateOf(false) }
     Box {

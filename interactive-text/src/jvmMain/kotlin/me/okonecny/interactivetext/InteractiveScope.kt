@@ -85,6 +85,8 @@ data class InteractiveScope(
 
     val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
 
+    fun hasComponent(id: InteractiveId): Boolean = registeredComponents.containsKey(id)
+
     fun getComponent(id: InteractiveId): InteractiveComponent = registeredComponents[id]
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 

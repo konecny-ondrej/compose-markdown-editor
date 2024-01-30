@@ -20,7 +20,9 @@ fun Selection.touchedNodes(scope: InteractiveScope): List<Node> {
 
     val borderComponents = listOf(start, end)
         .map(CursorPosition::componentId)
+        .filter(scope::hasComponent)
         .map(scope::getComponent)
+    if (borderComponents.size != 2) return emptyList()
     val (startComponent, endComponent) = borderComponents
 
     val selectedComponents = scope.componentsBetween(

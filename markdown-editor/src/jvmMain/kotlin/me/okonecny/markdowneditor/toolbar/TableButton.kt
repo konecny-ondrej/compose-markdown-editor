@@ -15,7 +15,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.tables.TableCell
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.Selection
 import me.okonecny.interactivetext.Type
@@ -25,10 +25,10 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 @Composable
 internal fun TableButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     sourceCursor: Int
 ) {
-    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(componentLayout, sourceCursor)
+    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
     var menuVisible by remember { mutableStateOf(false) }
     Box {
         TextToolbarButton(

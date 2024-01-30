@@ -18,7 +18,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.Selection
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.wysiwyg.WysiwygEditorState
@@ -31,13 +31,13 @@ fun MarkdownFloatingToolbar(
     val sourceCursor = editorState.sourceCursor ?: return
 
     val visualSelection = editorState.visualSelection
-    val componentLayout = editorState.interactiveScope.componentLayout
+    val interactiveScope = editorState.interactiveScope
     val source = editorState.sourceText
     val sourceSelection = editorState.sourceSelection
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, interactiveScope, source, sourceSelection, sourceCursor)
         }
     ) { measuredSize, constraints ->
         Box(Modifier.offset {
@@ -51,7 +51,7 @@ fun MarkdownFloatingToolbar(
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
             ).round()
         }) {
-            ToolbarContent(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+            ToolbarContent(visualSelection, interactiveScope, source, sourceSelection, sourceCursor)
         }
     }
 }
@@ -59,7 +59,7 @@ fun MarkdownFloatingToolbar(
 @Composable
 private fun ToolbarContent(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
@@ -76,19 +76,19 @@ private fun ToolbarContent(
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
-        ParagraphStyleCombo(visualSelection, componentLayout, sourceCursor)
+        ParagraphStyleCombo(visualSelection, scope, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        StrongEmphasisButton(visualSelection, scope, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        EmphasisButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        EmphasisButton(visualSelection, scope, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        CodeButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        CodeButton(visualSelection, scope, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        LinkButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        LinkButton(visualSelection, scope, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        ImageButton(visualSelection, componentLayout, source, sourceSelection, sourceCursor)
+        ImageButton(visualSelection, scope, source, sourceSelection, sourceCursor)
         Spacer(Modifier.width(3.dp))
-        TableButton(visualSelection, componentLayout, sourceCursor)
+        TableButton(visualSelection, scope, sourceCursor)
     }
 }
 

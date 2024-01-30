@@ -32,22 +32,22 @@ data class CursorPosition(
     /**
      * Find the visual position of the cursor in the layout.
      */
-    fun visualRect(layout: InteractiveComponentLayout): Rect {
-        val component = layout.getComponent(componentId)
+    fun visualRect(scope: InteractiveScope): Rect {
+        val component = scope.getComponent(componentId)
         val componentTextLayout = component.textLayoutResult
         if (!component.hasText || componentTextLayout == null) {
-            return Rect(layout.containerCoordinates.localCenterPointOf(component), 0f)
+            return Rect(scope.containerCoordinates.localCenterPointOf(component), 0f)
         }
         val componentCursorRect = componentTextLayout.getCursorRect(visualOffset)
         return Rect(
-            layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
-            layout.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
+            scope.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
+            scope.containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
         )
     }
 
-    internal fun isBefore(other: CursorPosition, layout: InteractiveComponentLayout): Boolean {
+    internal fun isBefore(other: CursorPosition, scope: InteractiveScope): Boolean {
         if (componentId == other.componentId) return visualOffset < other.visualOffset
-        return layout.isComponentBefore(componentId, other.componentId)
+        return scope.isComponentBefore(componentId, other.componentId)
     }
 
     override fun equals(other: Any?): Boolean {

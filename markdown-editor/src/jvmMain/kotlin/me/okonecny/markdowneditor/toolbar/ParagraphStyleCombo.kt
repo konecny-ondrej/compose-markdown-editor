@@ -15,7 +15,7 @@ import com.vladsch.flexmark.ast.FencedCodeBlock
 import com.vladsch.flexmark.ast.Heading
 import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.util.ast.Block
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
@@ -31,11 +31,11 @@ private const val ARROW_DOWN = " \ueab4 "
 @Composable
 internal fun ParagraphStyleCombo(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     sourceCursor: Int
 ) {
     val touchedBlocks = visualSelection
-        .touchedNodesOfType<Block>(componentLayout, sourceCursor)
+        .touchedNodesOfType<Block>(scope, sourceCursor)
         .filter { it::class in ParagraphStyle.allowedNodeTypes }
     val currentBlock = touchedBlocks.firstOrNull() ?: return BasicText(
         modifier = Modifier.toolbarElement(ToolbarButtonState.Disabled),

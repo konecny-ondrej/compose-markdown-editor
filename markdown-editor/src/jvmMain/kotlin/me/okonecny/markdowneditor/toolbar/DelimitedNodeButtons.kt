@@ -13,7 +13,7 @@ import com.vladsch.flexmark.ast.Code
 import com.vladsch.flexmark.ast.DelimitedNodeImpl
 import com.vladsch.flexmark.ast.Emphasis
 import com.vladsch.flexmark.ast.StrongEmphasis
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
@@ -26,7 +26,7 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 @Composable
 internal fun EmphasisButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
@@ -36,7 +36,7 @@ internal fun EmphasisButton(
     TextStyle(fontStyle = FontStyle.Italic),
     "_",
     visualSelection,
-    componentLayout,
+    scope,
     source,
     sourceSelection,
     sourceCursor
@@ -45,7 +45,7 @@ internal fun EmphasisButton(
 @Composable
 internal fun StrongEmphasisButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
@@ -55,7 +55,7 @@ internal fun StrongEmphasisButton(
     TextStyle(fontWeight = FontWeight.Bold),
     "**",
     visualSelection,
-    componentLayout,
+    scope,
     source,
     sourceSelection,
     sourceCursor
@@ -64,7 +64,7 @@ internal fun StrongEmphasisButton(
 @Composable
 internal fun CodeButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
@@ -74,7 +74,7 @@ internal fun CodeButton(
     TextStyle.Default,
     "`",
     visualSelection,
-    componentLayout,
+    scope,
     source,
     sourceSelection,
     sourceCursor,
@@ -88,19 +88,19 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     textStyle: TextStyle,
     delimiter: String,
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int,
     modifier: Modifier = Modifier
 ) {
-    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(componentLayout, sourceCursor)
+    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
     val handleInput = LocalInteractiveInputHandler.current
 
     TextToolbarButton(
         text = text,
         tooltip = tooltip,
-        disabledIf = { visualSelection.spansMultipleLeafNodes(componentLayout) },
+        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) },
         activeIf = { touchedDelimitedNodes.size == 1 },
         textStyle = textStyle,
         modifier = modifier,

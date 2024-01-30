@@ -62,7 +62,7 @@ fun WysiwygEditor(
             sourceCursorRequest?.apply {
                 editorState.visualCursor = computeVisualCursor(
                     this,
-                    interactiveScope.componentLayout
+                    interactiveScope
                 )
                 onChange(
                     editorState.copy(
@@ -146,8 +146,8 @@ fun WysiwygEditor(
     }
 }
 
-private fun computeVisualCursor(sourceCursor: Int, layout: InteractiveComponentLayout): CursorPosition {
-    val componentAtCursor = layout.componentAtSource(sourceCursor)
+private fun computeVisualCursor(sourceCursor: Int, scope: InteractiveScope): CursorPosition {
+    val componentAtCursor = scope.componentAtSource(sourceCursor)
     val cursorVisualRange = componentAtCursor.textMapping.toVisual(TextRange(sourceCursor))
     if (cursorVisualRange != null && cursorVisualRange.collapsed) return CursorPosition(
         componentAtCursor.id,
@@ -221,14 +221,14 @@ data class WysiwygEditorState(
     val visualCursorRect: Rect?
         get() =
             if (interactiveScope.isPlaced && visualCursor.isValid) {
-                visualCursor.visualRect(interactiveScope.componentLayout)
+                visualCursor.visualRect(interactiveScope)
             } else {
                 null
             }
     val sourceSelection: TextRange
         get() =
             if (interactiveScope.isPlaced) {
-                visualSelection.computeSourceSelection(interactiveScope.componentLayout)
+                visualSelection.computeSourceSelection(interactiveScope)
             } else {
                 TextRange.Zero
             }

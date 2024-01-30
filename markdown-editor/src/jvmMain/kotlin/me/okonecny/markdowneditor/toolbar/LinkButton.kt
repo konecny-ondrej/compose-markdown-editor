@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.AutoLink
 import com.vladsch.flexmark.ast.Link
 import com.vladsch.flexmark.ast.LinkRef
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
@@ -21,14 +21,14 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 @Composable
 internal fun LinkButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
 ) {
-    val touchedLinks = visualSelection.touchedNodesOfType<Link>(componentLayout, sourceCursor) +
-            visualSelection.touchedNodesOfType<LinkRef>(componentLayout, sourceCursor) +
-            visualSelection.touchedNodesOfType<AutoLink>(componentLayout, sourceCursor)
+    val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +
+            visualSelection.touchedNodesOfType<LinkRef>(scope, sourceCursor) +
+            visualSelection.touchedNodesOfType<AutoLink>(scope, sourceCursor)
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var linkUrl by remember { mutableStateOf("") }
@@ -46,7 +46,7 @@ internal fun LinkButton(
         tooltip = "Link",
         modifier = Modifier.offset((-1).dp),
         activeIf = { touchedLinks.size == 1 },
-        disabledIf = { visualSelection.spansMultipleLeafNodes(componentLayout) || touchedLinks.size > 1 }
+        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedLinks.size > 1 }
     ) {
         if (touchedLinks.size == 1) {
             val linkElement = touchedLinks.first()

@@ -64,7 +64,7 @@ internal fun Modifier.keyboardCursorMovement(
             scope.selection,
             oldPosition,
             newPosition,
-            scope.componentLayout
+            scope
         ) else Selection.empty
         onCursorPositionChanged(newPosition, newSelection)
     }
@@ -75,10 +75,9 @@ private fun moveCursor(
     scope: InteractiveScope,
     position: Offset,
 ): CursorPosition {
-    val layout = scope.componentLayout
-    if (!layout.hasAnyComponents) return CursorPosition.invalid
+    if (!scope.hasAnyComponents) return CursorPosition.invalid
 
-    val tappedComponent = layout.componentAt(position)
+    val tappedComponent = scope.componentAt(position)
     val textLayout = tappedComponent.textLayoutResult
 
     if (!tappedComponent.hasText || textLayout == null) {
@@ -86,7 +85,7 @@ private fun moveCursor(
     }
 
     val localOffset = tappedComponent.layoutCoordinates.localPositionOf(
-        layout.containerCoordinates,
+        scope.containerCoordinates,
         position
     )
     val textOffset = textLayout.getOffsetForPosition(localOffset)
@@ -123,7 +122,7 @@ internal fun Modifier.pointerCursorMovement(
                 scope.selection,
                 scope.cursorPosition,
                 newCursorPosition,
-                scope.componentLayout
+                scope
             )
             onCursorChangeCallback(newCursorPosition, newSelection)
         }
@@ -180,7 +179,7 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
-    val newComponent: InteractiveComponent = componentLayout.componentPreviousOnLineFrom(oldComponent)
+    val newComponent: InteractiveComponent = componentPreviousOnLineFrom(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
@@ -194,7 +193,7 @@ fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPositio
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
-    val newComponent: InteractiveComponent = componentLayout.componentNextOnLineTo(oldComponent)
+    val newComponent: InteractiveComponent = componentNextOnLineTo(oldComponent)
     if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
@@ -213,7 +212,7 @@ fun InteractiveScope.moveCursorByWord(
     val stopChar = ' '
 
     while (prevPosition != newPosition) {
-        val component = componentLayout.getComponent(newPosition.componentId)
+        val component = getComponent(newPosition.componentId)
         val text = component.textLayoutResult?.layoutInput?.text ?: stopChar.toString()
         val currentChar = text[newPosition.visualOffset.coerceAtMost(text.lastIndex)]
         if (currentChar == stopChar) break
@@ -228,9 +227,8 @@ fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition
     val lineCursorPosition = moveCursorByLine(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val componentLayout = componentLayout
-    val cursorVisualOffset = oldPosition.visualRect(componentLayout).center
-    val componentBelow = componentLayout.componentBelow(cursorVisualOffset)
+    val cursorVisualOffset = oldPosition.visualRect(this).center
+    val componentBelow = componentBelow(cursorVisualOffset)
 
     val newTextLayout = componentBelow.textLayoutResult
     if (newTextLayout == null || !componentBelow.hasText) return CursorPosition(componentBelow.id, 0)
@@ -245,9 +243,8 @@ fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByLine(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val componentLayout = componentLayout
-    val cursorVisualOffset = oldPosition.visualRect(componentLayout).center
-    val componentAbove = componentLayout.componentAbove(cursorVisualOffset)
+    val cursorVisualOffset = oldPosition.visualRect(this).center
+    val componentAbove = componentAbove(cursorVisualOffset)
 
     val newTextLayout = componentAbove.textLayoutResult
     if (newTextLayout == null || !componentAbove.hasText) return CursorPosition(componentAbove.id, 0)

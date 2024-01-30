@@ -16,10 +16,10 @@ data class Selection(
     val spansMultipleComponents: Boolean
         get() = !isEmpty && start.componentId != end.componentId
 
-    fun computeSourceSelection(interactiveComponentLayout: InteractiveComponentLayout): TextRange {
+    fun computeSourceSelection(scope: InteractiveScope): TextRange {
         if (isEmpty) return TextRange.Zero
         val (startMapping, endMapping) = listOf(start.componentId, end.componentId)
-            .map(interactiveComponentLayout::getComponent)
+            .map(scope::getComponent)
             .map(InteractiveComponent::textMapping)
         return TextRange(
             startMapping.toSource(TextRange(start.visualOffset))?.start ?: 0,

@@ -8,7 +8,7 @@ import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.Image
 import com.vladsch.flexmark.ast.ImageRef
-import me.okonecny.interactivetext.InteractiveComponentLayout
+import me.okonecny.interactivetext.InteractiveScope
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.Selection
@@ -20,13 +20,13 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 @Composable
 internal fun ImageButton(
     visualSelection: Selection,
-    componentLayout: InteractiveComponentLayout,
+    scope: InteractiveScope,
     source: String,
     sourceSelection: TextRange,
     sourceCursor: Int
 ) {
-    val touchedImages = visualSelection.touchedNodesOfType<Image>(componentLayout, sourceCursor) +
-            visualSelection.touchedNodesOfType<ImageRef>(componentLayout, sourceCursor)
+    val touchedImages = visualSelection.touchedNodesOfType<Image>(scope, sourceCursor) +
+            visualSelection.touchedNodesOfType<ImageRef>(scope, sourceCursor)
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var imageUrl by remember { mutableStateOf("") }
@@ -44,7 +44,7 @@ internal fun ImageButton(
         tooltip = "Image",
         modifier = Modifier.offset((-2.5).dp),
         activeIf = { touchedImages.size == 1 },
-        disabledIf = { visualSelection.spansMultipleLeafNodes(componentLayout) || touchedImages.size > 1 }
+        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedImages.size > 1 }
     ) {
         if (touchedImages.size == 1) {
             val imageElement = touchedImages.first()

@@ -54,11 +54,16 @@ data class InteractiveScope(
     }
 
     fun register(component: InteractiveComponent) {
-        layoutRegister(component)
+        registeredComponents[component.id] = component
+        orderedComponents.removeIf { component.id == it.id }
+        orderedComponents.add(component)
+        sortedInLineOrder = false
     }
 
     fun unregister(componentId: InteractiveId) {
-        layoutUnregister(componentId)
+        registeredComponents.remove(componentId)?.let { removedComponent ->
+            orderedComponents.remove(removedComponent)
+        }
         if (cursorPosition?.componentId != componentId) return
         cursorPosition = CursorPosition.invalid
         selection = Selection.empty
@@ -69,19 +74,6 @@ data class InteractiveScope(
     private var sortedInLineOrder: Boolean = true
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = sortInteractiveComponentsToLines()
-
-    internal fun layoutRegister(component: InteractiveComponent) {
-        registeredComponents[component.id] = component
-        orderedComponents.removeIf { component.id == it.id }
-        orderedComponents.add(component)
-        sortedInLineOrder = false
-    }
-
-    internal fun layoutUnregister(componentId: InteractiveId) {
-        registeredComponents.remove(componentId)?.let { removedComponent ->
-            orderedComponents.remove(removedComponent)
-        }
-    }
 
     val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
 

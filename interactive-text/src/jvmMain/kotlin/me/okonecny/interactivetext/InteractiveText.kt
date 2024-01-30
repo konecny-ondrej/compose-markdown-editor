@@ -4,7 +4,6 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
@@ -17,7 +16,6 @@ fun InteractiveText(
     text: AnnotatedString,
     textMapping: TextMapping,
     style: TextStyle,
-    selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
     userData: UserData = UserData.empty,
@@ -31,7 +29,6 @@ fun InteractiveText(
     if (interactiveScope != null) {
         val interactiveId = interactiveScope.rememberInteractiveId()
         val cursorPosition = interactiveScope.cursorPosition
-        val selection = interactiveScope.selection
 
         interactiveModifier = Modifier
         if (cursorPosition != null && cursorPosition.componentId == interactiveId) {
@@ -43,14 +40,6 @@ fun InteractiveText(
         }
 
         interactiveModifier = interactiveModifier
-            .paintSelection(
-                selection,
-                interactiveId,
-                textLayoutResult,
-                text,
-                interactiveScope,
-                selectionStyle
-            )
             .onGloballyPositioned { layoutCoordinates ->
                 interactiveScope.register(
                     InteractiveComponent(
@@ -85,47 +74,11 @@ fun InteractiveText(
     )
 }
 
-private fun Modifier.paintSelection(
-    selection: Selection,
-    interactiveId: InteractiveId,
-    textLayoutResult: TextLayoutResult?,
-    text: AnnotatedString,
-    interactiveScope: InteractiveScope,
-    selectionStyle: TextStyle
-) = drawWithContent {
-    if (
-        textLayoutResult == null
-        || selection.isEmpty
-        || !interactiveScope.isComponentBetween(
-            interactiveId,
-            selection.start.componentId,
-            selection.end.componentId
-        )
-    ) {
-        drawContent()
-        return@drawWithContent
-    }
-    val selectionStart = if (selection.start.componentId == interactiveId) {
-        selection.start.visualOffset
-    } else {
-        0
-    }
-    val selectionEnd = if (selection.end.componentId == interactiveId) {
-        selection.end.visualOffset.coerceAtMost(text.length)
-    } else {
-        text.length
-    }
-    val selectionPath = textLayoutResult.getPathForRange(selectionStart, selectionEnd)
-    drawContent()
-    drawPath(selectionPath, selectionStyle.background)
-}
-
 @Composable
 fun InteractiveText(
     text: String,
     textMapping: TextMapping,
     style: TextStyle,
-    selectionStyle: TextStyle = LocalSelectionStyle.current,
     modifier: Modifier = Modifier,
     userData: UserData = UserData.empty,
     activeAnnotationTags: Set<String> = setOf(),
@@ -134,7 +87,6 @@ fun InteractiveText(
     AnnotatedString(text),
     textMapping,
     style,
-    selectionStyle,
     modifier,
     mapOf(),
     userData,

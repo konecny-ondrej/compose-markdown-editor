@@ -6,10 +6,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import me.okonecny.interactivetext.*
 import kotlin.math.abs
-
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -18,7 +16,7 @@ import kotlin.math.abs
 fun WysiwygEditor(
     editorState: WysiwygEditorState,
     modifier: Modifier = Modifier,
-    selectionStyle: TextStyle,
+    selectionStyle: SelectionStyle,
     autocompletePlugins: List<AutocompletePlugin>,
     onChange: (WysiwygEditorState) -> Unit,
     components: @Composable WysiwygEditorScope.() -> Unit

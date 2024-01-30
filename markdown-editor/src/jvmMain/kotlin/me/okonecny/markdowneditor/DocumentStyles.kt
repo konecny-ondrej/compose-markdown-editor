@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import me.okonecny.interactivetext.SelectionStyle
 
 @Immutable
 data class DocumentStyles(
@@ -148,8 +149,12 @@ data class DocumentStyles(
     val strikethrough: TextStyle = TextStyle(
         textDecoration = TextDecoration.LineThrough
     ),
-    val selection: TextStyle = TextStyle(
-        background = Color.Cyan.copy(alpha = 0.5f)
+    val selection: SelectionStyle = SelectionStyle(
+        fillColor = Color.Cyan.copy(alpha = 0.3f),
+        stroke = SelectionStyle.Stroke(
+            width = 2.dp,
+            color = Color.Cyan
+        )
     ),
     val image: ImageStyle = ImageStyle(
         modifier = Modifier

@@ -22,7 +22,7 @@ data class InteractiveScope(
     private var containerLayoutCoordinates: LayoutCoordinates? = null,
     private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
 ) {
-    val containerCoordinates: LayoutCoordinates
+    internal val containerCoordinates: LayoutCoordinates
         get() = checkNotNull(containerLayoutCoordinates) { "You must place the interactive scope first." }
 
     val isPlaced: Boolean get() = containerLayoutCoordinates != null

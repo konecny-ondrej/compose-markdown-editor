@@ -131,7 +131,7 @@ private fun Modifier.paintSelection(
                 text.length
             }
 
-            val componentSelectionPath = textLayout.getFilledPathForRange(selectionStart, selectionEnd)
+            val componentSelectionPath = textLayout.getFilledPathForRange(selectionStart, selectionEnd, (selectionStyle.stroke.width + 1.dp).toPx())
             val positionInContainer =
                 interactiveScope.containerCoordinates.localPositionOf(component.layoutCoordinates, Offset.Zero)
             componentSelectionPath.translate(positionInContainer)

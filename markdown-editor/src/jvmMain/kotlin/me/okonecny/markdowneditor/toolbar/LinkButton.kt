@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.AutoLink
 import com.vladsch.flexmark.ast.Link
 import com.vladsch.flexmark.ast.LinkRef
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
@@ -17,7 +17,7 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun LinkButton(editorState: WysiwygEditorState) {
+internal fun LinkButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
     val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
@@ -46,6 +46,7 @@ internal fun LinkButton(editorState: WysiwygEditorState) {
         activeIf = { touchedLinks.size == 1 },
         disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedLinks.size > 1 }
     ) {
+        editorState.interactiveScope.focusRequester.requestFocus()
         if (touchedLinks.size == 1) {
             val linkElement = touchedLinks.first()
             linkUrl = when (linkElement) {
@@ -63,7 +64,6 @@ internal fun LinkButton(editorState: WysiwygEditorState) {
         showLinkDialog = true
     }
 
-    val handleInput = LocalInteractiveInputHandler.current
     LinkDialog(
         show = showLinkDialog,
         title = "Edit Link",

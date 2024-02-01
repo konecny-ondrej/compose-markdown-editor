@@ -7,8 +7,8 @@ import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.Image
 import com.vladsch.flexmark.ast.ImageRef
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
@@ -16,7 +16,7 @@ import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun ImageButton(editorState: WysiwygEditorState) {
+internal fun ImageButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
     val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
@@ -44,6 +44,7 @@ internal fun ImageButton(editorState: WysiwygEditorState) {
         activeIf = { touchedImages.size == 1 },
         disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedImages.size > 1 }
     ) {
+        editorState.interactiveScope.focusRequester.requestFocus()
         if (touchedImages.size == 1) {
             val imageElement = touchedImages.first()
             imageUrl = when (imageElement) {
@@ -60,7 +61,6 @@ internal fun ImageButton(editorState: WysiwygEditorState) {
         showLinkDialog = true
     }
 
-    val handleInput = LocalInteractiveInputHandler.current
     LinkDialog(
         show = showLinkDialog,
         title = "Edit Image",

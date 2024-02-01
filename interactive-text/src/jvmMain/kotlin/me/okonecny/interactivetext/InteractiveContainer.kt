@@ -2,7 +2,6 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -143,6 +142,7 @@ private fun Modifier.paintSelection(
             )
         }
 
+        drawContent()
         drawPath(combinedSelectionPath, selectionStyle.fillColor)
         drawPath(
             combinedSelectionPath,
@@ -152,7 +152,6 @@ private fun Modifier.paintSelection(
                 join = StrokeJoin.Round
             )
         )
-        drawContent()
     }
 
 private fun TextLayoutResult.getFilledPathForRange(start: Int, end: Int, growBy: Float = 1f): Path {

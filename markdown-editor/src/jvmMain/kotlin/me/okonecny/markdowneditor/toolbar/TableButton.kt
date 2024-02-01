@@ -15,14 +15,14 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.tables.TableCell
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun TableButton(editorState: WysiwygEditorState) {
+internal fun TableButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
     val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor
@@ -36,6 +36,7 @@ internal fun TableButton(editorState: WysiwygEditorState) {
             modifier = Modifier.offset((-2).dp),
             disabledIf = { !visualSelection.isEmpty || touchedTables.isNotEmpty() }
         ) {
+            editorState.interactiveScope.focusRequester.requestFocus()
             menuVisible = true
         }
         DropdownMenu(
@@ -45,7 +46,6 @@ internal fun TableButton(editorState: WysiwygEditorState) {
             var rows by remember { mutableStateOf(1) }
             var cols by remember { mutableStateOf(1) }
             val tableStyle = LocalDocumentTheme.current.styles.table
-            val handleInput = LocalInteractiveInputHandler.current
 
             Column(tableStyle.modifier) {
                 for (i in 1..rows) {

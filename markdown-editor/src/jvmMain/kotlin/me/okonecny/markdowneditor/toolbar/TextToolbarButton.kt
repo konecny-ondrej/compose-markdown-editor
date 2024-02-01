@@ -11,7 +11,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import me.okonecny.interactivetext.LocalInteractiveScope
 import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.internal.Symbol
 
@@ -35,8 +34,6 @@ internal fun TextToolbarButton(
             else -> ToolbarButtonState.Normal
         }
 
-        val editorFocusRequester = LocalInteractiveScope.current!!.focusRequester
-
         BasicText(
             text = text,
             style = TextStyle(
@@ -50,10 +47,7 @@ internal fun TextToolbarButton(
             modifier = Modifier.toolbarElement(state) {
                 clickable(
                     enabled = state != ToolbarButtonState.Disabled,
-                    onClick = {
-                        editorFocusRequester.requestFocus()
-                        onClick()
-                    },
+                    onClick = { onClick() },
                     onClickLabel = tooltip,
                     role = Role.Button
                 )

@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.round
 import kotlinx.coroutines.delay
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.textInput
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.MenuItemState
@@ -22,7 +22,8 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 internal fun AutocompletePopup(
     editorState: WysiwygEditorState,
-    plugins: List<AutocompletePlugin>
+    plugins: List<AutocompletePlugin>,
+    handleInput: (TextInputCommand) -> Unit
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return
     val suggestionsByPlugin = remember(editorState.sourceText) {
@@ -48,7 +49,6 @@ internal fun AutocompletePopup(
     if (!openMenu) return
 
     Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
-        val handleInput = LocalInteractiveInputHandler.current
         PopupMenu(
             onDismissRequest = { _ -> dismissed = true; false },
             horizontalAlignment = Alignment.Start,

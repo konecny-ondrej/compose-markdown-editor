@@ -17,19 +17,21 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 fun MarkdownFloatingToolbar(
-    editorState: WysiwygEditorState
+    editorState: WysiwygEditorState,
+    handleInput: (TextInputCommand) -> Unit
 ) {
     val visualCursorRect = editorState.visualCursorRect ?: return
     if (editorState.sourceCursor == null) return
 
     MeasuringLayout(
         measuredContent = {
-            ToolbarContent(editorState)
+            ToolbarContent(editorState, handleInput)
         }
     ) { measuredSize, constraints ->
         Box(Modifier.offset {
@@ -43,13 +45,13 @@ fun MarkdownFloatingToolbar(
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
             ).round()
         }) {
-            ToolbarContent(editorState)
+            ToolbarContent(editorState, handleInput)
         }
     }
 }
 
 @Composable
-private fun ToolbarContent(editorState: WysiwygEditorState) {
+private fun ToolbarContent(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
     val toolbarInteractionSource = remember { MutableInteractionSource() }
     val isHovered by toolbarInteractionSource.collectIsHoveredAsState()
     val toolbarAlpha = if (isHovered) 1.0f else 0.0f
@@ -62,19 +64,19 @@ private fun ToolbarContent(editorState: WysiwygEditorState) {
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
-        ParagraphStyleCombo(editorState)
+        ParagraphStyleCombo(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(editorState)
+        StrongEmphasisButton(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        EmphasisButton(editorState)
+        EmphasisButton(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        CodeButton(editorState)
+        CodeButton(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        LinkButton(editorState)
+        LinkButton(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        ImageButton(editorState)
+        ImageButton(editorState, handleInput)
         Spacer(Modifier.width(3.dp))
-        TableButton(editorState)
+        TableButton(editorState, handleInput)
     }
 }
 

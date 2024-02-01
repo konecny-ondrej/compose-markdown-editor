@@ -15,8 +15,8 @@ import com.vladsch.flexmark.ast.FencedCodeBlock
 import com.vladsch.flexmark.ast.Heading
 import com.vladsch.flexmark.ast.Paragraph
 import com.vladsch.flexmark.util.ast.Block
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.flexmark.range
@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 private const val ARROW_DOWN = " \ueab4 "
 
 @Composable
-internal fun ParagraphStyleCombo(editorState: WysiwygEditorState) {
+internal fun ParagraphStyleCombo(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
 
     val touchedBlocks = editorState.visualSelection
         .touchedNodesOfType<Block>(editorState.interactiveScope, editorState.sourceCursor)
@@ -61,23 +61,22 @@ internal fun ParagraphStyleCombo(editorState: WysiwygEditorState) {
             onDismissRequest = { menuVisible = false }
         ) {
             val styles = DocumentTheme.current.styles
-            ParagraphOption(currentBlock)
-            HeadingOption(currentBlock, 1, styles.h1)
-            HeadingOption(currentBlock, 2, styles.h2)
-            HeadingOption(currentBlock, 3, styles.h3)
-            HeadingOption(currentBlock, 4, styles.h4)
-            HeadingOption(currentBlock, 5, styles.h5)
-            HeadingOption(currentBlock, 6, styles.h6)
-            FencedCodeBlockOption(currentBlock)
-            BlockQuoteOption(currentBlock)
+            ParagraphOption(currentBlock, handleInput)
+            HeadingOption(currentBlock, 1, styles.h1, handleInput)
+            HeadingOption(currentBlock, 2, styles.h2, handleInput)
+            HeadingOption(currentBlock, 3, styles.h3, handleInput)
+            HeadingOption(currentBlock, 4, styles.h4, handleInput)
+            HeadingOption(currentBlock, 5, styles.h5, handleInput)
+            HeadingOption(currentBlock, 6, styles.h6, handleInput)
+            FencedCodeBlockOption(currentBlock, handleInput)
+            BlockQuoteOption(currentBlock, handleInput)
         }
     })
 }
 
 @Composable
-private fun ParagraphOption(currentBlock: Block) {
+private fun ParagraphOption(currentBlock: Block, handleInput: (TextInputCommand) -> Unit) {
     val styles = DocumentTheme.current.styles
-    val handleInput = LocalInteractiveInputHandler.current
 
     DropdownMenuItem({
         handleInput(ReplaceRange(currentBlock.range, currentBlock.paragraphContent))
@@ -87,8 +86,7 @@ private fun ParagraphOption(currentBlock: Block) {
 }
 
 @Composable
-private fun HeadingOption(currentBlock: Block, level: Int, style: TextStyle) {
-    val handleInput = LocalInteractiveInputHandler.current
+private fun HeadingOption(currentBlock: Block, level: Int, style: TextStyle, handleInput: (TextInputCommand) -> Unit) {
     DropdownMenuItem({
         handleInput(ReplaceRange(currentBlock.range, "#".repeat(level) + " " + currentBlock.paragraphContent))
     }) {
@@ -97,9 +95,8 @@ private fun HeadingOption(currentBlock: Block, level: Int, style: TextStyle) {
 }
 
 @Composable
-private fun FencedCodeBlockOption(currentBlock: Block) {
+private fun FencedCodeBlockOption(currentBlock: Block, handleInput: (TextInputCommand) -> Unit) {
     val styles = DocumentTheme.current.styles
-    val handleInput = LocalInteractiveInputHandler.current
     DropdownMenuItem({
         handleInput(
             ReplaceRange(
@@ -117,9 +114,8 @@ private fun FencedCodeBlockOption(currentBlock: Block) {
 }
 
 @Composable
-private fun BlockQuoteOption(currentBlock: Block) {
+private fun BlockQuoteOption(currentBlock: Block, handleInput: (TextInputCommand) -> Unit) {
     val styles = DocumentTheme.current.styles
-    val handleInput = LocalInteractiveInputHandler.current
     val quotedText = currentBlock.source
         .lines()
         .joinToString(System.lineSeparator()) { line -> "> $line" }
@@ -160,7 +156,7 @@ private enum class ParagraphStyle(
         }
 
         val allowedParagraphStyles: Set<ParagraphStyle> by lazy {
-            values().toSet()
+            entries.toSet()
         }
 
         val allowedNodeTypes: Set<KClass<out Block>> by lazy {

@@ -12,8 +12,8 @@ import com.vladsch.flexmark.ast.Code
 import com.vladsch.flexmark.ast.DelimitedNodeImpl
 import com.vladsch.flexmark.ast.Emphasis
 import com.vladsch.flexmark.ast.StrongEmphasis
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
+import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
@@ -22,32 +22,38 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 
 @Composable
-internal fun EmphasisButton(editorState: WysiwygEditorState) = DelimitedNodeButton<Emphasis>(
-    "I",
-    "Emphasis",
-    TextStyle(fontStyle = FontStyle.Italic),
-    "_",
-    editorState
-)
+internal fun EmphasisButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+    DelimitedNodeButton<Emphasis>(
+        "I",
+        "Emphasis",
+        TextStyle(fontStyle = FontStyle.Italic),
+        "_",
+        editorState,
+        handleInput
+    )
 
 @Composable
-internal fun StrongEmphasisButton(editorState: WysiwygEditorState) = DelimitedNodeButton<StrongEmphasis>(
-    "B",
-    "Strong Emphasis",
-    TextStyle(fontWeight = FontWeight.Bold),
-    "**",
-    editorState
-)
+internal fun StrongEmphasisButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+    DelimitedNodeButton<StrongEmphasis>(
+        "B",
+        "Strong Emphasis",
+        TextStyle(fontWeight = FontWeight.Bold),
+        "**",
+        editorState,
+        handleInput
+    )
 
 @Composable
-internal fun CodeButton(editorState: WysiwygEditorState) = DelimitedNodeButton<Code>(
-    "\uf44f",
-    "Inline Code",
-    TextStyle.Default,
-    "`",
-    editorState,
-    Modifier.offset((-2.5).dp)
-)
+internal fun CodeButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+    DelimitedNodeButton<Code>(
+        "\uf44f",
+        "Inline Code",
+        TextStyle.Default,
+        "`",
+        editorState,
+        handleInput,
+        Modifier.offset((-2.5).dp)
+    )
 
 @Composable
 private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
@@ -56,6 +62,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     textStyle: TextStyle,
     delimiter: String,
     editorState: WysiwygEditorState,
+    crossinline handleInput: (TextInputCommand) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val visualSelection = editorState.visualSelection
@@ -66,7 +73,6 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     val sourceSelection = editorState.sourceSelection
 
     val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
-    val handleInput = LocalInteractiveInputHandler.current
 
     TextToolbarButton(
         text = text,
@@ -76,6 +82,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
         textStyle = textStyle,
         modifier = modifier,
     ) {
+        editorState.interactiveScope.focusRequester.requestFocus()
         // Emphasis OFF.
         if (touchedDelimitedNodes.size == 1) {
             val delimitedNode = touchedDelimitedNodes.first()
@@ -105,6 +112,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
                 delimiter.length
             )
         )
+
     }
 }
 

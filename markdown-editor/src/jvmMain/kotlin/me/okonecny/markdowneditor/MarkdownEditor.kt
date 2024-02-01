@@ -9,8 +9,8 @@ import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.toolbar.MarkdownFloatingToolbar
 import me.okonecny.wysiwyg.AutocompletePlugin
-import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.WysiwygEditor
+import me.okonecny.wysiwyg.WysiwygEditorState
 import kotlin.io.path.Path
 
 @Composable
@@ -37,8 +37,8 @@ fun MarkdownEditor(
                 linkHandlers = listOf(WebLink(LocalUriHandler.current))
             )
         }
-        FloatingToolbar {
-            MarkdownFloatingToolbar(editorState)
+        FloatingToolbar { handleInput ->
+            MarkdownFloatingToolbar(editorState, handleInput)
         }
     }
 }

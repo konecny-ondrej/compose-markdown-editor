@@ -1,5 +1,6 @@
 package me.okonecny.wysiwyg
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -32,26 +33,29 @@ fun WysiwygEditor(
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
 
-    InteractiveContainer(
-        scope = interactiveScope,
-        selectionStyle = selectionStyle,
-        modifier = modifier,
-        onCursorMovement = { newVisualCursor ->
-            editorState.visualCursor = newVisualCursor
-            val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
-            val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
-            onChange(editorState.copy(sourceCursor = newSourceCursor?.start))
-        },
-        onInput = inputQueue::add
-    ) {
-        val editorScope = WysiwygEditorScopeImpl()
-        editorScope.components()
-        editorScope.view!!()
-        editorScope.floatingToolbar()
+    val editorScope = WysiwygEditorScopeImpl()
+    editorScope.components()
 
+    Box {
+        InteractiveContainer(
+            scope = interactiveScope,
+            selectionStyle = selectionStyle,
+            modifier = modifier,
+            onCursorMovement = { newVisualCursor ->
+                editorState.visualCursor = newVisualCursor
+                val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
+                val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
+                onChange(editorState.copy(sourceCursor = newSourceCursor?.start))
+            },
+            onInput = inputQueue::add
+        ) {
+            editorScope.view!!()
+        }
+        editorScope.floatingToolbar(inputQueue::add)
         AutocompletePopup(
             editorState,
-            autocompletePlugins
+            autocompletePlugins,
+            inputQueue::add
         )
     }
     LaunchedEffect(sourceCursorRequest) {
@@ -173,7 +177,7 @@ interface WysiwygEditorScope {
     fun WysiwygView(view: @Composable () -> Unit)
 
     @Composable
-    fun FloatingToolbar(toolbar: @Composable () -> Unit)
+    fun FloatingToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
 
     // TODO: add SourceView?
     // TODO: implement proper WYSIWYG / source / both modes.
@@ -182,7 +186,7 @@ interface WysiwygEditorScope {
 private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     var view: @Composable (() -> Unit)? = null
         get() = if (field == null) throw IllegalStateException("You must set the View for the editor.") else field
-    var floatingToolbar: @Composable () -> Unit = {}
+    var floatingToolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit = {}
 
     @Composable
     override fun WysiwygView(view: @Composable () -> Unit) {
@@ -190,7 +194,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     }
 
     @Composable
-    override fun FloatingToolbar(toolbar: @Composable () -> Unit) {
+    override fun FloatingToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
         this.floatingToolbar = toolbar
     }
 }

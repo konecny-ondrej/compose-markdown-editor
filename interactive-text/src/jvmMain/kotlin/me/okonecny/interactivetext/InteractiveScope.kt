@@ -61,12 +61,23 @@ data class InteractiveScope(
     }
 
     fun unregister(componentId: InteractiveId) {
+        selection = if (selection.isEmpty || isComponentBetween(
+                componentId,
+                selection.start.componentId,
+                selection.end.componentId
+            )
+        ) {
+            Selection.empty
+        } else {
+            selection
+        }
+        if (cursorPosition?.componentId == componentId) {
+            cursorPosition = CursorPosition.invalid
+        }
+
         registeredComponents.remove(componentId)?.let { removedComponent ->
             orderedComponents.remove(removedComponent)
         }
-        if (cursorPosition?.componentId != componentId) return
-        cursorPosition = CursorPosition.invalid
-        selection = Selection.empty
     }
 
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()

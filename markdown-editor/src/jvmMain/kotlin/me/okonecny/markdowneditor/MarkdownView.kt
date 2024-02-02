@@ -116,8 +116,7 @@ private fun UiMdDocument(
             LazyColumn(modifier = modifier, state = lazyColState) {
                 markdownRoot.children.forEachIndexed { index, child ->
                     item {
-                        navigation.currentScrollId =
-                            index // TODO: register the link anchors eagerly to allow scrolling forward.
+                        navigation.currentScrollId = index
                         UiBlock(child)
                     }
                 }

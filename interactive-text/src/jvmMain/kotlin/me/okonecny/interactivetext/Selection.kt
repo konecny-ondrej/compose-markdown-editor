@@ -1,6 +1,7 @@
 package me.okonecny.interactivetext
 
 import androidx.compose.ui.text.TextRange
+import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.invalidInteractiveId
 
 data class Selection(
     val start: CursorPosition,

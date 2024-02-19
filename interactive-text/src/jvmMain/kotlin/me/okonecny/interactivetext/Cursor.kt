@@ -55,7 +55,6 @@ data class CursorPosition(
  * Draws cursor line inside a text component.
  * @param textLayoutResult Text Layout Result of the component. Used to determine where to draw the cursor line.
  * @param offset Text offset inside one component.
- * @param enabled If to show the cursor at all. Useful if you have multiple components.
  */
 internal fun Modifier.cursorLine(
     textLayoutResult: TextLayoutResult?,
@@ -111,12 +110,13 @@ private val cursorAnimationSpec: AnimationSpec<Float> = infiniteRepeatable(
 fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect {
     val component = getComponent(cursorPosition.componentId)
     val componentTextLayout = component.textLayoutResult
+    val componentLayoutCoordinates = component.attachedLayoutCoordinates ?: return Rect.Zero
     if (!component.hasText || componentTextLayout == null) {
-        return Rect(containerCoordinates.localCenterPointOf(component), 0f)
+        return Rect(containerCoordinates.localCenterPointOf(component) ?: Offset.Zero, 0f)
     }
     val componentCursorRect = componentTextLayout.getCursorRect(cursorPosition.visualOffset)
     return Rect(
-        containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.topLeft),
-        containerCoordinates.localPositionOf(component.layoutCoordinates, componentCursorRect.bottomRight)
+        containerCoordinates.localPositionOf(componentLayoutCoordinates, componentCursorRect.topLeft),
+        containerCoordinates.localPositionOf(componentLayoutCoordinates, componentCursorRect.bottomRight)
     )
 }

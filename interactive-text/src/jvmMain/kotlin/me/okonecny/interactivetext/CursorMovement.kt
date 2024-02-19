@@ -83,7 +83,8 @@ private fun moveCursor(
         return CursorPosition(tappedComponent.id, 0)
     }
 
-    val localOffset = tappedComponent.layoutCoordinates.localPositionOf(
+    val componentCoordinates = tappedComponent.attachedLayoutCoordinates ?: return CursorPosition.invalid
+    val localOffset = componentCoordinates.localPositionOf(
         scope.containerCoordinates,
         position
     )

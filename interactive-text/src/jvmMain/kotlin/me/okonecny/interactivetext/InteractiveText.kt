@@ -13,6 +13,7 @@ import androidx.compose.ui.text.TextStyle
 
 @Composable
 fun InteractiveText(
+    interactiveId: InteractiveId,
     text: AnnotatedString,
     textMapping: TextMapping,
     style: TextStyle,
@@ -27,7 +28,6 @@ fun InteractiveText(
     val interactiveScope = LocalInteractiveScope.current
 
     if (interactiveScope != null) {
-        val interactiveId = interactiveScope.rememberInteractiveId()
         val cursorPosition = interactiveScope.cursorPosition
 
         interactiveModifier = Modifier
@@ -52,11 +52,6 @@ fun InteractiveText(
                     )
                 )
             }
-        DisposableEffect(interactiveScope) {
-            onDispose {
-                interactiveScope.unregister(interactiveId)
-            }
-        }
     }
 
     BasicText(
@@ -76,6 +71,7 @@ fun InteractiveText(
 
 @Composable
 fun InteractiveText(
+    interactiveId: InteractiveId,
     text: String,
     textMapping: TextMapping,
     style: TextStyle,
@@ -84,6 +80,7 @@ fun InteractiveText(
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
 ) = InteractiveText(
+    interactiveId,
     AnnotatedString(text),
     textMapping,
     style,

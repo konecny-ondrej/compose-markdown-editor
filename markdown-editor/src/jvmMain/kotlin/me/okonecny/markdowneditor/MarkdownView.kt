@@ -158,6 +158,7 @@ private fun UiTableBlock(tableBlock: TableBlock) {
 
     @Composable
     fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
+        val document = LocalDocument.current
         tableSection.children.forEach { tableRow ->
             when (tableRow) {
                 is TableRow -> Row(Modifier.height(IntrinsicSize.Max)) {
@@ -166,6 +167,7 @@ private fun UiTableBlock(tableBlock: TableBlock) {
                             is TableCell -> {
                                 val inlines = parseInlines(cell.children)
                                 InteractiveText(
+                                    interactiveId = document.getInteractiveId(cell),
                                     text = inlines.text,
                                     textMapping = inlines.textMapping,
                                     inlineContent = inlines.inlineContent,
@@ -218,8 +220,10 @@ private fun UiTaskListItem(
     number: Int? = null
 ) {
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     Row {
         InteractiveText(
+            interactiveId = document.getInteractiveId(taskListItem),
             text = if (taskListItem.isOrderedItem) {
                 number.toString() + bulletOrDelimiter
             } else {
@@ -251,6 +255,7 @@ private fun UiTaskListItem(
 @Composable
 private fun UiBulletList(unorderedList: BulletList) {
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     val bullet = "\u2022"
     Column {
         unorderedList.children.forEach { child ->
@@ -258,6 +263,7 @@ private fun UiBulletList(unorderedList: BulletList) {
                 is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet, child.openingMarker)
                 is BulletListItem -> Row {
                     InteractiveText(
+                        interactiveId = document.getInteractiveId(child),
                         text = bullet,
                         textMapping = SequenceTextMapping(
                             coveredVisualRange = TextRange(0, 1),
@@ -281,6 +287,7 @@ private fun UiBulletList(unorderedList: BulletList) {
 @Composable
 private fun UiOrderedList(orderedList: OrderedList) {
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     Column {
         var computedNumber: Int = orderedList.startNumber
 
@@ -295,6 +302,7 @@ private fun UiOrderedList(orderedList: OrderedList) {
 
                 is OrderedListItem -> Row {
                     InteractiveText(
+                        interactiveId = document.getInteractiveId(child),
                         text = (computedNumber++).toString() + orderedList.delimiter,
                         textMapping = SequenceTextMapping( // The displayed number generally is not the same as in the source code.
                             coveredVisualRange = TextRange(0, computedNumber.toString().length + 1),
@@ -319,9 +327,11 @@ private fun UiOrderedList(orderedList: OrderedList) {
 @Composable
 private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     Column(modifier = styles.codeBlock.modifier) {
         htmlBlock.contentLines.forEach { line ->
             InteractiveText(
+                interactiveId = document.getInteractiveId(htmlBlock),
                 text = line.toString(),
                 textMapping = SequenceTextMapping(TextRange(0, line.length), line),
                 style = styles.codeBlock.textStyle
@@ -333,6 +343,7 @@ private fun UiHtmlBlock(htmlBlock: HtmlBlock) {
 @Composable
 private fun UiCodeFence(codeFence: FencedCodeBlock) {
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     Column {
         val code = buildMappedString {
             codeFence.children.forEach { child ->
@@ -346,6 +357,7 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
         val codeFenceRenderer = CodeFenceRenderers.current[codeFenceType]
         if (codeFenceRenderer == null) {
             InteractiveText(
+                interactiveId = document.getInteractiveId(codeFence),
                 text = code.text,
                 textMapping = code.textMapping,
                 style = styles.codeBlock.textStyle,
@@ -362,7 +374,9 @@ private fun UiCodeFence(codeFence: FencedCodeBlock) {
 private fun UiIndentedCodeBlock(indentedCodeBlock: IndentedCodeBlock) {
     val styles = DocumentTheme.current.styles
     val lines = indentedCodeBlock.contentLines
+    val document = LocalDocument.current
     InteractiveText(
+        interactiveId = document.getInteractiveId(indentedCodeBlock),
         text = lines.joinToString(System.lineSeparator()),
         textMapping = ChunkedSourceTextMapping(lines.map { line ->
             SequenceTextMapping(TextRange(0, line.length), line)
@@ -396,7 +410,9 @@ private fun UiHorizontalRule() {
 @Composable
 private fun UiUnparsedBlock(node: Node) {
     val text = "!${node.nodeName}!"
+    val document = LocalDocument.current
     InteractiveText(
+        interactiveId = document.getInteractiveId(node),
         text = text,
         textMapping = BoundedBlockTextMapping(
             node.range, // TODO +1?
@@ -410,7 +426,9 @@ private fun UiUnparsedBlock(node: Node) {
 private fun UiParagraph(paragraph: Paragraph) {
     val inlines = parseInlines(paragraph.children)
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     InteractiveText(
+        interactiveId = document.getInteractiveId(paragraph),
         text = inlines.text,
         textMapping = inlines.textMapping,
         style = styles.paragraph,
@@ -425,7 +443,9 @@ private fun UiParagraph(paragraph: Paragraph) {
 private fun UiHeading(heading: Heading) {
     val inlines = parseInlines(heading.children)
     val styles = DocumentTheme.current.styles
+    val document = LocalDocument.current
     InteractiveText(
+        interactiveId = document.getInteractiveId(heading),
         text = inlines.text,
         textMapping = inlines.textMapping,
         inlineContent = inlines.inlineContent,

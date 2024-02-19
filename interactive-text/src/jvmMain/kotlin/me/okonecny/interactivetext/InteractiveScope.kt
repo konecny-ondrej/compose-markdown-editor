@@ -1,26 +1,17 @@
 package me.okonecny.interactivetext
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 import kotlin.math.max
-
-internal typealias InteractiveId = Long
-
-internal const val firstInteractiveId: InteractiveId = 0
-internal const val invalidInteractiveId: InteractiveId = -1
 
 data class InteractiveScope(
     val focusRequester: FocusRequester = FocusRequester(),
     var cursorPosition: CursorPosition? = null,
     var selection: Selection = Selection.empty,
-    private var containerLayoutCoordinates: LayoutCoordinates? = null,
-    private val currentId: AtomicLong = AtomicLong(firstInteractiveId)
+    private var containerLayoutCoordinates: LayoutCoordinates? = null
 ) {
     internal val containerCoordinates: LayoutCoordinates
         get() = checkNotNull(containerLayoutCoordinates) { "You must place the interactive scope first." }
@@ -35,49 +26,22 @@ data class InteractiveScope(
             }
         }
 
-    /**
-     * Generates ID for interactive components.
-     * Automatically remembered so consumers always receive the same ID.
-     */
-    @Composable
-    fun rememberInteractiveId(): InteractiveId =
-        rememberSaveable(this, key = System.identityHashCode(this).toString()) {
-            var newId = currentId.getAndIncrement()
-            while (newId == invalidInteractiveId) {
-                newId = currentId.getAndIncrement()
-            }
-            newId
-        }
-
     internal fun place(containerLayoutCoordinates: LayoutCoordinates) {
         this.containerLayoutCoordinates = containerLayoutCoordinates
+        registeredComponents.replaceAll { _, component ->
+            component.copy(layoutCoordinates = null)
+        }
+        orderedComponents.clear()
+        orderedComponents.addAll(registeredComponents.values)
+        sortedInLineOrder = false
     }
 
     fun register(component: InteractiveComponent) {
+        // TODO: simplify and cleanup
         registeredComponents[component.id] = component
         orderedComponents.removeIf { component.id == it.id }
         orderedComponents.add(component)
         sortedInLineOrder = false
-    }
-
-    fun unregister(componentId: InteractiveId) {
-        selection = if (selection.isEmpty || isComponentBetween(
-                componentId,
-                selection.start.componentId,
-                selection.end.componentId
-            )
-        ) {
-            Selection.empty
-        } else {
-            selection
-        }
-        if (cursorPosition?.componentId == componentId) {
-            cursorPosition = CursorPosition.invalid
-        }
-
-        registeredComponents.remove(componentId)?.let { removedComponent ->
-            orderedComponents.remove(removedComponent)
-        }
     }
 
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
@@ -131,8 +95,11 @@ data class InteractiveScope(
      * preferring components horizontally adjacent.
      */
     fun componentClosestTo(visualOffset: Offset): InteractiveComponent {
-        fun computeDistance(offset1: Offset, offset2: Offset): Float =
-            abs(offset1.x - offset2.x) + (abs(offset1.y - offset2.y) * 5) // Use geometric instead of Manhattan metric?
+        fun computeDistance(offset1: Offset?, offset2: Offset?): Float {
+            if (offset1 == null || offset2 == null) return Float.MAX_VALUE
+            // Use geometric instead of Manhattan metric?
+            return abs(offset1.x - offset2.x) + (abs(offset1.y - offset2.y) * 5)
+        }
 
         var closestComponent = requireFirstComponent()
         var closestDistance = computeDistance(
@@ -156,7 +123,8 @@ data class InteractiveScope(
      */
     fun componentAt(visualOffset: Offset): InteractiveComponent {
         for (component in orderedComponents) {
-            if (containerCoordinates.localBoundingBoxOf(component).contains(visualOffset)) return component
+            val componentBounds = containerCoordinates.localBoundingBoxOf(component) ?: continue
+            if (componentBounds.contains(visualOffset)) return component
         }
         return componentClosestTo(visualOffset)
     }
@@ -168,7 +136,7 @@ data class InteractiveScope(
         var bestComponent: InteractiveComponent? = null
         var bestDistance = Float.MAX_VALUE
         for (component in orderedComponents) {
-            val componentBounds = containerCoordinates.localBoundingBoxOf(component)
+            val componentBounds = containerCoordinates.localBoundingBoxOf(component) ?: continue
             val distance = computeDistance(componentBounds)
             if (distance < bestDistance) {
                 bestComponent = component
@@ -310,23 +278,16 @@ data class InteractiveScope(
     }
 
     private fun textLineComparison(a: InteractiveComponent, b: InteractiveComponent): Int {
-        val layoutCoordinatesA = a.layoutCoordinates
-        val layoutCoordinatesB = b.layoutCoordinates
-        // TODO: check that both coordinates are attached.
-
-        val positionA = containerCoordinates.localPositionOf(layoutCoordinatesA, Offset.Zero)
-        val positionB = containerCoordinates.localPositionOf(layoutCoordinatesB, Offset.Zero)
-
-        return if (positionA.y == positionB.y) {
-            compareValues(positionA.x, positionB.x)
-        } else {
-            compareValues(positionA.y, positionB.y)
-        }
+        // Assume that the ids are vaguely in line order for components, which are currently detached.
+        // e.g. off the screen in LazyColumn
+        return compareValues(a.id, b.id)
     }
 }
 
-private fun LayoutCoordinates.localBoundingBoxOf(component: InteractiveComponent): Rect =
-    localBoundingBoxOf(component.layoutCoordinates, false)
+private fun LayoutCoordinates.localBoundingBoxOf(component: InteractiveComponent): Rect? {
+    val componentLayoutCoordinates = component.attachedLayoutCoordinates ?: return null
+    return localBoundingBoxOf(componentLayoutCoordinates, false)
+}
 
-internal fun LayoutCoordinates.localCenterPointOf(component: InteractiveComponent): Offset =
-    localBoundingBoxOf(component).center
+internal fun LayoutCoordinates.localCenterPointOf(component: InteractiveComponent): Offset? =
+    localBoundingBoxOf(component)?.center

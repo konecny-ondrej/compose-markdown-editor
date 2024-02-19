@@ -11,15 +11,16 @@ import kotlin.reflect.KClass
  */
 data class InteractiveComponent(
     /**
-     * ID of the interactive component.
-     * @see InteractiveScope.rememberInteractiveId
+     * ID of the interactive component. The IDs must follow the flow of the text, because they are used
+     * to sort the components in line order. This is important for cursor navigation and selection.
      */
     val id: InteractiveId,
     /**
      * Global layout coordinates used to sort the interactive components for the purpose of prev/next navigation.
+     * If the component is out of composition, these will be null.
      * @see androidx.compose.ui.layout.onGloballyPositioned
      */
-    val layoutCoordinates: LayoutCoordinates,
+    private val layoutCoordinates: LayoutCoordinates?,
     /**
      * Text range of the displayed text if the represented component is a component displaying text.
      * @see androidx.compose.ui.text.TextRange
@@ -43,6 +44,9 @@ data class InteractiveComponent(
      * True if the component contains any text. False otherwise.
      */
     val hasText: Boolean get() = textLayoutResult != null && !visualTextRange.collapsed
+
+    val attachedLayoutCoordinates: LayoutCoordinates?
+        get() = if (layoutCoordinates?.isAttached == true) layoutCoordinates else null
 
     /**
      * True if the text contained in this component has more than one line.

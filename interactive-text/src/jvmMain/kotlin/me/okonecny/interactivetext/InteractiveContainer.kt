@@ -119,6 +119,8 @@ private fun Modifier.paintSelection(
             interactiveScope.getComponent(selection.end.componentId)
         )) {
             val textLayout = component.textLayoutResult ?: continue
+            val componentCoordinates = component.attachedLayoutCoordinates ?: continue
+
             val selectionStart = if (selection.start.componentId == component.id) {
                 selection.start.visualOffset
             } else {
@@ -131,9 +133,13 @@ private fun Modifier.paintSelection(
                 text.length
             }
 
-            val componentSelectionPath = textLayout.getFilledPathForRange(selectionStart, selectionEnd, (selectionStyle.stroke.width + 1.dp).toPx())
+            val componentSelectionPath = textLayout.getFilledPathForRange(
+                selectionStart,
+                selectionEnd,
+                (selectionStyle.stroke.width + 1.dp).toPx()
+            )
             val positionInContainer =
-                interactiveScope.containerCoordinates.localPositionOf(component.layoutCoordinates, Offset.Zero)
+                interactiveScope.containerCoordinates.localPositionOf(componentCoordinates, Offset.Zero)
             componentSelectionPath.translate(positionInContainer)
             combinedSelectionPath = Path.combine(
                 PathOperation.Union,

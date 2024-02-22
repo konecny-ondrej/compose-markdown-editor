@@ -138,8 +138,9 @@ private fun Modifier.paintSelection(
                 selectionEnd,
                 (selectionStyle.stroke.width + 1.dp).toPx()
             )
-            val positionInContainer =
-                interactiveScope.containerCoordinates.localPositionOf(componentCoordinates, Offset.Zero)
+            val positionInContainer = interactiveScope
+                .containerCoordinates
+                .localPositionOf(componentCoordinates, Offset.Zero)
             componentSelectionPath.translate(positionInContainer)
             combinedSelectionPath = Path.combine(
                 PathOperation.Union,

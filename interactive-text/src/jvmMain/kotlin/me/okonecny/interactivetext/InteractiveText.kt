@@ -52,6 +52,18 @@ fun InteractiveText(
                     )
                 )
             }
+        DisposableEffect(interactiveScope) {
+            onDispose {
+                interactiveScope.register(InteractiveComponent(
+                    id = interactiveId,
+                    layoutCoordinates = null,
+                    visualTextRange = TextRange(0, text.length),
+                    textMapping = textMapping,
+                    textLayoutResult = null,
+                    userData = userData
+                ))
+            }
+        }
     }
 
     BasicText(

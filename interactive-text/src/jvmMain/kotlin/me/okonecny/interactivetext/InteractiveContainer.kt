@@ -70,7 +70,6 @@ fun InteractiveContainer(
                     false
                 }
                 .textInput(onInput = onInput)
-                .paintSelection(scope, selectionStyle)
         }
         Box(modifier = interactiveModifier.then(modifier)) {
             interactiveContent()
@@ -96,99 +95,4 @@ data class SelectionStyle(
         val width: Dp = 2.dp,
         val color: Color = Color.Cyan
     )
-}
-
-private fun Modifier.paintSelection(
-    interactiveScope: InteractiveScope,
-    selectionStyle: SelectionStyle
-) = clip(RectangleShape)
-    .drawWithContent {
-        val selection = interactiveScope.selection
-        if (selection.isEmpty
-            || !interactiveScope.isPlaced
-            || !interactiveScope.hasComponent(selection.start.componentId)
-            || !interactiveScope.hasComponent(selection.end.componentId)
-        ) {
-            drawContent()
-            return@drawWithContent
-        }
-
-        var combinedSelectionPath = Path()
-        for (component in interactiveScope.componentsBetween(
-            interactiveScope.getComponent(selection.start.componentId),
-            interactiveScope.getComponent(selection.end.componentId)
-        )) {
-            val textLayout = component.textLayoutResult ?: continue
-            val componentCoordinates = component.attachedLayoutCoordinates ?: continue
-
-            val selectionStart = if (selection.start.componentId == component.id) {
-                selection.start.visualOffset
-            } else {
-                0
-            }
-            val text = textLayout.layoutInput.text
-            val selectionEnd = if (selection.end.componentId == component.id) {
-                selection.end.visualOffset.coerceAtMost(text.length)
-            } else {
-                text.length
-            }
-
-            val componentSelectionPath = textLayout.getFilledPathForRange(
-                selectionStart,
-                selectionEnd,
-                (selectionStyle.stroke.width + 1.dp).toPx()
-            )
-            val positionInContainer = interactiveScope
-                .containerCoordinates
-                .localPositionOf(componentCoordinates, Offset.Zero)
-            componentSelectionPath.translate(positionInContainer)
-            combinedSelectionPath = Path.combine(
-                PathOperation.Union,
-                combinedSelectionPath,
-                componentSelectionPath
-            )
-        }
-
-        drawContent()
-        drawPath(combinedSelectionPath, selectionStyle.fillColor)
-        drawPath(
-            combinedSelectionPath,
-            selectionStyle.stroke.color,
-            style = Stroke(
-                width = selectionStyle.stroke.width.toPx(),
-                join = StrokeJoin.Round
-            )
-        )
-    }
-
-private fun TextLayoutResult.getFilledPathForRange(start: Int, end: Int, growBy: Float = 1f): Path {
-    require(start in 0..end && end <= layoutInput.text.length) {
-        "Start($start) or End($end) is out of range [0..${layoutInput.text.length})," +
-                " or start > end!"
-    }
-    if (start == end) return Path()
-
-    var closedPath = Path()
-    for (characterPos in start..<end) {
-        val characterBox = Path()
-        val lineNo = getLineForOffset(characterPos)
-        val lineTop = getLineTop(lineNo)
-        val lineBottom = getLineBottom(lineNo)
-        val charBounds = getBoundingBox(characterPos)
-        characterBox.addRect(
-            Rect(
-                left = charBounds.left - growBy,
-                top = lineTop - growBy,
-                right = charBounds.right + growBy,
-                bottom = lineBottom + growBy
-            )
-        )
-        closedPath = Path.combine(
-            PathOperation.Union,
-            closedPath,
-            characterBox
-        )
-    }
-
-    return closedPath
 }

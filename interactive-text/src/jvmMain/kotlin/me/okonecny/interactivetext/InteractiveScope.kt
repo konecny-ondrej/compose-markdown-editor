@@ -1,5 +1,8 @@
 package me.okonecny.interactivetext
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -9,10 +12,11 @@ import kotlin.math.max
 
 data class InteractiveScope(
     val focusRequester: FocusRequester = FocusRequester(),
-    var cursorPosition: CursorPosition? = null,
-    var selection: Selection = Selection.empty,
     private var containerLayoutCoordinates: LayoutCoordinates? = null
 ) {
+    var cursorPosition: CursorPosition? by mutableStateOf(null)
+    var selection: Selection by mutableStateOf(Selection.empty)
+
     internal val containerCoordinates: LayoutCoordinates
         get() = checkNotNull(containerLayoutCoordinates) { "You must place the interactive scope first." }
 

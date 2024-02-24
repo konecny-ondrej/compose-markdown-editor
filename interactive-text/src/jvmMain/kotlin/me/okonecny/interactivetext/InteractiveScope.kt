@@ -249,7 +249,8 @@ data class InteractiveScope(
 
     fun componentAtSource(sourcePos: Int): InteractiveComponent {
         val directComponents = registeredComponents.values.filter { component ->
-            component.textMapping.coveredSourceRange?.contains(sourcePos) ?: false
+            val sourceRange = component.textMapping.coveredSourceRange ?: return@filter false
+            sourceRange.contains(sourcePos) || sourceRange.end == sourcePos
         }
         // If multiple components are found, take the shortest.
         if (directComponents.isNotEmpty()) return directComponents.minWith { cmp1, cmp2 ->

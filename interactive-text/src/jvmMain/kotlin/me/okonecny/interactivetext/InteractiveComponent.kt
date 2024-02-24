@@ -48,6 +48,8 @@ data class InteractiveComponent(
     val attachedLayoutCoordinates: LayoutCoordinates?
         get() = if (layoutCoordinates?.isAttached == true) layoutCoordinates else null
 
+    val isLaidOut: Boolean get() = attachedLayoutCoordinates != null
+
     /**
      * True if the text contained in this component has more than one line.
      * False if the component has no text or the contained text is just one line.

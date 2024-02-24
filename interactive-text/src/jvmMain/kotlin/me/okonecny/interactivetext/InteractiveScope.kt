@@ -249,6 +249,7 @@ data class InteractiveScope(
 
     fun componentAtSource(sourcePos: Int): InteractiveComponent {
         val directComponents = registeredComponents.values.filter { component ->
+            if (!component.isLaidOut) return@filter false
             val sourceRange = component.textMapping.coveredSourceRange ?: return@filter false
             sourceRange.contains(sourcePos) || sourceRange.end == sourcePos
         }

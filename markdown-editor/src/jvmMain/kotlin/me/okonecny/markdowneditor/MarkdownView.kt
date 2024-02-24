@@ -485,11 +485,33 @@ private fun parseInlines(
                 )
 
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle(), visualStartOffset)
-                is SoftLineBreak -> append(System.lineSeparator())
+                is SoftLineBreak -> append(
+                    MappedText(
+                        System.lineSeparator(),
+                        SequenceTextMapping(
+                            TextRange(
+                                visualLength + visualStartOffset,
+                                visualLength + visualStartOffset + 1
+                            ), inline.chars
+                        )
+                    )
+                )
+
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle(), visualStartOffset)
                 is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle(), visualStartOffset)
                 is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle(), visualStartOffset)
-                is HardLineBreak -> append(System.lineSeparator())
+                is HardLineBreak -> append(
+                    MappedText(
+                        System.lineSeparator(),
+                        SequenceTextMapping(
+                            TextRange(
+                                visualLength + visualStartOffset,
+                                visualLength + visualStartOffset + 1
+                            ), inline.chars
+                        )
+                    )
+                )
+
                 is Link -> appendLink(inline)
                 is AutoLink -> {
                     val url = inline.text.toString()

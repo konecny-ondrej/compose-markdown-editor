@@ -49,8 +49,8 @@ fun Modifier.interactiveText(
                 InteractiveComponent(
                     id = interactiveId,
                     layoutCoordinates = null,
-                    visualTextRange = TextRange(0, textLength),
-                    textMapping = textMapping,
+                    visualTextRange = TextRange(0, 0),
+                    textMapping = ZeroTextMapping,
                     textLayoutResult = null,
                     userData = userData
                 )

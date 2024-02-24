@@ -107,13 +107,15 @@ private val cursorAnimationSpec: AnimationSpec<Float> = infiniteRepeatable(
 /**
  * Find the visual position of the cursor in the layout.
  */
-fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect {
+fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect? {
+    if (cursorPosition == CursorPosition.invalid) return null
     val component = getComponent(cursorPosition.componentId)
+    val componentLayoutCoordinates = component.attachedLayoutCoordinates ?: return null
     val componentTextLayout = component.textLayoutResult
-    val componentLayoutCoordinates = component.attachedLayoutCoordinates ?: return Rect.Zero
     if (!component.hasText || componentTextLayout == null) {
         return Rect(containerCoordinates.localCenterPointOf(component) ?: Offset.Zero, 0f)
     }
+    if (cursorPosition.visualOffset > component.textLayoutResult.layoutInput.text.length) return null
     val componentCursorRect = componentTextLayout.getCursorRect(cursorPosition.visualOffset)
     return Rect(
         containerCoordinates.localPositionOf(componentLayoutCoordinates, componentCursorRect.topLeft),

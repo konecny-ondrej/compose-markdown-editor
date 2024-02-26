@@ -25,32 +25,32 @@ internal fun AutocompletePopup(
     plugins: List<AutocompletePlugin>,
     handleInput: (TextInputCommand) -> Unit
 ) {
-    val visualCursorRect = editorState.visualCursorRect ?: return
-    val suggestionsByPlugin = remember(editorState.sourceText) {
-        plugins.associateWith { plugin ->
-            plugin.generateSuggestions(editorState)
-        }
-    }
-    if (suggestionsByPlugin.flatMap { it.value }.isEmpty()) return
     var dismissed by remember(editorState.sourceText) { mutableStateOf(false) }
     if (dismissed) return
-
     /*
      * Workaround for a bug in PopupMenu where it would crash the app when a key event is received just before the popup
      * is shown. That happens quite often, because the autocomplete is shown in response to the "KEY_TYPED" event,
      * where "KEY_UP" follows right after it.
      * Both Jewel and Material 3 suffer from this issue.
      */
-    var openMenu by remember { mutableStateOf(false) }
+    var openMenu by remember(editorState.sourceText) { mutableStateOf(false) }
     LaunchedEffect(editorState.sourceText) {
         delay(300.milliseconds)
         openMenu = true
     }
     if (!openMenu) return
 
+    val visualCursorRect = editorState.visualCursorRect ?: return // FIXME: Because visualCursorRect is not State, this does not recompose automatically.
+    val suggestionsByPlugin = remember(editorState.sourceText) {
+        plugins.associateWith { plugin ->
+            plugin.generateSuggestions(editorState)
+        }
+    }
+    if (suggestionsByPlugin.flatMap { it.value }.isEmpty()) return
+
     Box(Modifier.offset { visualCursorRect.bottomLeft.round() }) {
         PopupMenu(
-            onDismissRequest = { _ -> dismissed = true; false },
+            onDismissRequest = { _ -> dismissed = true; openMenu = false; false },
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .textInput(handleInput)

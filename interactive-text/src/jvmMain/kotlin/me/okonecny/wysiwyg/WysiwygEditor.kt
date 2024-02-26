@@ -52,7 +52,8 @@ fun WysiwygEditor(
             editorScope.view!!()
         }
         editorScope.floatingToolbar(inputQueue::add)
-        AutocompletePopup(
+
+        AutocompletePopup( // FIXME: emoji suggestions don't show up when typing at the end of paragraph. Need to press backspace.
             editorState,
             autocompletePlugins,
             inputQueue::add
@@ -209,7 +210,7 @@ data class WysiwygEditorState(
     val sourceCursorRequest: Int? = null
 ) {
     var visualCursor
-        get() = interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating?
+        get() = interactiveScope.cursorPosition // TODO: replace the whole interactive scope instead of mutating!
         set(value) {
             interactiveScope.cursorPosition = value
         }

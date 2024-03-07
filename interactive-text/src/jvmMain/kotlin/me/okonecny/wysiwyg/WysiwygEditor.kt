@@ -53,7 +53,7 @@ fun WysiwygEditor(
         }
         editorScope.floatingToolbar(inputQueue::add)
 
-        AutocompletePopup( // FIXME: emoji suggestions don't show up when typing at the end of paragraph. Need to press backspace.
+        AutocompletePopup(
             editorState,
             autocompletePlugins,
             inputQueue::add

@@ -22,6 +22,14 @@ data class InteractiveScope(
 
     val isPlaced: Boolean get() = containerLayoutCoordinates != null
 
+    private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
+    private val orderedComponents: MutableList<InteractiveComponent> = mutableListOf()
+    private var sortedInLineOrder: Boolean = true
+    private val componentsInLineOrder: List<InteractiveComponent>
+        get() = sortInteractiveComponentsToLines()
+
+    val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
+
     val componentUnderCursor: InteractiveComponent?
         get() {
             val cursor = cursorPosition ?: return null
@@ -47,14 +55,6 @@ data class InteractiveScope(
         orderedComponents.add(component)
         sortedInLineOrder = false
     }
-
-    private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
-    private val orderedComponents: MutableList<InteractiveComponent> = mutableListOf()
-    private var sortedInLineOrder: Boolean = true
-    private val componentsInLineOrder: List<InteractiveComponent>
-        get() = sortInteractiveComponentsToLines()
-
-    val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
 
     fun hasComponent(id: InteractiveId): Boolean = registeredComponents.containsKey(id)
 

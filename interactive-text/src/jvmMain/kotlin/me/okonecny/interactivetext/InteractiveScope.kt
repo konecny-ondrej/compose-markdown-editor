@@ -62,8 +62,8 @@ data class InteractiveScope(
         ?: throw IllegalStateException("Interactive component with id $id has not been registered.")
 
     private fun requireFirstComponent(): InteractiveComponent {
-        if (orderedComponents.isEmpty()) throw IllegalStateException("You need to register at least one interactive component.")
-        return orderedComponents.first()
+        if (componentsInLineOrder.isEmpty()) throw IllegalStateException("You need to register at least one interactive component.")
+        return componentsInLineOrder.first()
     }
 
     /**
@@ -102,7 +102,7 @@ data class InteractiveScope(
         fun computeDistance(offset1: Offset?, offset2: Offset?): Float {
             if (offset1 == null || offset2 == null) return Float.MAX_VALUE
             // Use geometric instead of Manhattan metric?
-            return abs(offset1.x - offset2.x) + (abs(offset1.y - offset2.y) * 5)
+            return abs(offset1.x - offset2.x) + (abs(offset1.y - offset2.y) * 50)
         }
 
         var closestComponent = requireFirstComponent()
@@ -110,7 +110,7 @@ data class InteractiveScope(
             visualOffset,
             containerCoordinates.localCenterPointOf(closestComponent)
         )
-        for (component in orderedComponents) {
+        for (component in componentsInLineOrder) {
             val distance = computeDistance(visualOffset, containerCoordinates.localCenterPointOf(component))
             if (distance < closestDistance) {
                 closestComponent = component
@@ -126,7 +126,7 @@ data class InteractiveScope(
      * If there is no such component, returns the component closest to the specified point.
      */
     fun componentAt(visualOffset: Offset): InteractiveComponent {
-        for (component in orderedComponents) {
+        for (component in componentsInLineOrder) {
             val componentBounds = containerCoordinates.localBoundingBoxOf(component) ?: continue
             if (componentBounds.contains(visualOffset)) return component
         }
@@ -139,7 +139,7 @@ data class InteractiveScope(
     ): InteractiveComponent {
         var bestComponent: InteractiveComponent? = null
         var bestDistance = Float.MAX_VALUE
-        for (component in orderedComponents) {
+        for (component in componentsInLineOrder) {
             val componentBounds = containerCoordinates.localBoundingBoxOf(component) ?: continue
             val distance = computeDistance(componentBounds)
             if (distance < bestDistance) {

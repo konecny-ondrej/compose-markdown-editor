@@ -23,10 +23,8 @@ data class InteractiveScope(
     val isPlaced: Boolean get() = containerLayoutCoordinates != null
 
     private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
-    private val orderedComponents: MutableList<InteractiveComponent> = mutableListOf()
-    private var sortedInLineOrder: Boolean = true
     private val componentsInLineOrder: List<InteractiveComponent>
-        get() = sortInteractiveComponentsToLines()
+        get() = registeredComponents.values.sortedWith(::textLineComparison)
 
     val hasAnyComponents: Boolean get() = registeredComponents.isNotEmpty()
 
@@ -43,17 +41,10 @@ data class InteractiveScope(
         registeredComponents.replaceAll { _, component ->
             component.copy(layoutCoordinates = null)
         }
-        orderedComponents.clear()
-        orderedComponents.addAll(registeredComponents.values)
-        sortedInLineOrder = false
     }
 
     fun register(component: InteractiveComponent) {
-        // TODO: simplify and cleanup
         registeredComponents[component.id] = component
-        orderedComponents.removeIf { component.id == it.id }
-        orderedComponents.add(component)
-        sortedInLineOrder = false
     }
 
     fun hasComponent(id: InteractiveId): Boolean = registeredComponents.containsKey(id)
@@ -273,14 +264,6 @@ data class InteractiveScope(
             }
         }
         return closestComponent
-    }
-
-    private fun sortInteractiveComponentsToLines(): List<InteractiveComponent> {
-        if (!sortedInLineOrder) {
-            orderedComponents.sortWith(::textLineComparison)
-            sortedInLineOrder = true
-        }
-        return orderedComponents
     }
 
     private fun textLineComparison(a: InteractiveComponent, b: InteractiveComponent): Int {

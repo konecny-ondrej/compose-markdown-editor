@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -12,46 +15,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
 import me.okonecny.interactivetext.TextInputCommand
-import me.okonecny.markdowneditor.compose.MeasuringLayout
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-fun MarkdownFloatingToolbar(
+fun MarkdownToolbar(
     editorState: WysiwygEditorState,
     handleInput: (TextInputCommand) -> Unit
 ) {
-    val visualCursorRect = editorState.visualCursorRect ?: return
-    if (editorState.sourceCursor == null) return
-
-    MeasuringLayout(
-        measuredContent = {
-            ToolbarContent(editorState, handleInput)
-        }
-    ) { measuredSize, constraints ->
-        Box(Modifier.offset {
-            val maxPosition = Offset(
-                x = constraints.maxWidth - measuredSize.width.toPx(),
-                y = constraints.maxHeight - measuredSize.height.toPx(),
-            )
-            val toolbarPosition = (visualCursorRect.topLeft - Offset(0f, measuredSize.height.toPx()))
-            Offset(
-                x = toolbarPosition.x.coerceIn(0f, maxPosition.x),
-                y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
-            ).round()
-        }) {
-            ToolbarContent(editorState, handleInput)
-        }
-    }
-}
-
-@Composable
-private fun ToolbarContent(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
     val toolbarInteractionSource = remember { MutableInteractionSource() }
     val isHovered by toolbarInteractionSource.collectIsHoveredAsState()
     val toolbarAlpha = if (isHovered) 1.0f else 0.0f

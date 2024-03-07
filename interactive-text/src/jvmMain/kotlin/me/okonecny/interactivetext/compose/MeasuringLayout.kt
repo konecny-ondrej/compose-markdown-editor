@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.compose
+package me.okonecny.interactivetext.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
 
 @Composable
-internal fun MeasuringLayout(
+fun MeasuringLayout(
     modifier: Modifier = Modifier,
     measuredContent: @Composable () -> Unit,
     dependentContent: @Composable (measuredSize: DpSize, constraints: Constraints) -> Unit

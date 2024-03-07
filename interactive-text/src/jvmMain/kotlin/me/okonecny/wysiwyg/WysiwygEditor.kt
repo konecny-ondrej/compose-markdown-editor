@@ -51,7 +51,10 @@ fun WysiwygEditor(
         ) {
             editorScope.view!!()
         }
-        editorScope.floatingToolbar(inputQueue::add)
+
+        FloatingToolbar(editorState) {
+            editorScope.toolbar(inputQueue::add)
+        }
 
         AutocompletePopup(
             editorState,
@@ -178,7 +181,7 @@ interface WysiwygEditorScope {
     fun WysiwygView(view: @Composable () -> Unit)
 
     @Composable
-    fun FloatingToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
+    fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
 
     // TODO: add SourceView?
     // TODO: implement proper WYSIWYG / source / both modes.
@@ -187,7 +190,7 @@ interface WysiwygEditorScope {
 private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     var view: @Composable (() -> Unit)? = null
         get() = if (field == null) throw IllegalStateException("You must set the View for the editor.") else field
-    var floatingToolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit = {}
+    var toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit = {}
 
     @Composable
     override fun WysiwygView(view: @Composable () -> Unit) {
@@ -195,8 +198,8 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     }
 
     @Composable
-    override fun FloatingToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
-        this.floatingToolbar = toolbar
+    override fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
+        this.toolbar = toolbar
     }
 }
 

@@ -82,20 +82,14 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
-private fun ScrollableNavigation.withAllTargetsRegistered(document: Document): ScrollableNavigation {
-    fun registerNode(node: Node, scrollId: Int) {
-        val anchorRefId: String? = when (node) {
-            is AnchorRefTarget -> node.anchorRefId
-            is Link -> node.anchorRefId
-            else -> null
-        }
-        if (anchorRefId != null) registerAnchorTarget(anchorRefId, scrollId)
-        if (node.hasChildren()) node.children.forEach { registerNode(it, scrollId) }
+private fun Navigation.registerNode(node: Node, scrollId: Int) {
+    val anchorRefId: String? = when (node) {
+        is AnchorRefTarget -> node.anchorRefId
+        is Link -> node.anchorRefId
+        else -> null
     }
-    document.children.forEachIndexed { index, node ->
-        registerNode(node, index)
-    }
-    return this
+    if (anchorRefId != null) registerAnchorTarget(anchorRefId, scrollId)
+    if (node.hasChildren()) node.children.forEach { registerNode(it, scrollId) }
 }
 
 @Composable
@@ -106,14 +100,15 @@ private fun UiMdDocument(
     linkHandlers: List<LinkHandler>
 ) {
     if (scrollable) {
-        val navigation = remember(markdownRoot) { ScrollableNavigation().withAllTargetsRegistered(markdownRoot) }
+        val navigation = remember(markdownRoot) { ScrollableNavigation() }
         CompositionLocalProvider(
             LocalNavigation provides navigation,
             LinkHandlers provides (linkHandlers + listOf(InternalAnchorLink(navigation))).associateBy(LinkHandler::linkAnnotationTag),
         ) {
             val lazyColState = rememberLazyListState()
             LazyColumn(modifier = modifier, state = lazyColState) {
-                markdownRoot.children.forEach { child ->
+                markdownRoot.children.forEachIndexed { index, child ->
+                    navigation.registerNode(child, index)
                     item {
                         UiBlock(child)
                     }

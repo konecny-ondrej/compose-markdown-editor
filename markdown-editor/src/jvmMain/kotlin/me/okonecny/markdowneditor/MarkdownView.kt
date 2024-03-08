@@ -83,18 +83,18 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
 }
 
 private fun ScrollableNavigation.withAllTargetsRegistered(document: Document): ScrollableNavigation {
-    fun registerNode(node: Node) {
+    fun registerNode(node: Node, scrollId: Int) {
         val anchorRefId: String? = when (node) {
             is AnchorRefTarget -> node.anchorRefId
             is Link -> node.anchorRefId
             else -> null
         }
-        if (anchorRefId != null) registerAnchorTarget(anchorRefId)
-        if (node.hasChildren()) node.children.forEach(::registerNode)
+        if (anchorRefId != null) registerAnchorTarget(anchorRefId, scrollId)
+        if (node.hasChildren()) node.children.forEach { registerNode(it, scrollId) }
     }
     document.children.forEachIndexed { index, node ->
         currentScrollId = index
-        registerNode(node)
+        registerNode(node, index)
     }
     return this
 }

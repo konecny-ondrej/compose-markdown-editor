@@ -9,7 +9,6 @@ interface Navigation {
     val scrollRequest: Int?
 
     fun registerAnchorTarget(anchor: String, scrollId: Int)
-    fun registerAnchorTarget(anchor: String)
     fun requestScrollToAnchor(anchor: String)
 }
 
@@ -17,10 +16,6 @@ internal object NopNavigation : Navigation {
     override val scrollRequest: Int? = null
 
     override fun registerAnchorTarget(anchor: String, scrollId: Int) {
-        // NOP
-    }
-
-    override fun registerAnchorTarget(anchor: String) {
         // NOP
     }
 
@@ -37,14 +32,6 @@ internal class ScrollableNavigation : Navigation {
 
     override fun registerAnchorTarget(anchor: String, scrollId: Int) {
         anchorIndex.putIfAbsent(anchor, scrollId)
-    }
-
-    override fun registerAnchorTarget(anchor: String) {
-        registerAnchorTarget(
-            anchor, currentScrollId ?: throw IllegalStateException(
-                "currentScrollId is unknown, use the variant with explicit scrollId."
-            )
-        )
     }
 
     override fun requestScrollToAnchor(anchor: String) {

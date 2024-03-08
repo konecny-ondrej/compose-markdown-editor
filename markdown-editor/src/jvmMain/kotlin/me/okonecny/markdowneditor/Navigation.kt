@@ -28,7 +28,6 @@ internal class ScrollableNavigation : Navigation {
     private val anchorIndex = mutableMapOf<String, Int>()
     override var scrollRequest: Int? by mutableStateOf(null)
         private set
-    var currentScrollId: Int? = null
 
     override fun registerAnchorTarget(anchor: String, scrollId: Int) {
         anchorIndex.putIfAbsent(anchor, scrollId)

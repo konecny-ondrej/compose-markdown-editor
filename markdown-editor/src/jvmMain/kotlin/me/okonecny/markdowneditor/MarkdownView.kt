@@ -93,7 +93,6 @@ private fun ScrollableNavigation.withAllTargetsRegistered(document: Document): S
         if (node.hasChildren()) node.children.forEach { registerNode(it, scrollId) }
     }
     document.children.forEachIndexed { index, node ->
-        currentScrollId = index
         registerNode(node, index)
     }
     return this
@@ -114,9 +113,8 @@ private fun UiMdDocument(
         ) {
             val lazyColState = rememberLazyListState()
             LazyColumn(modifier = modifier, state = lazyColState) {
-                markdownRoot.children.forEachIndexed { index, child ->
+                markdownRoot.children.forEach { child ->
                     item {
-                        navigation.currentScrollId = index
                         UiBlock(child)
                     }
                 }

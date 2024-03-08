@@ -6,28 +6,29 @@ import java.awt.GraphicsEnvironment
 /**
  * Workaround for detecting density.
  */
-val DetectedDensity: Density by lazy {
+fun detectDensity(originalDensity: Density): Density {
     val graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
     val fallbackDensity = Density(
-        graphicsEnvironment.defaultScreenDevice.defaultConfiguration.defaultTransform.scaleX.toFloat()
+        graphicsEnvironment.defaultScreenDevice.defaultConfiguration.defaultTransform.scaleX.toFloat(),
+        originalDensity.fontScale
     )
-    if (graphicsEnvironment.isHeadlessInstance) return@lazy fallbackDensity
+    if (graphicsEnvironment.isHeadlessInstance) return fallbackDensity
 
     val sunGraphicsEnvironmentClass = Class.forName("sun.java2d.SunGraphicsEnvironment")
-    if (!sunGraphicsEnvironmentClass.isInstance(graphicsEnvironment)) return@lazy fallbackDensity
+    if (!sunGraphicsEnvironmentClass.isInstance(graphicsEnvironment)) return fallbackDensity
 
     try {
         val isUIScaleEnabled = sunGraphicsEnvironmentClass.getDeclaredMethod("isUIScaleEnabled")
         isUIScaleEnabled.isAccessible = true
         val isEnabled = isUIScaleEnabled(graphicsEnvironment) as Boolean
-        if (!isEnabled) return@lazy fallbackDensity
+        if (!isEnabled) return fallbackDensity
 
         val getDebugScale = sunGraphicsEnvironmentClass.getDeclaredMethod("getDebugScale")
         getDebugScale.isAccessible = true
 
         val pixelDensity = (getDebugScale(graphicsEnvironment) as Double).toFloat()
-        return@lazy Density(pixelDensity, 1f)
+        return Density(pixelDensity, originalDensity.fontScale)
     } catch (e: NoSuchMethodException) {
-        return@lazy fallbackDensity
+        return fallbackDensity
     }
 }

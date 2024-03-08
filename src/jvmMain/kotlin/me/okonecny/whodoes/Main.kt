@@ -12,7 +12,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import me.okonecny.whodoes.components.DetectedDensity
+import me.okonecny.whodoes.components.detectDensity
 import me.tatarka.inject.annotations.Component
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
@@ -30,10 +30,11 @@ import org.jetbrains.jewel.window.styling.TitleBarStyle
 fun main() = application {
     MainComponent::class.create()
     val appTitle = "WhoDoes"
+    val detectedDensity = detectDensity(LocalDensity.current)
 
     val windowState = WindowState(
-        width = (1024 * DetectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
-        height = (768 * DetectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
+        width = (1024 * detectedDensity.density).dp, // Workaround for bad detection of scale on Linux/Wayland.
+        height = (768 * detectedDensity.density).dp // Workaround for bad detection of scale on Linux/Wayland.
     )
 
     IntUiTheme(
@@ -50,7 +51,7 @@ fun main() = application {
             icon = painterResource("/app-icon.xml")
         ) {
             CompositionLocalProvider(
-                LocalDensity provides DetectedDensity // Workaround for bad detection of scale on Linux/Wayland.
+                LocalDensity provides detectDensity(LocalDensity.current) // Workaround for bad detection of scale on Linux/Wayland.
             ) {
                 TitleBar {
                     Image(icon!!, title, modifier = Modifier.padding(5.dp))

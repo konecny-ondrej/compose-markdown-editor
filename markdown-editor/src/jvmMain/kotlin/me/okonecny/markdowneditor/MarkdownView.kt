@@ -79,7 +79,7 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
-private fun NavigableLazyListScope.registerNode(node: Node, scrollId: Int) {
+private fun Navigation.registerNode(node: Node, scrollId: Int) {
     val anchorRefId: String? = when (node) {
         is AnchorRefTarget -> node.anchorRefId
         is Link -> node.anchorRefId
@@ -103,7 +103,7 @@ private fun UiMdDocument(
         ) {
             NavigableLazyColumn(modifier = modifier, navigation = navigation) {
                 markdownRoot.children.forEachIndexed { index, child ->
-                    registerNode(child, index)
+                    navigation.registerNode(child, index)
                     item {
                         UiBlock(child)
                     }

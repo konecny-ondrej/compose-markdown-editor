@@ -4,12 +4,11 @@ import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,7 +38,28 @@ fun NavigableLazyColumn(
     }
 }
 
+val LocalScrollIndex = compositionLocalOf<Int?> { null }
+
 data class NavigableLazyListScope(
-    val lazyListScope: LazyListScope,
+    private val lazyListScope: LazyListScope,
     val navigation: Navigation
-) : LazyListScope by lazyListScope, Navigation by navigation
+) {
+    private var itemCount = 0
+
+    private fun makeContent(
+        scrollId: Int,
+        content: @Composable LazyItemScope.() -> Unit
+    ): @Composable LazyItemScope.() -> Unit = {
+        CompositionLocalProvider(LocalScrollIndex provides scrollId) {
+            content()
+        }
+    }
+
+    fun item(
+        key: Any? = null,
+        contentType: Any? = null,
+        content: @Composable LazyItemScope.() -> Unit
+    ) {
+        lazyListScope.item(key, contentType, makeContent(itemCount++, content))
+    }
+}

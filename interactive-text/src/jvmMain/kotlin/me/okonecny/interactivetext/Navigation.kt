@@ -13,6 +13,7 @@ interface Navigation {
 
     fun registerAnchorTarget(anchor: String, scrollId: Int)
     fun requestScrollToAnchor(anchor: String)
+    fun requestScrollToComponent(interactiveComponent: InteractiveComponent)
     suspend fun scrollIfRequested(lazyListState: LazyListState)
 }
 
@@ -24,6 +25,10 @@ internal object NopNavigation : Navigation {
     }
 
     override fun requestScrollToAnchor(anchor: String) {
+        // NOP
+    }
+
+    override fun requestScrollToComponent(interactiveComponent: InteractiveComponent) {
         // NOP
     }
 
@@ -44,6 +49,10 @@ internal class ScrollableNavigation : Navigation {
     override fun requestScrollToAnchor(anchor: String) {
         val scrollId = anchorIndex[anchor] ?: return
         scrollRequest = scrollId
+    }
+
+    override fun requestScrollToComponent(interactiveComponent: InteractiveComponent) {
+        scrollRequest = interactiveComponent.scrollIndex
     }
 
     override suspend fun scrollIfRequested(lazyListState: LazyListState) {

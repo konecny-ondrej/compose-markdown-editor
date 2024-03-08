@@ -53,7 +53,12 @@ fun InteractiveContainer(
                 }
                 .keyboardCursorMovement(scope) { newCursorPosition, newSelection ->
                     scope.selection = newSelection
-                    onCursorMovement(newCursorPosition)
+                    if (scope.isCursorVisible) {
+                        onCursorMovement(newCursorPosition)
+                    } else {
+                        val componentUnderCursor = scope.componentUnderCursor
+                        if (componentUnderCursor != null) navigation.requestScrollToComponent(componentUnderCursor)
+                    }
                 }
                 .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
                     requester.requestFocus()
@@ -66,7 +71,14 @@ fun InteractiveContainer(
                     }
                     false
                 }
-                .textInput(onInput = onInput)
+                .textInput(onInput = { textInputCommand ->
+                    if (scope.isCursorVisible) {
+                        onInput(textInputCommand)
+                    } else {
+                        val componentUnderCursor = scope.componentUnderCursor
+                        if (componentUnderCursor != null) navigation.requestScrollToComponent(componentUnderCursor)
+                    }
+                })
         }
         Box(modifier = interactiveModifier.then(modifier)) {
             interactiveContent()

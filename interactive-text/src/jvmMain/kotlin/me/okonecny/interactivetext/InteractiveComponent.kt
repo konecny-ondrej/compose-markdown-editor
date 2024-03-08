@@ -16,6 +16,12 @@ data class InteractiveComponent(
      */
     val id: InteractiveId,
     /**
+     * If the component is placed inside LazyColumn or LazyRow, this is the item index in that container.
+     * It is used if you want to scroll to a particular component. Does not need to be unique, more components
+     * can be placed in a single LazyList.item.
+     */
+    val scrollIndex: Int?,
+    /**
      * Global layout coordinates used to sort the interactive components for the purpose of prev/next navigation.
      * If the component is out of composition, these will be null.
      * @see androidx.compose.ui.layout.onGloballyPositioned

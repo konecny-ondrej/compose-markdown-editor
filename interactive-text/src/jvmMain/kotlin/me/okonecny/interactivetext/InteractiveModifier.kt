@@ -16,6 +16,7 @@ fun Modifier.interactiveText(
 ) = composed {
     val interactiveScope = LocalInteractiveScope.current ?: return@composed Modifier
     val cursorPosition = interactiveScope.cursorPosition
+    val scrollIndex = LocalScrollIndex.current
 
     var interactiveModifier: Modifier = Modifier
     if (cursorPosition != null && cursorPosition.componentId == interactiveId) {
@@ -31,6 +32,7 @@ fun Modifier.interactiveText(
             interactiveScope.register(
                 InteractiveComponent(
                     id = interactiveId,
+                    scrollIndex = scrollIndex,
                     layoutCoordinates = layoutCoordinates,
                     visualTextRange = TextRange(0, textLength),
                     textMapping = textMapping,
@@ -48,6 +50,7 @@ fun Modifier.interactiveText(
             interactiveScope.register(
                 InteractiveComponent(
                     id = interactiveId,
+                    scrollIndex = scrollIndex,
                     layoutCoordinates = null,
                     visualTextRange = TextRange(0, 0),
                     textMapping = ZeroTextMapping,

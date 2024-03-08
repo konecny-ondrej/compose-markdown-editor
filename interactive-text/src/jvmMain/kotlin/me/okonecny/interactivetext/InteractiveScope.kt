@@ -36,6 +36,8 @@ data class InteractiveScope(
             }
         }
 
+    val isCursorVisible: Boolean get() = componentUnderCursor?.isLaidOut ?: false
+
     internal fun place(containerLayoutCoordinates: LayoutCoordinates) {
         this.containerLayoutCoordinates = containerLayoutCoordinates
         registeredComponents.replaceAll { _, component ->

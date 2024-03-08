@@ -2,7 +2,6 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.*
@@ -66,7 +65,6 @@ internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorCom
 internal val LocalDocument = compositionLocalOf<MarkdownDocument> {
     throw IllegalStateException("The document can only be used inside MarkdownView.")
 }
-val LocalNavigation = compositionLocalOf<Navigation> { NopNavigation }
 
 @Composable
 private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
@@ -82,7 +80,7 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
-private fun Navigation.registerNode(node: Node, scrollId: Int) {
+private fun NavigableLazyListScope.registerNode(node: Node, scrollId: Int) {
     val anchorRefId: String? = when (node) {
         is AnchorRefTarget -> node.anchorRefId
         is Link -> node.anchorRefId
@@ -100,22 +98,18 @@ private fun UiMdDocument(
     linkHandlers: List<LinkHandler>
 ) {
     if (scrollable) {
-        val navigation = remember(markdownRoot) { ScrollableNavigation() }
+        val navigation = LocalNavigation.current
         CompositionLocalProvider(
-            LocalNavigation provides navigation,
             LinkHandlers provides (linkHandlers + listOf(InternalAnchorLink(navigation))).associateBy(LinkHandler::linkAnnotationTag),
         ) {
             val lazyColState = rememberLazyListState()
-            LazyColumn(modifier = modifier, state = lazyColState) {
+            NavigableLazyColumn(modifier = modifier, state = lazyColState, navigation = navigation) {
                 markdownRoot.children.forEachIndexed { index, child ->
-                    navigation.registerNode(child, index)
+                    registerNode(child, index)
                     item {
                         UiBlock(child)
                     }
                 }
-            }
-            LaunchedEffect(navigation.scrollRequest) {
-                navigation.scrollIfRequested(lazyColState)
             }
         }
     } else {

@@ -34,10 +34,12 @@ fun InteractiveContainer(
     onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition = it },
     interactiveContent: @Composable () -> Unit
 ) {
+    val navigation = remember(scope) { ScrollableNavigation() }
     CompositionLocalProvider(
         LocalInteractiveScope provides scope,
         LocalInteractiveInputHandler provides onInput,
-        LocalSelectionStyle provides selectionStyle
+        LocalSelectionStyle provides selectionStyle,
+        LocalNavigation provides navigation
     ) {
         val interactiveModifier = if (scope == null) {
             Modifier

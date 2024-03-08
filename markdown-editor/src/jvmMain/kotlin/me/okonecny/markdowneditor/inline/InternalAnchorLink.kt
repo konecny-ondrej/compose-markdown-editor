@@ -1,7 +1,7 @@
 package me.okonecny.markdowneditor.inline
 
+import me.okonecny.interactivetext.Navigation
 import me.okonecny.markdowneditor.LinkHandler
-import me.okonecny.markdowneditor.Navigation
 
 /**
  * Link that references an anchor somewhere in the document.

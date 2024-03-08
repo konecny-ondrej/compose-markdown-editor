@@ -2,7 +2,6 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -102,8 +101,7 @@ private fun UiMdDocument(
         CompositionLocalProvider(
             LinkHandlers provides (linkHandlers + listOf(InternalAnchorLink(navigation))).associateBy(LinkHandler::linkAnnotationTag),
         ) {
-            val lazyColState = rememberLazyListState()
-            NavigableLazyColumn(modifier = modifier, state = lazyColState, navigation = navigation) {
+            NavigableLazyColumn(modifier = modifier, navigation = navigation) {
                 markdownRoot.children.forEachIndexed { index, child ->
                     registerNode(child, index)
                     item {

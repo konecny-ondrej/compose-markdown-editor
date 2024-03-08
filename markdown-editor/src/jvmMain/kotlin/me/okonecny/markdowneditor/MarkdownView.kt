@@ -485,7 +485,7 @@ private fun parseInlines(
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle(), visualStartOffset)
                 is SoftLineBreak -> append(
                     MappedText(
-                        System.lineSeparator(),
+                        " ",
                         SequenceTextMapping(
                             TextRange(
                                 visualLength + visualStartOffset,

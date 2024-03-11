@@ -57,7 +57,11 @@ fun InteractiveContainer(
                         onCursorMovement(newCursorPosition)
                     } else {
                         val componentUnderCursor = scope.componentUnderCursor
-                        if (componentUnderCursor != null) navigation.requestScrollToComponent(componentUnderCursor)
+                        if (componentUnderCursor != null) navigation.requestScroll(
+                            ScrollToComponent(
+                                componentUnderCursor
+                            )
+                        )
                     }
                 }
                 .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
@@ -76,7 +80,11 @@ fun InteractiveContainer(
                         onInput(textInputCommand)
                     } else {
                         val componentUnderCursor = scope.componentUnderCursor
-                        if (componentUnderCursor != null) navigation.requestScrollToComponent(componentUnderCursor)
+                        if (componentUnderCursor != null) navigation.requestScroll(
+                            ScrollToComponent(
+                                componentUnderCursor
+                            )
+                        )
                     }
                 })
         }

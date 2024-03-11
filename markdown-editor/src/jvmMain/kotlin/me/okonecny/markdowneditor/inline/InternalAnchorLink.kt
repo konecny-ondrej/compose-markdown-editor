@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor.inline
 
 import me.okonecny.interactivetext.Navigation
+import me.okonecny.interactivetext.ScrollToAnchor
 import me.okonecny.markdowneditor.LinkHandler
 
 /**
@@ -10,7 +11,7 @@ internal class InternalAnchorLink(
     private val navigation: Navigation
 ) : LinkHandler {
     override fun linkActivated(annotationValue: String) {
-        navigation.requestScrollToAnchor(annotationValue)
+        navigation.requestScroll(ScrollToAnchor(annotationValue))
     }
 
     override fun parseLinkAnnotation(url: String): String? {

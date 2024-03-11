@@ -1,5 +1,6 @@
 package me.okonecny.interactivetext
 
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -9,26 +10,28 @@ import androidx.compose.runtime.setValue
 val LocalNavigation = compositionLocalOf<Navigation> { NopNavigation }
 
 interface Navigation {
-    val scrollRequest: Int?
+    val scrollRequest: ScrollRequest?
 
     fun registerAnchorTarget(anchor: String, scrollId: Int)
-    fun requestScrollToAnchor(anchor: String)
-    fun requestScrollToComponent(interactiveComponent: InteractiveComponent)
+    fun requestScroll(scrollRequest: ScrollRequest)
     suspend fun scrollIfRequested(lazyListState: LazyListState)
 }
 
+sealed interface ScrollRequest
+data object ScrollPageUp : ScrollRequest
+data object ScrollPageDown : ScrollRequest
+data class ScrollToComponent(val interactiveComponent: InteractiveComponent) : ScrollRequest
+data class ScrollToAnchor(val anchor: String) : ScrollRequest
+data class ScrollToIndex(val scrollIndex: Int) : ScrollRequest
+
 internal object NopNavigation : Navigation {
-    override val scrollRequest: Int? = null
+    override val scrollRequest: ScrollRequest? = null
 
     override fun registerAnchorTarget(anchor: String, scrollId: Int) {
         // NOP
     }
 
-    override fun requestScrollToAnchor(anchor: String) {
-        // NOP
-    }
-
-    override fun requestScrollToComponent(interactiveComponent: InteractiveComponent) {
+    override fun requestScroll(scrollRequest: ScrollRequest) {
         // NOP
     }
 
@@ -39,25 +42,29 @@ internal object NopNavigation : Navigation {
 
 internal class ScrollableNavigation : Navigation {
     private val anchorIndex = mutableMapOf<String, Int>()
-    override var scrollRequest: Int? by mutableStateOf(null)
+    override var scrollRequest: ScrollRequest? by mutableStateOf(null)
         private set
 
     override fun registerAnchorTarget(anchor: String, scrollId: Int) {
         anchorIndex.putIfAbsent(anchor, scrollId)
     }
 
-    override fun requestScrollToAnchor(anchor: String) {
-        val scrollId = anchorIndex[anchor] ?: return
-        scrollRequest = scrollId
-    }
-
-    override fun requestScrollToComponent(interactiveComponent: InteractiveComponent) {
-        scrollRequest = interactiveComponent.scrollIndex
+    override fun requestScroll(scrollRequest: ScrollRequest) {
+        this.scrollRequest = scrollRequest
     }
 
     override suspend fun scrollIfRequested(lazyListState: LazyListState) {
-        val requestedId = scrollRequest ?: return
-        lazyListState.animateScrollToItem(requestedId)
+        val request = scrollRequest ?: return
+        when (request) {
+            is ScrollToIndex -> lazyListState.animateScrollToItem(request.scrollIndex)
+            is ScrollToComponent -> lazyListState.animateScrollToItem(
+                request.interactiveComponent.scrollIndex ?: return
+            )
+
+            is ScrollToAnchor -> lazyListState.animateScrollToItem(anchorIndex[request.anchor] ?: return)
+            is ScrollPageUp -> lazyListState.animateScrollBy(-(lazyListState.layoutInfo.viewportSize.height).toFloat())
+            is ScrollPageDown -> lazyListState.animateScrollBy(lazyListState.layoutInfo.viewportSize.height.toFloat())
+        }
         scrollRequest = null
     }
 }

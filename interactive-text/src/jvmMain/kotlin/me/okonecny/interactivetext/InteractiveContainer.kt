@@ -64,6 +64,7 @@ fun InteractiveContainer(
                         )
                     }
                 }
+                .keyboardPageMovement(navigation)
                 .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
                     requester.requestFocus()
                     scope.selection = newSelection

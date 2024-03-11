@@ -18,8 +18,8 @@ interface Navigation {
 }
 
 sealed interface ScrollRequest
-data object ScrollPageUp : ScrollRequest
-data object ScrollPageDown : ScrollRequest
+class ScrollPageUp : ScrollRequest
+class ScrollPageDown : ScrollRequest
 data class ScrollToComponent(val interactiveComponent: InteractiveComponent) : ScrollRequest
 data class ScrollToAnchor(val anchor: String) : ScrollRequest
 data class ScrollToIndex(val scrollIndex: Int) : ScrollRequest

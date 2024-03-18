@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicLong
 
 private const val IMAGE_INLINE_ELEMENT_TYPE = "me.okonecny.markdowneditor.inline.Image"
 
-private val imageCount = AtomicLong(0L) // TODO: store this in the mapped text builder?
+private val imageCount =
+    AtomicLong(0L) // TODO: use the node number from me.okonecny.markdowneditor.MarkdownDocument.getInteractiveId.
 
 @Composable
 internal fun MappedText.Builder.appendImage(
@@ -45,8 +46,6 @@ internal fun MappedText.Builder.appendImage(
             )
         ) // So we don't have an empty paragraph.
     }
-    // TODO: image cache so we don't load the image multiple times
-
     // Consider the image size to be in DP so images still occupy the same space visually in the document,
     // at the expense of potentially reduced quality.
     val deviceImageSize = imageState.imagePixelSize.dp

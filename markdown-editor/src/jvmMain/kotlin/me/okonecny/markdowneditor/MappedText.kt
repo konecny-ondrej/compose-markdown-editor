@@ -76,10 +76,6 @@ data class MappedText(
             mappedText += inlines
         }
 
-        fun append(text: String) { // TODO: do we want to append text without mapping?
-            mappedText += MappedText(text, ZeroTextMapping)
-        }
-
         fun appendStyled(mappedText: MappedText, style: SpanStyle) {
             append(
                 mappedText.copy(

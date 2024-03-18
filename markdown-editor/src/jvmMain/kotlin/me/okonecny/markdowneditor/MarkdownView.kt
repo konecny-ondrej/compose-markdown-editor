@@ -522,7 +522,7 @@ private fun parseInlines(
 
                 is LinkRef -> appendLinkRef(inline)
                 is HtmlEntity -> appendStyled(inline, styles.inlineCode.toSpanStyle())
-//                    // TODO: proper parsing
+                // TODO: proper parsing of MailLinks.
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
                 is Image -> {

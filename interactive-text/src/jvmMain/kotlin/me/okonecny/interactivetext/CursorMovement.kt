@@ -55,7 +55,7 @@ internal fun Modifier.keyboardCursorMovement(
         Key.MoveEnd -> {
             scope.moveCursorToEnd(oldPosition)
         }
-        // TODO: handle page up and page down, too.
+
         else -> oldPosition
     }
     if (newPosition != oldPosition) {
@@ -66,7 +66,7 @@ internal fun Modifier.keyboardCursorMovement(
             scope
         ) else Selection.empty
         onCursorPositionChanged(newPosition, newSelection)
-    }
+    } // TODO: move the view by a line (page?) when the cursor position does not change on up/down.
     false
 }
 
@@ -179,7 +179,7 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
 
     val oldComponent = getComponent(oldPosition.componentId)
     val newComponent: InteractiveComponent = componentPreviousOnLineFrom(oldComponent)
-    if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
+    if (oldComponent == newComponent) return oldPosition
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.end)
 }
@@ -193,7 +193,7 @@ fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPositio
 
     val oldComponent = getComponent(oldPosition.componentId)
     val newComponent: InteractiveComponent = componentNextOnLineTo(oldComponent)
-    if (oldComponent == newComponent) return oldPosition // TODO: onOverscroll callback to move the window further?
+    if (oldComponent == newComponent) return oldPosition
 
     return CursorPosition(newComponent.id, newComponent.visualTextRange.start)
 }

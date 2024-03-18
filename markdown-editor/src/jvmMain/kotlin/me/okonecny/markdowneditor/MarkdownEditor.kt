@@ -37,7 +37,7 @@ fun MarkdownEditor(
                 linkHandlers = listOf(WebLink(LocalUriHandler.current))
             )
         }
-        Toolbar { handleInput ->
+        WysiwygToolbar { handleInput ->
             MarkdownToolbar(editorState, handleInput)
         }
     }

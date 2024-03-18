@@ -181,7 +181,7 @@ interface WysiwygEditorScope {
     fun WysiwygView(view: @Composable () -> Unit)
 
     @Composable
-    fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
+    fun WysiwygToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
 
     // TODO: add SourceView?
     // TODO: implement proper WYSIWYG / source / both modes.
@@ -198,7 +198,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     }
 
     @Composable
-    override fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
+    override fun WysiwygToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
         this.toolbar = toolbar
     }
 }

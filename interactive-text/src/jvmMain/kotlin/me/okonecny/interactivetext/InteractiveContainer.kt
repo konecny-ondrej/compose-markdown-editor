@@ -51,7 +51,7 @@ fun InteractiveContainer(
                 .onGloballyPositioned { layoutCoordinates ->
                     scope.place(layoutCoordinates)
                 }
-                .keyboardCursorMovement(scope) { newCursorPosition, newSelection ->
+                .keyboardCursorMovement(scope, navigation) { newCursorPosition, newSelection ->
                     scope.selection = newSelection
                     if (scope.isCursorVisible) {
                         onCursorMovement(newCursorPosition)

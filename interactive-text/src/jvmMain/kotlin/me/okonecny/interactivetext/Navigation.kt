@@ -18,8 +18,8 @@ interface Navigation {
 }
 
 sealed interface ScrollRequest
-class ScrollPageUp : ScrollRequest
-class ScrollPageDown : ScrollRequest
+class ScrollPageUp(val fraction: Float = 1.0f) : ScrollRequest
+class ScrollPageDown(val fraction: Float = 1.0f) : ScrollRequest
 data class ScrollToComponent(val interactiveComponent: InteractiveComponent) : ScrollRequest
 data class ScrollToAnchor(val anchor: String) : ScrollRequest
 data class ScrollToIndex(val scrollIndex: Int) : ScrollRequest
@@ -62,8 +62,8 @@ internal class ScrollableNavigation : Navigation {
             )
 
             is ScrollToAnchor -> lazyListState.animateScrollToItem(anchorIndex[request.anchor] ?: return)
-            is ScrollPageUp -> lazyListState.animateScrollBy(-(lazyListState.layoutInfo.viewportSize.height).toFloat())
-            is ScrollPageDown -> lazyListState.animateScrollBy(lazyListState.layoutInfo.viewportSize.height.toFloat())
+            is ScrollPageUp -> lazyListState.animateScrollBy(-(lazyListState.layoutInfo.viewportSize.height * request.fraction))
+            is ScrollPageDown -> lazyListState.animateScrollBy(lazyListState.layoutInfo.viewportSize.height * request.fraction)
         }
         scrollRequest = null
     }

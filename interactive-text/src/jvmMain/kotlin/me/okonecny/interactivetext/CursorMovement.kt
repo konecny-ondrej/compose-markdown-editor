@@ -19,6 +19,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 
 internal fun Modifier.keyboardCursorMovement(
     scope: InteractiveScope,
+    navigation: Navigation,
     onCursorPositionChanged: (CursorPosition, Selection) -> Unit
 ): Modifier = onKeyEvent { keyEvent: KeyEvent ->
     if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
@@ -66,7 +67,15 @@ internal fun Modifier.keyboardCursorMovement(
             scope
         ) else Selection.empty
         onCursorPositionChanged(newPosition, newSelection)
-    } // TODO: move the view by a line (page?) when the cursor position does not change on up/down.
+    } else {
+        val littleScroll = when (keyEvent.key) {
+            Key.DirectionUp -> ScrollPageUp(0.2f)
+            Key.DirectionDown -> ScrollPageDown(0.2f)
+            else -> null
+        }
+        if (littleScroll != null) navigation.requestScroll(littleScroll)
+        // TODO: move the view by a line (page?) when the cursor position does not change on up/down.
+    }
     false
 }
 

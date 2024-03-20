@@ -74,7 +74,6 @@ internal fun Modifier.keyboardCursorMovement(
             else -> null
         }
         if (littleScroll != null) navigation.requestScroll(littleScroll)
-        // TODO: move the view by a line (page?) when the cursor position does not change on up/down.
     }
     false
 }

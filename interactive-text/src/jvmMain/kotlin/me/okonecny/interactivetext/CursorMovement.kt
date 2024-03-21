@@ -236,6 +236,7 @@ fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition
 
     val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
     val componentBelow = componentBelow(cursorVisualOffset)
+    if (componentBelow.id == oldPosition.componentId) return oldPosition
 
     val newTextLayout = componentBelow.textLayoutResult
     if (newTextLayout == null || !componentBelow.hasText) return CursorPosition(componentBelow.id, 0)
@@ -252,6 +253,7 @@ fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
 
     val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
     val componentAbove = componentAbove(cursorVisualOffset)
+    if (componentAbove.id == oldPosition.componentId) return oldPosition
 
     val newTextLayout = componentAbove.textLayoutResult
     if (newTextLayout == null || !componentAbove.hasText) return CursorPosition(componentAbove.id, 0)

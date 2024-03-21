@@ -6,6 +6,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlin.math.abs
 
 val LocalNavigation = compositionLocalOf<Navigation> { NopNavigation }
 
@@ -23,6 +24,7 @@ class ScrollPageDown(val fraction: Float = 1.0f) : ScrollRequest
 data class ScrollToComponent(val interactiveComponent: InteractiveComponent) : ScrollRequest
 data class ScrollToAnchor(val anchor: String) : ScrollRequest
 data class ScrollToIndex(val scrollIndex: Int) : ScrollRequest
+data class ScrollToMakeVisible(val range: IntRange) : ScrollRequest
 
 internal object NopNavigation : Navigation {
     override val scrollRequest: ScrollRequest? = null
@@ -64,8 +66,27 @@ internal class ScrollableNavigation : Navigation {
             is ScrollToAnchor -> lazyListState.animateScrollToItem(anchorIndex[request.anchor] ?: return)
             is ScrollPageUp -> lazyListState.animateScrollBy(-(lazyListState.layoutInfo.viewportSize.height * request.fraction))
             is ScrollPageDown -> lazyListState.animateScrollBy(lazyListState.layoutInfo.viewportSize.height * request.fraction)
+            is ScrollToMakeVisible -> scrollToMakeVisible(request.range, lazyListState)
         }
         scrollRequest = null
     }
+
+    private suspend fun scrollToMakeVisible(requestVisible: IntRange, lazyListState: LazyListState) {
+        val layoutInfo = lazyListState.layoutInfo
+        val viewport = IntRange(layoutInfo.viewportStartOffset, layoutInfo.viewportEndOffset)
+        // If the requested range is larger than the viewport, don't do anything.
+        // We won't be able to make it visible anyway.
+        if (requestVisible.span > viewport.span) return
+        // If the requested range really is visible as a whole, don't do anything.
+        if (requestVisible.first >= viewport.first && requestVisible.last <= viewport.last) return
+
+        if (requestVisible.first < viewport.first) {
+            lazyListState.animateScrollBy((requestVisible.first - viewport.first).toFloat())
+        } else if (requestVisible.last > viewport.last) {
+            lazyListState.animateScrollBy((requestVisible.last - viewport.last).toFloat())
+        }
+    }
+
+    private val IntRange.span get() = abs(first - last)
 }
 

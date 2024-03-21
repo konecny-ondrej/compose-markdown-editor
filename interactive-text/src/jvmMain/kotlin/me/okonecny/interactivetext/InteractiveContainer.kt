@@ -2,10 +2,7 @@ package me.okonecny.interactivetext
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -16,6 +13,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
+import kotlin.math.floor
 
 val LocalInteractiveScope = compositionLocalOf<InteractiveScope?> { null }
 val LocalInteractiveInputHandler = compositionLocalOf<(TextInputCommand) -> Unit> { {} }
@@ -92,7 +91,23 @@ fun InteractiveContainer(
         Box(modifier = interactiveModifier.then(modifier)) {
             interactiveContent()
         }
+        LaunchedEffect(scope?.cursorPosition) {
+            navigation.ensureCursorIsVisible(scope)
+        }
     }
+}
+
+fun Navigation.ensureCursorIsVisible(scope: InteractiveScope?) {
+    if (scope == null) return
+    val cursorVisualRect = scope.cursorVisualRect(scope.cursorPosition ?: return) ?: return
+    requestScroll(
+        ScrollToMakeVisible(
+            IntRange(
+                floor(cursorVisualRect.top).toInt(),
+                ceil(cursorVisualRect.bottom).toInt()
+            )
+        )
+    )
 }
 
 @Composable

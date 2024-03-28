@@ -74,7 +74,6 @@ internal fun Modifier.keyboardCursorMovement(
             else -> null
         }
         if (littleScroll != null) navigation.requestScroll(littleScroll)
-        // TODO launched effect to scroll to the cursor if it is not visible.
     }
     false
 }

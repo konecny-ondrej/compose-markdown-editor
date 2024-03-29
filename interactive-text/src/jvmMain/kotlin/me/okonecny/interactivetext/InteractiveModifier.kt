@@ -53,7 +53,7 @@ fun Modifier.interactiveText(
                     scrollIndex = scrollIndex,
                     layoutCoordinates = null,
                     visualTextRange = TextRange(0, 0),
-                    textMapping = ZeroTextMapping,
+                    textMapping = textMapping,
                     textLayoutResult = null,
                     userData = userData
                 )

@@ -52,15 +52,11 @@ fun InteractiveContainer(
                 }
                 .keyboardCursorMovement(scope, navigation) { newCursorPosition, newSelection ->
                     scope.selection = newSelection
-                    if (scope.isCursorVisible) {
+                    val newComponentUnderCursor = scope.getComponent(newCursorPosition.componentId)
+                    if (newComponentUnderCursor.isLaidOut) {
                         onCursorMovement(newCursorPosition)
                     } else {
-                        val componentUnderCursor = scope.componentUnderCursor
-                        if (componentUnderCursor != null) navigation.requestScroll(
-                            ScrollToComponent(
-                                componentUnderCursor
-                            )
-                        )
+                        navigation.requestScroll(ScrollToComponent(newComponentUnderCursor))
                     }
                 }
                 .keyboardPageMovement(navigation)
@@ -81,9 +77,7 @@ fun InteractiveContainer(
                     } else {
                         val componentUnderCursor = scope.componentUnderCursor
                         if (componentUnderCursor != null) navigation.requestScroll(
-                            ScrollToComponent(
-                                componentUnderCursor
-                            )
+                            ScrollToComponent(componentUnderCursor)
                         )
                     }
                 })

@@ -234,8 +234,13 @@ fun InteractiveScope.moveCursorDown(oldPosition: CursorPosition): CursorPosition
     val lineCursorPosition = moveCursorByLine(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
-    val componentBelow = componentBelow(cursorVisualOffset)
+    val oldComponent = getComponent(oldPosition.componentId)
+    val componentBelow = if (oldComponent.isLaidOut) {
+        val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
+        componentBelow(cursorVisualOffset)
+    } else {
+        componentNextOnLineTo(oldComponent)
+    }
     if (componentBelow.id == oldPosition.componentId) return oldPosition
 
     val newTextLayout = componentBelow.textLayoutResult
@@ -251,8 +256,13 @@ fun InteractiveScope.moveCursorUp(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByLine(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition
 
-    val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
-    val componentAbove = componentAbove(cursorVisualOffset)
+    val oldComponent = getComponent(oldPosition.componentId)
+    val componentAbove = if (oldComponent.isLaidOut) {
+        val cursorVisualOffset = cursorVisualRect(oldPosition)?.center ?: return oldPosition
+        componentAbove(cursorVisualOffset)
+    } else {
+        componentPreviousOnLineFrom(oldComponent)
+    }
     if (componentAbove.id == oldPosition.componentId) return oldPosition
 
     val newTextLayout = componentAbove.textLayoutResult

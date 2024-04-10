@@ -49,7 +49,7 @@ fun WysiwygEditor(
             },
             onInput = inputQueue::add
         ) {
-            editorScope.view!!()
+            editorScope.view()
         }
 
         FloatingToolbar(editorState) {
@@ -178,27 +178,23 @@ private fun computeVisualCursor(sourceCursor: Int, scope: InteractiveScope): Cur
 
 interface WysiwygEditorScope {
     @Composable
-    fun WysiwygView(view: @Composable () -> Unit)
+    fun View(view: @Composable () -> Unit)
 
     @Composable
-    fun WysiwygToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
-
-    // TODO: add SourceView?
-    // TODO: implement proper WYSIWYG / source / both modes.
+    fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
 }
 
 private class WysiwygEditorScopeImpl : WysiwygEditorScope {
-    var view: @Composable (() -> Unit)? = null
-        get() = if (field == null) throw IllegalStateException("You must set the View for the editor.") else field
+    lateinit var view: @Composable (() -> Unit)
     var toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit = {}
 
     @Composable
-    override fun WysiwygView(view: @Composable () -> Unit) {
+    override fun View(view: @Composable () -> Unit) {
         this.view = view
     }
 
     @Composable
-    override fun WysiwygToolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
+    override fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
         this.toolbar = toolbar
     }
 }

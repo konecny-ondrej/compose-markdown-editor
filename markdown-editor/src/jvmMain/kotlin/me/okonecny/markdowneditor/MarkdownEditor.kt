@@ -26,7 +26,7 @@ fun MarkdownEditor(
         autocompletePlugins = autocompletePlugins,
         onChange = onChange
     ) {
-        WysiwygView {
+        View {
             MarkdownView(
                 sourceText = editorState.sourceText,
                 basePath = Path("markdown-editor/src/jvmMain/resources"),
@@ -37,7 +37,7 @@ fun MarkdownEditor(
                 linkHandlers = listOf(WebLink(LocalUriHandler.current))
             )
         }
-        WysiwygToolbar { handleInput ->
+        Toolbar { handleInput ->
             MarkdownToolbar(editorState, handleInput)
         }
     }

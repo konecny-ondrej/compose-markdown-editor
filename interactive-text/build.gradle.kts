@@ -34,15 +34,12 @@ kotlin {
             }
         }
         val jvmMain by getting {
-            kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
                 api(compose.desktop.currentOs)
                 implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
-                implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
             }
         }
         val jvmTest by getting {
-            kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
             dependencies {
                 implementation(kotlin("test-junit5"))
             }
@@ -51,9 +48,4 @@ kotlin {
             }
         }
     }
-}
-
-dependencies {
-    add("kspJvm", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
-    add("kspJvmTest", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
 }

@@ -18,7 +18,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "whodoes"
+rootProject.name = "markdown-editor"
 
 include(":interactive-text")
 include(":markdown-editor")

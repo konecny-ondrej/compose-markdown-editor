@@ -1,4 +1,4 @@
-package me.okonecny.whodoes.components
+package me.okonecny.markdowneditor.demo.components
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind

@@ -1,4 +1,4 @@
-package me.okonecny.whodoes
+package me.okonecny.markdowneditor.demo
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column

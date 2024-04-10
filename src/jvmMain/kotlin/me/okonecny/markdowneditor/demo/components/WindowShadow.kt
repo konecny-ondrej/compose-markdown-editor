@@ -1,4 +1,4 @@
-package me.okonecny.whodoes.components
+package me.okonecny.markdowneditor.demo.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding

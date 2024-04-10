@@ -18,7 +18,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "markdown-editor"
+rootProject.name = "compose-markdown-editor"
 
 include(":interactive-text")
 include(":markdown-editor")

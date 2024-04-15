@@ -29,7 +29,7 @@ import org.jetbrains.jewel.window.styling.TitleBarStyle
 
 fun main() = application {
     MainComponent::class.create()
-    val appTitle = "WhoDoes"
+    val appTitle = "Compose Wyysiwyg Editor for Markdown"
     val detectedDensity = detectDensity(LocalDensity.current)
 
     val windowState = WindowState(

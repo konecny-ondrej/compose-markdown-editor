@@ -13,6 +13,8 @@ plugins {
     id("org.jetbrains.compose")
     id("com.google.devtools.ksp")
     id("org.jetbrains.gradle.plugin.idea-ext")
+    id("com.tddworks.central-portal-publisher")
+    id("me.okonecny.gradle-keyring")
 }
 
 group = "me.okonecny"
@@ -25,7 +27,10 @@ repositories {
     maven("https://packages.jetbrains.team/maven/p/kpm/public/")
 }
 
-
+keyring {
+    secret("maven_central_token_user")
+    secret("maven_central_token_password")
+}
 
 kotlin {
     jvm {
@@ -75,4 +80,16 @@ dependencies {
 
 idea.project.settings.taskTriggers {
     afterSync("kspKotlinJvm", "kspTestKotlinJvm")
+}
+
+sonatypePortalPublisher {
+    authentication {
+        username = keyring.secrets["maven_central_token_user"]
+        password = keyring.secrets["maven_central_token_password"]
+    }
+
+    settings {
+        autoPublish = false
+        aggregation = true
+    }
 }

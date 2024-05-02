@@ -3,6 +3,10 @@ pluginManagement {
     val kspVersion: String by settings
     val composeVersion: String by settings
     val ideaExtVersion: String by settings
+    val centralPortalPublisherVersion: String by settings
+    val dokkaVersion: String by settings
+    val gradleKeyringVersion: String by settings
+
     repositories {
         google()
         gradlePluginPortal()
@@ -15,6 +19,9 @@ pluginManagement {
         kotlin("multiplatform") version kotlinVersion apply false
         id("org.jetbrains.compose") version composeVersion apply false
         id("org.jetbrains.gradle.plugin.idea-ext") version ideaExtVersion apply false
+        id("com.tddworks.central-portal-publisher") version centralPortalPublisherVersion apply false
+        id("org.jetbrains.dokka") version dokkaVersion apply false
+        id("me.okonecny.gradle-keyring") version gradleKeyringVersion apply false
     }
 }
 

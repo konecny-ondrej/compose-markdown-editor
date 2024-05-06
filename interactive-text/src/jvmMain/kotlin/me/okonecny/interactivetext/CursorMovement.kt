@@ -71,6 +71,8 @@ internal fun Modifier.keyboardCursorMovement(
         val littleScroll = when (keyEvent.key) {
             Key.DirectionUp -> ScrollPageUp(0.2f)
             Key.DirectionDown -> ScrollPageDown(0.2f)
+            Key.DirectionLeft -> ScrollPageUp(0.2f) // TODO: support RTL layout?
+            Key.DirectionRight -> ScrollPageDown(0.2f)
             else -> null
         }
         if (littleScroll != null) navigation.requestScroll(littleScroll)

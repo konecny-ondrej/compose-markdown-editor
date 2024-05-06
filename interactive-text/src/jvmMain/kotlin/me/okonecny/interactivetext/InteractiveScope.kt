@@ -40,9 +40,7 @@ data class InteractiveScope(
 
     internal fun place(containerLayoutCoordinates: LayoutCoordinates) {
         this.containerLayoutCoordinates = containerLayoutCoordinates
-        registeredComponents.replaceAll { _, component ->
-            component.copy(layoutCoordinates = null)
-        }
+        registeredComponents.clear()
     }
 
     fun register(component: InteractiveComponent) {

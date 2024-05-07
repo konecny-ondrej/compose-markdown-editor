@@ -2,19 +2,13 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.settings
 import org.jetbrains.gradle.ext.taskTriggers
 
-val kspVersion: String by project
-val kotlinInjectVersion: String by project
-val kotlinJvmTarget: String by project
-val kermitVersion: String by project
-val jewelVersion: String by project
-
 plugins {
-    kotlin("multiplatform")
-    id("org.jetbrains.compose")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.gradle.plugin.idea-ext")
-    id("com.tddworks.central-portal-publisher")
-    id("me.okonecny.gradle-keyring")
+    kotlin("multiplatform") version libs.versions.kotlinVersion
+    alias(libs.plugins.jetbrains.compose)
+    alias(libs.plugins.google.ksp)
+    alias(libs.plugins.jetbrains.ideaExt)
+    alias(libs.plugins.centralPortalPublisher)
+    alias(libs.plugins.keyring)
 }
 
 group = "me.okonecny"
@@ -37,7 +31,7 @@ kotlin {
         withJava()
     }
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
+        languageVersion = JavaLanguageVersion.of(libs.versions.javaTargetVersion.get())
         vendor = JvmVendorSpec.JETBRAINS
     }
     sourceSets {
@@ -45,10 +39,10 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation("co.touchlab:kermit:${kermitVersion}")
-                implementation("me.tatarka.inject:kotlin-inject-runtime:${kotlinInjectVersion}")
-                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
-                implementation("org.jetbrains.jewel:jewel-int-ui-decorated-window:${jewelVersion}")
+                implementation(libs.kermit)
+                implementation(libs.kotlin.inject.runtime)
+                implementation(libs.jetbrains.jewel.ui)
+                implementation(libs.jetbrains.jewel.decoratedWindow)
                 implementation(project("markdown-editor"))
             }
         }
@@ -74,8 +68,8 @@ compose.desktop {
 }
 
 dependencies {
-    add("kspJvm", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
-    add("kspJvmTest", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
+    add("kspJvm", libs.kotlin.inject.compiler)
+    add("kspJvmTest", libs.kotlin.inject.compiler)
 }
 
 idea.project.settings.taskTriggers {

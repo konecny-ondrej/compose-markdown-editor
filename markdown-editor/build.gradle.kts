@@ -1,24 +1,17 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 
-val kotlinInjectVersion: String by project
-val kotlinJvmTarget: String by project
-val kermitVersion: String by project
-val ktorVersion: String by project
-val flexmarkVersion: String by project
-val jewelVersion: String by project
-
 plugins {
     `maven-publish`
     signing
     kotlin("multiplatform")
-    id("org.jetbrains.dokka")
-    id("org.jetbrains.compose")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.gradle.plugin.idea-ext")
+    alias(libs.plugins.jetbrains.dokka)
+    alias(libs.plugins.jetbrains.compose)
+    alias(libs.plugins.google.ksp)
+    alias(libs.plugins.jetbrains.ideaExt)
 }
 
 group = "me.okonecny"
-version = "0.1"
+version = libs.versions.markdownEditorVersion.get()
 
 repositories {
     google()
@@ -32,15 +25,13 @@ kotlin {
         withJava()
     }
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
+        languageVersion = JavaLanguageVersion.of(libs.versions.javaTargetVersion.get())
         vendor = JvmVendorSpec.JETBRAINS
     }
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("co.touchlab:kermit:$kermitVersion") {
-                    exclude("org.jetbrains.kotlin", "kotlin-test-junit")
-                }
+                implementation(libs.kermit)
             }
         }
         val jvmMain by getting {
@@ -48,12 +39,10 @@ kotlin {
             dependencies {
                 api(compose.desktop.currentOs)
                 api(project(":interactive-text"))
-                implementation("me.tatarka.inject:kotlin-inject-runtime:$kotlinInjectVersion")
-                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation("com.vladsch.flexmark:flexmark-all:$flexmarkVersion")
+                implementation(libs.kotlin.inject.runtime)
+                implementation(libs.jetbrains.jewel.ui)
+                implementation(libs.bundles.ktor.client)
+                implementation(libs.flexmark)
             }
         }
         val jvmTest by getting {
@@ -69,8 +58,8 @@ kotlin {
 }
 
 dependencies {
-    add("kspJvm", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
-    add("kspJvmTest", "me.tatarka.inject:kotlin-inject-compiler-ksp:${kotlinInjectVersion}")
+    add("kspJvm", libs.kotlin.inject.compiler)
+    add("kspJvmTest", libs.kotlin.inject.compiler)
 }
 
 signing {

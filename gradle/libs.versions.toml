@@ -1,0 +1,40 @@
+[versions]
+interactiveTextVersion = "0.1.1"
+markdownEditorVersion = "0.1"
+
+javaTargetVersion = "21"
+kotlinVersion = "1.9.23"
+
+kspVersion = "1.9.23-1.0.19"
+centralPortalPublisherVersion = "0.0.4"
+dokkaVersion = "1.9.20"
+kotlinInjectVersion = "0.6.3"
+composeVersion = "1.6.1"
+ideaExtVersion = "1.1.7"
+kermitVersion = "2.0.2"
+flexmarkVersion = "0.64.6"
+ktorVersion = "2.3.5"
+jewelVersion = "0.15.2"
+gradleKeyringVersion = "0.2"
+
+[libraries]
+kotlin-inject-runtime = { group = "me.tatarka.inject", name = "kotlin-inject-runtime", version.ref = "kotlinInjectVersion" }
+kotlin-inject-compiler = { group = "me.tatarka.inject", name = "kotlin-inject-compiler-ksp", version.ref = "kotlinInjectVersion" }
+kermit = { group = "co.touchlab", name = "kermit", version.ref = "kermitVersion" }
+jetbrains-jewel-ui = { group = "org.jetbrains.jewel", name = "jewel-int-ui-standalone", version.ref = "jewelVersion" }
+jetbrains-jewel-decoratedWindow = { group = "org.jetbrains.jewel", name = "jewel-int-ui-decorated-window", version.ref = "jewelVersion" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktorVersion" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorVersion" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktorVersion" }
+flexmark = { group = "com.vladsch.flexmark", name = "flexmark-all", version.ref = "flexmarkVersion" }
+
+[bundles]
+ktor-client = ["ktor-client-core", "ktor-client-cio", "ktor-client-logging"]
+
+[plugins]
+jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaVersion" }
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "composeVersion" }
+jetbrains-ideaExt = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "ideaExtVersion" }
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
+keyring = { id = "me.okonecny.gradle-keyring", version.ref = "gradleKeyringVersion" }
+centralPortalPublisher = { id = "com.tddworks.central-portal-publisher", version.ref = "centralPortalPublisherVersion" }

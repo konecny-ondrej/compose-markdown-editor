@@ -1,22 +1,17 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 
-val kotlinInjectVersion: String by project
-val kotlinJvmTarget: String by project
-val kermitVersion: String by project
-val jewelVersion: String by project
-
 plugins {
     `maven-publish`
     signing
     kotlin("multiplatform")
-    id("org.jetbrains.dokka")
-    id("org.jetbrains.compose")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.gradle.plugin.idea-ext")
+    alias(libs.plugins.jetbrains.dokka)
+    alias(libs.plugins.jetbrains.compose)
+    alias(libs.plugins.google.ksp)
+    alias(libs.plugins.jetbrains.ideaExt)
 }
 
 group = "me.okonecny"
-version = "0.1"
+version = libs.versions.interactiveTextVersion.get()
 
 repositories {
     google()
@@ -30,21 +25,19 @@ kotlin {
         withJava()
     }
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(kotlinJvmTarget)
+        languageVersion = JavaLanguageVersion.of(libs.versions.javaTargetVersion.get())
         vendor = JvmVendorSpec.JETBRAINS
     }
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("co.touchlab:kermit:${kermitVersion}") {
-                    exclude("org.jetbrains.kotlin", "kotlin-test-junit")
-                }
+                implementation(libs.kermit)
             }
         }
         val jvmMain by getting {
             dependencies {
                 api(compose.desktop.currentOs)
-                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:${jewelVersion}")
+                implementation(libs.jetbrains.jewel.ui)
             }
         }
         val jvmTest by getting {

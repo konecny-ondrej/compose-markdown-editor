@@ -4,6 +4,17 @@ Wysiwyg editor component for Markdown text and components to build similar edito
 
 This repo contains 2 libraries and one app to demonstrate the libs' capabilities.
 
+# Usage
+The libraries are hosted on Maven Central, so you can use them directly from there.
+
+Gradle:
+```kotlin
+dependencies {
+  api("me.okonecny:interactive-text:0.1")
+  api("me.okonecny:markdown-editor:0.1")
+}
+```
+
 # Interactive Text
 
 Located in the `interactive-text` are the basic tools, that will enable you to create WYSIWYG editors

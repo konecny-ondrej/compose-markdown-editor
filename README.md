@@ -30,7 +30,7 @@ This is the glue that makes everything work. It has a few responsibilities:
   - You can use any components and mix them with text editable through `InteractiveText`.
 
 ## `InteractiveText`
-This is the text, that is editable, if placed inside the `InteractiveContainer`.  
+This is the text, that is editable, if placed inside the `InteractiveContainer`. Supports `InlineTextContent`.
 
 ## `TextMapping`
 Mapping of the visual representation of the document to its source code (and vice-versa).

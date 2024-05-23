@@ -29,19 +29,15 @@ class MarkdownDocument(
  */
 private fun generateInteractiveIdsPreOrder(
     currentNode: Node,
-    idGenerator: LinearInteractiveIdGenerator
+    idGenerator: LinearInteractiveIdGenerator,
+    ids: MutableMap<Node, InteractiveId> = mutableMapOf()
 ): Map<Node, InteractiveId> {
-    val currentNodeToId = mapOf(
-        currentNode to idGenerator.generateId()
-    )
-    if (!currentNode.hasChildren()) return currentNodeToId
-    return currentNodeToId + currentNode.children
-        .map { childNode ->
-            generateInteractiveIdsPreOrder(childNode, idGenerator)
-        }
-        .reduce { acc, nodeToId ->
-            acc + nodeToId
-        }
+    ids[currentNode] = idGenerator.generateId()
+    currentNode.children.forEach { childNode ->
+        generateInteractiveIdsPreOrder(childNode, idGenerator, ids)
+    }
+    currentNode.children
+    return ids
 }
 
 data class MarkdownReference(

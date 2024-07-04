@@ -52,8 +52,11 @@ fun WysiwygEditor(
             editorScope.view()
         }
 
-        FloatingToolbar(editorState) {
-            editorScope.toolbar(inputQueue::add)
+        val visualCursorRect = editorState.visualCursorRect
+        if (sourceCursor != null && visualCursorRect != null) {
+            FloatingToolbar(visualCursorRect.topCenter) {
+                editorScope.toolbar(inputQueue::add)
+            }
         }
 
         AutocompletePopup(

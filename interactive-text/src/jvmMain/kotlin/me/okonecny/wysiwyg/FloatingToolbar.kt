@@ -10,12 +10,10 @@ import me.okonecny.interactivetext.compose.MeasuringLayout
 
 @Composable
 internal fun FloatingToolbar(
-    editorState: WysiwygEditorState,
+    offset: Offset,
+    alignment: FloatingAlignment = FloatingAlignment.BOTTOM,
     toolbarContent: (@Composable () -> Unit)
 ) {
-    val visualCursorRect = editorState.visualCursorRect ?: return
-    if (editorState.sourceCursor == null) return
-
     MeasuringLayout(
         measuredContent = {
             toolbarContent()
@@ -26,7 +24,10 @@ internal fun FloatingToolbar(
                 x = constraints.maxWidth - measuredSize.width.toPx(),
                 y = constraints.maxHeight - measuredSize.height.toPx(),
             )
-            val toolbarPosition = (visualCursorRect.topLeft - Offset(0f, measuredSize.height.toPx()))
+            val toolbarPosition = when (alignment) {
+                FloatingAlignment.BOTTOM -> (offset - Offset(0f, measuredSize.height.toPx()))
+                FloatingAlignment.TOP -> offset
+            }
             Offset(
                 x = toolbarPosition.x.coerceIn(0f, maxPosition.x),
                 y = toolbarPosition.y.coerceIn(0f, maxPosition.y)
@@ -35,4 +36,9 @@ internal fun FloatingToolbar(
             toolbarContent()
         }
     }
+}
+
+internal enum class FloatingAlignment {
+    TOP,
+    BOTTOM
 }

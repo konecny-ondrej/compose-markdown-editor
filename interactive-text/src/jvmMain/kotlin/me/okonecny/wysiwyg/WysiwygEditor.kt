@@ -141,6 +141,7 @@ fun WysiwygEditor(
             }
             if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
                 editorState.visualSelection = Selection.empty
+                editorState.visualCursor = CursorPosition.invalid
                 onChange(
                     editorState.copy(
                         sourceText = editedSourceEditor.sourceText,

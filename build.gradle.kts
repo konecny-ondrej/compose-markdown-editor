@@ -87,3 +87,28 @@ sonatypePortalPublisher {
         aggregation = true
     }
 }
+
+val patchReadme: Task by tasks.creating {
+    val readmeFile = File("README.md")
+
+    inputs.files(readmeFile)
+    outputs.files(readmeFile)
+    subprojects.forEach { proj ->
+        inputs.property(proj.path, proj.version)
+    }
+
+    doLast {
+        var readmeContents = readmeFile.readText()
+        subprojects.forEach { proj ->
+            readmeContents = readmeContents.replace(
+                Regex("${proj.group}:${proj.name}:\\d+\\.\\d+\\.\\d+"),
+                "${proj.group}:${proj.name}:${proj.version}"
+            )
+        }
+        readmeFile.writeText(readmeContents)
+    }
+}
+
+tasks.build.configure {
+    dependsOn(patchReadme)
+}

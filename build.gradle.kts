@@ -3,8 +3,9 @@ import org.jetbrains.gradle.ext.settings
 import org.jetbrains.gradle.ext.taskTriggers
 
 plugins {
-    kotlin("multiplatform") version libs.versions.kotlinVersion
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.jetbrains.compose)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.ideaExt)
     alias(libs.plugins.centralPortalPublisher)

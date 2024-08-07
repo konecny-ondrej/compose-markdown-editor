@@ -61,7 +61,7 @@ compose.desktop {
             "-Djava.net.useSystemProxies=true"
         )
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.AppImage)
             packageName = "markdowneditordemo"
             packageVersion = "1.0.0"
         }

@@ -13,7 +13,8 @@ import co.touchlab.kermit.Logger
 fun Modifier.textInput(
     onInput: (TextInputCommand) -> Unit
 ): Modifier = composed {
-    var textInputSession by remember(onInput) { mutableStateOf<TextInputSession?>(null) }
+    val handleInput by rememberUpdatedState(onInput)
+    var textInputSession by remember { mutableStateOf<TextInputSession?>(null) }
     val textInputService = LocalTextInputService.current
 
     if (textInputSession == null && textInputService != null) {
@@ -23,8 +24,8 @@ fun Modifier.textInput(
             onEditCommand = { editCommands ->
                 editCommands.forEach { command: EditCommand ->
                     when (command) {
-                        is CommitTextCommand -> onInput(Type(command.text))
-                        is BackspaceCommand -> onInput(Delete(Delete.Direction.BEFORE_CURSOR, Delete.Size.LETTER))
+                        is CommitTextCommand -> handleInput(Type(command.text))
+                        is BackspaceCommand -> handleInput(Delete(Delete.Direction.BEFORE_CURSOR, Delete.Size.LETTER))
                         // Is any other command relevant? See subclasses of EditCommand.
                     }
                 }

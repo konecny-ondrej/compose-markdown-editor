@@ -42,8 +42,6 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kermit)
                 implementation(libs.kotlin.inject.runtime)
-                implementation(libs.jetbrains.jewel.ui)
-                implementation(libs.jetbrains.jewel.decoratedWindow)
                 implementation(project("markdown-editor"))
             }
         }

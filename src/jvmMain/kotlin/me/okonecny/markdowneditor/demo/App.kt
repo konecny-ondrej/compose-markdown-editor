@@ -2,14 +2,14 @@ package me.okonecny.markdowneditor.demo
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.useResource
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.wysiwyg.rememberWysiwygEditorState
-import org.jetbrains.jewel.ui.component.DefaultButton
-import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 @Preview
@@ -26,7 +26,7 @@ fun App() {
 
     MaterialTheme {
         Column {
-            DefaultButton(onClick = {
+            Button(onClick = {
                 isLong = !isLong
             }) {
                 Text(if (isLong) "GFM Spec" else "Short demo")

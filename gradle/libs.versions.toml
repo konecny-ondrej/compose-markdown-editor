@@ -14,15 +14,12 @@ ideaExtVersion = "1.1.7"
 kermitVersion = "2.0.4"
 flexmarkVersion = "0.64.6"
 ktorVersion = "2.3.12"
-jewelVersion = "0.19.4"
 gradleKeyringVersion = "0.2"
 
 [libraries]
 kotlin-inject-runtime = { group = "me.tatarka.inject", name = "kotlin-inject-runtime", version.ref = "kotlinInjectVersion" }
 kotlin-inject-compiler = { group = "me.tatarka.inject", name = "kotlin-inject-compiler-ksp", version.ref = "kotlinInjectVersion" }
 kermit = { group = "co.touchlab", name = "kermit", version.ref = "kermitVersion" }
-jetbrains-jewel-ui = { group = "org.jetbrains.jewel", name = "jewel-int-ui-standalone-241", version.ref = "jewelVersion" }
-jetbrains-jewel-decoratedWindow = { group = "org.jetbrains.jewel", name = "jewel-int-ui-decorated-window-241", version.ref = "jewelVersion" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktorVersion" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorVersion" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktorVersion" }

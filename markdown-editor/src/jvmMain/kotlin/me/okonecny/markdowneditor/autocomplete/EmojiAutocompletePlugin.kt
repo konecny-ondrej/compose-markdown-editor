@@ -2,6 +2,7 @@ package me.okonecny.markdowneditor.autocomplete
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,7 +14,6 @@ import me.okonecny.markdowneditor.inline.unicodeString
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.AutocompleteSuggestion
 import me.okonecny.wysiwyg.WysiwygEditorState
-import org.jetbrains.jewel.ui.component.Text
 
 class EmojiAutocompletePlugin : AutocompletePlugin {
     override val name: String = "Emoji"

@@ -39,7 +39,6 @@ kotlin {
                 api(compose.desktop.currentOs)
                 api(project(":interactive-text"))
                 implementation(libs.kotlin.inject.runtime)
-                implementation(libs.jetbrains.jewel.ui)
                 implementation(libs.bundles.ktor.client)
                 implementation(libs.flexmark)
             }

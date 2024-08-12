@@ -36,7 +36,6 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 api(compose.desktop.currentOs)
-                implementation(libs.jetbrains.jewel.ui)
             }
         }
         val jvmTest by getting {

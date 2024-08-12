@@ -1,24 +1,25 @@
 package me.okonecny.wysiwyg
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProvideTextStyle
+import androidx.compose.material.Text
+import androidx.compose.material.primarySurface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.textInput
-import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.ui.component.MenuItemState
-import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.theme.menuStyle
 
 @Composable
 internal fun AutocompletePopup(
@@ -81,20 +82,15 @@ private fun AutocompleteMenu(
     var selectedSuggestionIndex by remember(sourceText) { mutableStateOf(0) }
     val allSuggestions = suggestionsByPlugin.values.flatten()
     Column(Modifier
-        .border(
-            width = JewelTheme.menuStyle.metrics.borderWidth,
-            color = JewelTheme.menuStyle.colors.border,
-            shape = RoundedCornerShape(JewelTheme.menuStyle.metrics.cornerSize)
-        )
         .shadow(
-            elevation = JewelTheme.menuStyle.metrics.shadowSize,
-            shape = RoundedCornerShape(JewelTheme.menuStyle.metrics.cornerSize)
+            elevation = 8.dp,
+            shape = MaterialTheme.shapes.small
         )
-        .clip(RoundedCornerShape(JewelTheme.menuStyle.metrics.cornerSize))
+        .clip(MaterialTheme.shapes.small)
         .background(
-            color = JewelTheme.menuStyle.colors.background
+            color = MaterialTheme.colors.background
         )
-        .padding(JewelTheme.menuStyle.metrics.contentPadding)
+        .padding(8.dp)
         .focusRequester(menuFocusRequester)
         .focusable()
         .width(IntrinsicSize.Max)
@@ -120,32 +116,31 @@ private fun AutocompleteMenu(
         suggestionsByPlugin.entries.forEach { (plugin, suggestions) ->
             Text(
                 text = plugin.name,
-                modifier = Modifier.padding(JewelTheme.menuStyle.metrics.itemMetrics.contentPadding),
-                color = JewelTheme.menuStyle.colors.itemColors.contentFor(
-                    MenuItemState.of(
-                        selected = false,
-                        enabled = false
-                    )
-                ).value
+                modifier = Modifier.padding(8.dp),
+                color = MaterialTheme.colors.onBackground
             )
             suggestions.forEach { suggestion ->
+                val suggestionIsActive = (globalSuggestionIndex++) == selectedSuggestionIndex
                 Row(
                     modifier = Modifier
+                        .clip(shape = MaterialTheme.shapes.small)
                         .clickable { suggestion.onClick(handleInput) }
                         .background(
-                            color = JewelTheme.menuStyle.colors.itemColors.backgroundFor(
-                                MenuItemState.of(
-                                    focused = (globalSuggestionIndex++) == selectedSuggestionIndex,
-                                    selected = false,
-                                    enabled = true
-                                )
-                            ).value
+                            color = if (suggestionIsActive) MaterialTheme.colors.primarySurface else Color.Transparent
                         )
-                        .padding(JewelTheme.menuStyle.metrics.itemMetrics.contentPadding)
+                        .padding(4.dp)
                         .fillMaxWidth()
                 ) {
                     with(suggestion) {
-                        render()
+                        ProvideTextStyle(
+                            if (suggestionIsActive) {
+                                TextStyle(color = MaterialTheme.colors.onPrimary)
+                            } else {
+                                TextStyle()
+                            }
+                        ) {
+                            render()
+                        }
                     }
                 }
             }

@@ -30,7 +30,7 @@ internal fun AutocompletePopup(
     if (dismissed) return
 
     val editorFocusRequester = editorState.interactiveScope.focusRequester
-    val visualCursorRect = remember(editorState.sourceText) { editorState.visualCursorRect }
+    val visualCursorRect = remember(editorState) { editorState.visualCursorRect }
     if (visualCursorRect == null) {
         LaunchedEffect(Unit) {
             editorFocusRequester.requestFocus()

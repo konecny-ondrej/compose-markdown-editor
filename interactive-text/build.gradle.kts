@@ -36,6 +36,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 api(compose.desktop.currentOs)
+                implementation(libs.constraintLayout)
             }
         }
         val jvmTest by getting {

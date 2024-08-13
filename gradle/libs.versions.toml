@@ -24,6 +24,7 @@ ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref =
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorVersion" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktorVersion" }
 flexmark = { group = "com.vladsch.flexmark", name = "flexmark-all", version.ref = "flexmarkVersion" }
+constraintLayout = { group = "tech.annexflow.compose", name = "constraintlayout-compose-multiplatform", version = "0.4.0" }
 
 [bundles]
 ktor-client = ["ktor-client-core", "ktor-client-cio", "ktor-client-logging"]

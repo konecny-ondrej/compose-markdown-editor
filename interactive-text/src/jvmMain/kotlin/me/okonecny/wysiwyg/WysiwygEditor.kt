@@ -5,8 +5,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.unit.DpOffset
+import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
 import kotlin.math.abs
 
@@ -54,16 +57,40 @@ fun WysiwygEditor(
 
         val visualCursorRect = editorState.visualCursorRect
         if (sourceCursor != null && visualCursorRect != null) {
-            FloatingToolbar(visualCursorRect.topCenter) {
-                editorScope.toolbar(inputQueue::add)
+            ConstraintLayout {
+                val (toolbar, autocompletePopup) = createRefs()
+                val toolbarOffset = with(LocalDensity.current) {
+                    DpOffset(visualCursorRect.left.toDp(), visualCursorRect.top.toDp())
+                }
+                val autocompletePopupOffset = with(LocalDensity.current) {
+                    DpOffset(visualCursorRect.left.toDp(), visualCursorRect.bottom.toDp())
+                }
+
+                Box(Modifier.constrainAs(toolbar) {
+                    bottom.linkTo(parent.top) // So the base position is computed using bottom, not top.
+                    translationX = toolbarOffset.x
+                    translationY = toolbarOffset.y
+                }) {
+                    editorScope.toolbar(inputQueue::add)
+                }
+
+                Box(Modifier.constrainAs(autocompletePopup) {
+                    translationX = autocompletePopupOffset.x
+                    translationY = autocompletePopupOffset.y
+                }) {
+                    AutocompletePopup(
+                        editorState,
+                        autocompletePlugins,
+                        inputQueue::add
+                    )
+                }
+            }
+
+        } else {
+            LaunchedEffect(Unit) {
+                editorState.interactiveScope.focusRequester.requestFocus()
             }
         }
-
-        AutocompletePopup(
-            editorState,
-            autocompletePlugins,
-            inputQueue::add
-        )
     }
     LaunchedEffect(sourceCursorRequest) {
         if (interactiveScope.isPlaced) {

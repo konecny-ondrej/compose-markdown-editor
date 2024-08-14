@@ -10,8 +10,8 @@ The libraries are hosted on Maven Central, so you can use them directly from the
 Gradle:
 ```kotlin
 dependencies {
-  api("me.okonecny:interactive-text:0.1.3") // You can omit this one if you only want the whole editor.
-  api("me.okonecny:markdown-editor:0.1.3")
+  api("me.okonecny:interactive-text:0.2.0") // You can omit this one if you only want the whole editor.
+  api("me.okonecny:markdown-editor:0.2.0")
 }
 ```
 

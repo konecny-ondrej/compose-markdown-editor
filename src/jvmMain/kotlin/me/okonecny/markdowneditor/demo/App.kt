@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.res.useResource
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
+import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
+import me.okonecny.markdowneditor.autocomplete.UserMentionAutocompletePlugin
 import me.okonecny.wysiwyg.rememberWysiwygEditorState
 
 @Composable
@@ -36,6 +38,14 @@ fun App() {
             MarkdownEditor(
                 editorState = editorState,
                 documentTheme = documentTheme,
+                autocompletePlugins = listOf(
+                    EmojiAutocompletePlugin(),
+                    UserMentionAutocompletePlugin(
+                        listOf(
+                            "user1", "user2", "alice", "amanda", "bob", "barney"
+                        )
+                    )
+                ),
                 onChange = { newEditorState -> editorState = newEditorState }
             )
         }

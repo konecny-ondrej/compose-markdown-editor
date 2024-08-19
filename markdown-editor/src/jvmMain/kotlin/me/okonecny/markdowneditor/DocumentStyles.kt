@@ -156,6 +156,10 @@ data class DocumentStyles(
             color = Color.Cyan
         )
     ),
+    val userMention: TextStyle = TextStyle(
+        background = Color(0xffc1e7fe),
+        fontWeight = FontWeight.Bold
+    ),
     val image: ImageStyle = ImageStyle(
         modifier = Modifier
             .clip(blockShape)

@@ -14,6 +14,7 @@ import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
+import com.vladsch.flexmark.ext.gfm.users.GfmUser
 import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
@@ -484,6 +485,11 @@ private fun parseInlines(
 
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle(), visualStartOffset)
                 is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle(), visualStartOffset)
+                is GfmUser -> appendStyled(
+                    inline.rawCode(visualLength + visualStartOffset),
+                    styles.userMention.toSpanStyle()
+                )
+
                 is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle(), visualStartOffset)
                 is HardLineBreak -> append(
                     MappedText(
@@ -547,16 +553,8 @@ private fun parseInlines(
                 }
 
                 is Emoji -> appendEmoji(
-                    inline, MappedText(
-                        text = inline.chars.toString(),
-                        textMapping = SequenceTextMapping(
-                            coveredVisualRange = TextRange(
-                                visualLength + visualStartOffset,
-                                visualLength + visualStartOffset + inline.chars.length
-                            ),
-                            sequence = inline.chars
-                        )
-                    )
+                    inline,
+                    inline.rawCode(visualLength + visualStartOffset)
                 )
 
                 else -> appendUnparsed(inline)
@@ -705,9 +703,18 @@ private class SequenceTextMapping(
 /**
  * Returns the unprocessed Markdown source code corresponding to the node.
  */
-private fun Node.rawCode(): MappedText {
+private fun Node.rawCode(visualStartOffset: Int = 0): MappedText {
     val sequence = this.chars
-    return MappedText(chars.toString(), SequenceTextMapping(TextRange(0, sequence.length), sequence))
+    return MappedText(
+        text = chars.toString(),
+        textMapping = SequenceTextMapping(
+            coveredVisualRange = TextRange(
+                visualStartOffset,
+                visualStartOffset + sequence.length
+            ),
+            sequence = sequence
+        )
+    )
 }
 
 // endregion inlines

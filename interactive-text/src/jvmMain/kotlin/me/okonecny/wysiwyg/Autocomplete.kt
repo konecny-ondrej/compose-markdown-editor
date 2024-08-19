@@ -106,11 +106,13 @@ private fun AutocompleteMenu(
     ) {
         var globalSuggestionIndex = 0
         suggestionsByPlugin.entries.forEach { (plugin, suggestions) ->
-            Text(
-                text = plugin.name,
-                modifier = Modifier.padding(8.dp),
-                color = MaterialTheme.colors.onBackground
-            )
+            if (suggestions.isNotEmpty()) {
+                Text(
+                    text = plugin.name,
+                    modifier = Modifier.padding(8.dp),
+                    color = MaterialTheme.colors.onBackground
+                )
+            }
             suggestions.forEach { suggestion ->
                 val suggestionIsActive = (globalSuggestionIndex++) == selectedSuggestionIndex
                 Row(

@@ -1,21 +1,21 @@
 package me.okonecny.markdowneditor
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.style.TextAlign
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
-import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.gfm.users.GfmUser
-import com.vladsch.flexmark.ext.tables.*
 import com.vladsch.flexmark.util.ast.Block
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
-import me.okonecny.interactivetext.*
+import me.okonecny.interactivetext.LocalNavigation
+import me.okonecny.interactivetext.NavigableLazyColumn
+import me.okonecny.interactivetext.Navigation
 import me.okonecny.markdowneditor.flexmark.rawCode
 import me.okonecny.markdowneditor.flexmark.text
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
@@ -26,6 +26,24 @@ import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
 import java.nio.file.Path
+
+fun BlockRenderers.Companion.flexmarkDefault(
+    codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
+) = BlockRenderers<Node>()
+    .withUnknownBlockType(UiUnparsedBlock())
+    .withRenderer(UiHeading())
+    .withRenderer(UiParagraph())
+    .withRenderer(UiHorizontalRule())
+    .withRenderer(UiBlockQuote())
+    .withRenderer(UiIndentedCodeBlock())
+    .withRenderer(UiCodeFence(codeFenceRenderers))
+    .withRenderer(UiHtmlBlock())
+    .withRenderer(UiOrderedList())
+    .withRenderer(UiBulletList())
+    .withRenderer(UiTaskListItem())
+    .withIgnoredBlockType<HtmlCommentBlock>()
+    .withIgnoredBlockType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
+    .withRenderer(UiTableBlock())
 
 /**
  * Renders a Markdown document nicely.
@@ -39,18 +57,9 @@ fun MarkdownView(
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     linkHandlers: List<LinkHandler> = emptyList(),
-    blockRenderers: BlockRenderers = BlockRenderers()
-        .withRenderer(UiHeading())
-        .withRenderer(UiParagraph())
-        .withRenderer(UiHorizontalRule())
-        .withRenderer(UiBlockQuote())
-        .withRenderer(UiIndentedCodeBlock())
-        .withRenderer(UiCodeFence(codeFenceRenderers))
-        .withRenderer(UiHtmlBlock())
-        .withRenderer(UiOrderedList())
-        .withRenderer(UiBulletList())
-        .withIgnoredBlockType<HtmlCommentBlock>()
-        .withIgnoredBlockType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
+    blockRenderers: BlockRenderers<Node> = BlockRenderers.flexmarkDefault(
+        codeFenceRenderers
+    )
 ) {
     val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
     val parser = remember(markdown) { markdown.documentParser }
@@ -58,15 +67,13 @@ fun MarkdownView(
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,
-        BlockRenderers provides blockRenderers,
         LocalMarkdownEditorComponent provides markdown,
         LocalDocument provides document
     ) {
-        UiMdDocument(document.ast, modifier, scrollable, linkHandlers)
+        UiMdDocument(document.ast, modifier, scrollable, linkHandlers, blockRenderers)
     }
 }
 
-private val BlockRenderers = compositionLocalOf { BlockRenderers() }
 private val LinkHandlers = compositionLocalOf { emptyMap<String, LinkHandler>() }
 internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
     throw IllegalStateException("The editor component can only be used inside MarkdownView.")
@@ -104,7 +111,8 @@ private fun UiMdDocument(
     markdownRoot: Document,
     modifier: Modifier,
     scrollable: Boolean,
-    linkHandlers: List<LinkHandler>
+    linkHandlers: List<LinkHandler>,
+    blockRenderers: BlockRenderers<Node>
 ) {
     if (scrollable) {
         val navigation = LocalNavigation.current
@@ -115,7 +123,7 @@ private fun UiMdDocument(
                 markdownRoot.children.forEachIndexed { index, child ->
                     navigation.registerNode(child, index)
                     item {
-                        UiBlock(child)
+                        UiBlock(child, blockRenderers)
                     }
                 }
             }
@@ -123,15 +131,15 @@ private fun UiMdDocument(
     } else {
         Column {
             markdownRoot.children.forEach { child ->
-                UiBlock(child)
+                UiBlock(child, blockRenderers)
             }
         }
     }
 }
 
 @Composable
-internal fun UiBlock(block: Node) {
-    BlockRenderers.current[block]?.run {
+internal fun UiBlock(block: Node, blockRenderers: BlockRenderers<Node>) {
+    blockRenderers[block].run {
         val context = object : BlockRenderContext {
             override val document: MarkdownDocument = LocalDocument.current
             override val activeAnnotationTags: Set<String> = LinkHandlers.current.keys
@@ -146,90 +154,15 @@ internal fun UiBlock(block: Node) {
 
             @Composable
             override fun <T : Block> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
-                UiBlock(childBlock)
+                UiBlock(childBlock, blockRenderers)
             }
 
             @Composable
             override fun <T : Block> renderBlock(block: T) {
-                UiBlock(block)
+                UiBlock(block, blockRenderers)
             }
         }
         context.render(block)
-        return@UiBlock
-    }
-    when (block) {
-//        is Heading -> UiHeading(block)
-//        is Paragraph -> UiParagraph(block)
-//        is ThematicBreak -> UiHorizontalRule()
-//        is BlockQuote -> UiBlockQuote(block)
-//        is IndentedCodeBlock -> UiIndentedCodeBlock(block)
-//        is FencedCodeBlock -> UiCodeFence(block)
-//        is HtmlBlock -> UiHtmlBlock(block)
-//        is OrderedList -> UiOrderedList(block)
-//        is BulletList -> UiBulletList(block)
-//        is HtmlCommentBlock -> Unit // Ignore HTML comments. They are not visible in HTML either.
-        is TableBlock -> UiTableBlock(block)
-//        is Reference -> Unit
-        else -> UiUnparsedBlock(block)
-    }
-}
-
-@Composable
-private fun UiTableBlock(tableBlock: TableBlock) {
-
-    @Composable
-    fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
-        val document = LocalDocument.current
-        tableSection.children.forEach { tableRow ->
-            when (tableRow) {
-                is TableRow -> Row(Modifier.height(IntrinsicSize.Max)) {
-                    tableRow.children.forEach { cell ->
-                        when (cell) {
-                            is TableCell -> {
-                                val inlines = parseInlines(cell.children)
-                                InteractiveText(
-                                    interactiveId = document.getInteractiveId(cell),
-                                    text = inlines.text,
-                                    textMapping = inlines.textMapping,
-                                    inlineContent = inlines.inlineContent,
-                                    style = cellStyle.textStyle.copy(
-                                        textAlign = when (cell.alignment) {
-                                            TableCell.Alignment.LEFT -> TextAlign.Left
-                                            TableCell.Alignment.CENTER -> TextAlign.Center
-                                            TableCell.Alignment.RIGHT -> TextAlign.Right
-                                            else -> TextAlign.Start
-                                        }
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .weight(1.0f)
-                                        .then(cellStyle.modifier),
-                                    activeAnnotationTags = LinkHandlers.current.keys,
-                                    onAnnotationCLick = handleLinks(),
-                                    userData = UserData.of(Node::class, cell)
-                                )
-                            }
-
-                            else -> UiUnparsedBlock(cell)
-                        }
-                    }
-                }
-
-                else -> UiUnparsedBlock(tableRow)
-            }
-        }
-    }
-
-    val styles = DocumentTheme.current.styles
-    Column(styles.table.modifier) {
-        tableBlock.children.forEach { tableSection ->
-            when (tableSection) {
-                is TableSeparator -> Unit
-                is TableHead -> UiTableSection(tableSection, styles.table.headerCellStyle)
-                is TableBody -> UiTableSection(tableSection, styles.table.bodyCellStyle)
-                else -> UiUnparsedBlock(tableSection)
-            }
-        }
     }
 }
 

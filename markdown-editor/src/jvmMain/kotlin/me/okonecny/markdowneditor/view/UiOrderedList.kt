@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor.view
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.OrderedList
 import com.vladsch.flexmark.ast.OrderedListItem
@@ -20,14 +21,15 @@ internal class UiOrderedList : BlockRenderer<OrderedList> {
 
             block.children.forEach { child ->
                 when (child) {
-                    is TaskListItem -> UiTaskListItem(
-                        child,
-                        bulletOrDelimiter = block.delimiter.toString(),
-                        openingMarker = child.openingMarker,
-                        number = computedNumber++
-                    )
+                    is TaskListItem -> {
+                        CompositionLocalProvider( // TODO: move out a little to wrap the whole "when" statement.
+                            LocalListItemBullet provides (computedNumber++).toString() + block.delimiter.toString()
+                        ) {
+                            renderBlock(child)
+                        }
+                    }
 
-                    is OrderedListItem -> Row {
+                    is OrderedListItem -> Row { // TODO: separate out into its own renderer
                         InteractiveText(
                             interactiveId = document.getInteractiveId(child),
                             text = (computedNumber++).toString() + block.delimiter,

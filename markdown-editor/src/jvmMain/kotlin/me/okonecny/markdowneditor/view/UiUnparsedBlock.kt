@@ -10,6 +10,14 @@ import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.LocalDocument
 import me.okonecny.markdowneditor.flexmark.range
 
+internal class UiUnparsedBlock : BlockRenderer<Node> {
+    @Composable
+    override fun BlockRenderContext.render(block: Node) {
+        UiUnparsedBlock(block)
+    }
+
+}
+
 @Composable
 internal fun UiUnparsedBlock(node: Node) {
     val text = "!${node.nodeName}!"

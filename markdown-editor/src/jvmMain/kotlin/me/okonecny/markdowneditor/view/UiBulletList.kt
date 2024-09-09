@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor.view
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.BulletList
 import com.vladsch.flexmark.ast.BulletListItem
@@ -19,8 +20,15 @@ internal class UiBulletList : BlockRenderer<BulletList> {
         Column {
             block.children.forEach { child ->
                 when (child) {
-                    is TaskListItem -> UiTaskListItem(child, bulletOrDelimiter = bullet, child.openingMarker)
-                    is BulletListItem -> Row {
+                    is TaskListItem -> {
+                        CompositionLocalProvider( // TODO: move out a little to wrap the whole "when" statement.
+                            LocalListItemBullet provides LIST_BULLET
+                        ) {
+                            renderBlock(child)
+                        }
+                    }
+
+                    is BulletListItem -> Row { // TODO: separate out into its own renderer
                         InteractiveText(
                             interactiveId = document.getInteractiveId(child),
                             text = bullet,

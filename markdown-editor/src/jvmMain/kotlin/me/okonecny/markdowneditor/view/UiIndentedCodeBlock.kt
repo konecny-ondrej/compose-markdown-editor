@@ -10,7 +10,7 @@ import me.okonecny.markdowneditor.LocalDocument
 
 internal class UiIndentedCodeBlock : BlockRenderer<IndentedCodeBlock> {
     @Composable
-    override fun BlockRenderContext.render(block: IndentedCodeBlock) {
+    override fun RenderContext.render(block: IndentedCodeBlock) {
         val styles = DocumentTheme.current.styles
         val lines = block.contentLines
         val document = LocalDocument.current

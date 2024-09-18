@@ -10,7 +10,7 @@ import me.okonecny.markdowneditor.LocalDocument
 
 internal class UiHeading : BlockRenderer<Heading> {
     @Composable
-    override fun BlockRenderContext.render(block: Heading) {
+    override fun RenderContext.render(block: Heading) {
         val inlines = parseInlines(block.children)
         val styles = DocumentTheme.current.styles
         val document = LocalDocument.current

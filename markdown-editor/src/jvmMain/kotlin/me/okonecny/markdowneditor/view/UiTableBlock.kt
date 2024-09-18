@@ -13,7 +13,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 
 internal class UiTableBlock : BlockRenderer<TableBlock> {
     @Composable
-    override fun BlockRenderContext.render(block: TableBlock) {
+    override fun RenderContext.render(block: TableBlock) {
         @Composable
         fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
             tableSection.children.forEach { tableRow ->

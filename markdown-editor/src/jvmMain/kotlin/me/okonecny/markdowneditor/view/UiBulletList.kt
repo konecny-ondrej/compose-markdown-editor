@@ -9,7 +9,7 @@ import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 
 internal class UiBulletList : BlockRenderer<BulletList> {
     @Composable
-    override fun BlockRenderContext.render(block: BulletList) {
+    override fun RenderContext.render(block: BulletList) {
         CompositionLocalProvider(
             LocalListItemBullet provides LIST_BULLET
         ) {

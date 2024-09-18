@@ -7,16 +7,19 @@ import com.vladsch.flexmark.ast.Text
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.interactivetext.UserData
-import me.okonecny.markdowneditor.*
+import me.okonecny.markdowneditor.CodeFenceRenderer
+import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.rawCode
 
 internal class UiCodeFence(
     codeFenceRenderers: List<CodeFenceRenderer>
-) : BlockRenderer<FencedCodeBlock>{
-    private val codeFenceRenderers: Map<String, CodeFenceRenderer> = codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
+) : BlockRenderer<FencedCodeBlock> {
+    private val codeFenceRenderers: Map<String, CodeFenceRenderer> =
+        codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
 
     @Composable
-    override fun BlockRenderContext.render(block: FencedCodeBlock) {
+    override fun RenderContext.render(block: FencedCodeBlock) {
         val styles = DocumentTheme.current.styles
         Column {
             val code = buildMappedString {

@@ -19,7 +19,7 @@ internal val LocalListItemBullet = compositionLocalOf { LIST_BULLET }
 
 internal class UiTaskListItem : BlockRenderer<TaskListItem> {
     @Composable
-    override fun BlockRenderContext.render(block: TaskListItem) {
+    override fun RenderContext.render(block: TaskListItem) {
         val styles = DocumentTheme.current.styles
         Row {
             InteractiveText(

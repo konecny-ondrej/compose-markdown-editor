@@ -32,7 +32,7 @@ data class BlockRenderers<BaseNode : Any>(
     companion object {
         private fun <T : Any> noopRenderer(): BlockRenderer<in T> = object : BlockRenderer<T> {
             @Composable
-            override fun BlockRenderContext.render(block: T) {
+            override fun RenderContext.render(block: T) {
                 // Empty on purpose. Should not render anything, just skip the node.
             }
         }

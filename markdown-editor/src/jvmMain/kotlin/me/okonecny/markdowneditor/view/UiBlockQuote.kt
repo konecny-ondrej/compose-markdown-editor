@@ -8,7 +8,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 
 internal class UiBlockQuote : BlockRenderer<BlockQuote> {
     @Composable
-    override fun BlockRenderContext.render(block: BlockQuote) {
+    override fun RenderContext.render(block: BlockQuote) {
         Column(
             modifier = DocumentTheme.current.styles.blockQuote.modifier
         ) {

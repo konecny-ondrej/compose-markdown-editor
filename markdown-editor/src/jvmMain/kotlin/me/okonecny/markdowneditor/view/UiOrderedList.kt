@@ -9,7 +9,7 @@ import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 
 internal class UiOrderedList : BlockRenderer<OrderedList> {
     @Composable
-    override fun BlockRenderContext.render(block: OrderedList) {
+    override fun RenderContext.render(block: OrderedList) {
         Column {
             var computedNumber: Int = block.startNumber
 

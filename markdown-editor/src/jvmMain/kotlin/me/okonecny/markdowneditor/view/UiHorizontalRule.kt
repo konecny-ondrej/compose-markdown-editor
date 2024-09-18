@@ -11,7 +11,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 
 internal class UiHorizontalRule : BlockRenderer<ThematicBreak> {
     @Composable
-    override fun BlockRenderContext.render(block: ThematicBreak) {
+    override fun RenderContext.render(block: ThematicBreak) {
         val lineStyle = DocumentTheme.current.lineStyle
         Box(
             modifier = Modifier.fillMaxWidth(1f)

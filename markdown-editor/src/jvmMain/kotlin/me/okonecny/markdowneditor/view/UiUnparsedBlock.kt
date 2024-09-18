@@ -12,7 +12,7 @@ import me.okonecny.markdowneditor.flexmark.range
 
 internal class UiUnparsedBlock : BlockRenderer<Node> {
     @Composable
-    override fun BlockRenderContext.render(block: Node) {
+    override fun RenderContext.render(block: Node) {
         UiUnparsedBlock(block)
     }
 

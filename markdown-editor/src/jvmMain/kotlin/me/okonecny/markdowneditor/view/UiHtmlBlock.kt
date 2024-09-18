@@ -9,7 +9,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 
 internal class UiHtmlBlock : BlockRenderer<HtmlBlock> {
     @Composable
-    override fun BlockRenderContext.render(block: HtmlBlock) {
+    override fun RenderContext.render(block: HtmlBlock) {
         val styles = DocumentTheme.current.styles
         Column(modifier = styles.codeBlock.modifier) {
             block.contentLines.forEach { line ->

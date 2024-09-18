@@ -10,7 +10,7 @@ import me.okonecny.markdowneditor.LocalDocument
 
 internal class UiParagraph : BlockRenderer<Paragraph> {
     @Composable
-    override fun BlockRenderContext.render(block: Paragraph) {
+    override fun RenderContext.render(block: Paragraph) {
         val inlines = parseInlines(block.children)
         val styles = DocumentTheme.current.styles
         val document = LocalDocument.current

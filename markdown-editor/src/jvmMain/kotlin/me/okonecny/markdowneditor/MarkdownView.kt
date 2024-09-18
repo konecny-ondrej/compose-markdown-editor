@@ -142,7 +142,7 @@ private fun UiMdDocument(
 @Composable
 internal fun UiBlock(block: Node, blockRenderers: BlockRenderers<Node>) {
     blockRenderers[block].run {
-        val context = object : BlockRenderContext {
+        val context = object : RenderContext {
             override val document: MarkdownDocument = LocalDocument.current
             override val activeAnnotationTags: Set<String> = LinkHandlers.current.keys
 

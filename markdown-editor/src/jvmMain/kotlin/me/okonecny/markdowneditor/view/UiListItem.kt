@@ -11,7 +11,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 
 internal class UiListItem : BlockRenderer<ListItem> {
     @Composable
-    override fun BlockRenderContext.render(block: ListItem) {
+    override fun RenderContext.render(block: ListItem) {
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(

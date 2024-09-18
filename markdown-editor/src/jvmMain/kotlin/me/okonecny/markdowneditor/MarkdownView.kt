@@ -30,7 +30,7 @@ import java.nio.file.Path
 fun BlockRenderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) = BlockRenderers<Node>()
-    .withUnknownBlockType(UiUnparsedBlock())
+    .withUnknownNodeTypeRenderer(UiUnparsedBlock())
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
     .withRenderer(UiHorizontalRule())
@@ -39,7 +39,9 @@ fun BlockRenderers.Companion.flexmarkDefault(
     .withRenderer(UiCodeFence(codeFenceRenderers))
     .withRenderer(UiHtmlBlock())
     .withRenderer(UiOrderedList())
+    .withRenderer<OrderedListItem>(UiListItem())
     .withRenderer(UiBulletList())
+    .withRenderer<BulletListItem>(UiListItem())
     .withRenderer(UiTaskListItem())
     .withIgnoredBlockType<HtmlCommentBlock>()
     .withIgnoredBlockType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.

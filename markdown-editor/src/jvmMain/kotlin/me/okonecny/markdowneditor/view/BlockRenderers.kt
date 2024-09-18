@@ -16,7 +16,7 @@ data class BlockRenderers<BaseNode : Any>(
         ignoredBlockTypes = ignoredBlockTypes + T::class
     )
 
-    fun withUnknownBlockType(renderer: BlockRenderer<in BaseNode>): BlockRenderers<BaseNode> = copy(
+    fun withUnknownNodeTypeRenderer(renderer: BlockRenderer<in BaseNode>): BlockRenderers<BaseNode> = copy(
         unknownBlockRenderer = renderer
     )
 

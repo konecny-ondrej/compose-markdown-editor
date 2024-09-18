@@ -27,9 +27,9 @@ import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
 import java.nio.file.Path
 
-fun BlockRenderers.Companion.flexmarkDefault(
+fun Renderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
-) = BlockRenderers<Node>()
+) = Renderers<Node>()
     .withUnknownNodeTypeRenderer(UiUnparsedBlock())
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
@@ -59,7 +59,7 @@ fun MarkdownView(
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     linkHandlers: List<LinkHandler> = emptyList(),
-    blockRenderers: BlockRenderers<Node> = BlockRenderers.flexmarkDefault(
+    renderers: Renderers<Node> = Renderers.flexmarkDefault(
         codeFenceRenderers
     )
 ) {
@@ -72,7 +72,7 @@ fun MarkdownView(
         LocalMarkdownEditorComponent provides markdown,
         LocalDocument provides document
     ) {
-        UiMdDocument(document.ast, modifier, scrollable, linkHandlers, blockRenderers)
+        UiMdDocument(document.ast, modifier, scrollable, linkHandlers, renderers)
     }
 }
 
@@ -114,7 +114,7 @@ private fun UiMdDocument(
     modifier: Modifier,
     scrollable: Boolean,
     linkHandlers: List<LinkHandler>,
-    blockRenderers: BlockRenderers<Node>
+    renderers: Renderers<Node>
 ) {
     if (scrollable) {
         val navigation = LocalNavigation.current
@@ -125,7 +125,7 @@ private fun UiMdDocument(
                 markdownRoot.children.forEachIndexed { index, child ->
                     navigation.registerNode(child, index)
                     item {
-                        UiBlock(child, blockRenderers)
+                        UiBlock(child, renderers)
                     }
                 }
             }
@@ -133,15 +133,15 @@ private fun UiMdDocument(
     } else {
         Column {
             markdownRoot.children.forEach { child ->
-                UiBlock(child, blockRenderers)
+                UiBlock(child, renderers)
             }
         }
     }
 }
 
 @Composable
-internal fun UiBlock(block: Node, blockRenderers: BlockRenderers<Node>) {
-    blockRenderers[block].run {
+internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
+    renderers.forBlock(block).run {
         val context = object : RenderContext {
             override val document: MarkdownDocument = LocalDocument.current
             override val activeAnnotationTags: Set<String> = LinkHandlers.current.keys
@@ -156,12 +156,12 @@ internal fun UiBlock(block: Node, blockRenderers: BlockRenderers<Node>) {
 
             @Composable
             override fun <T : Block> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
-                UiBlock(childBlock, blockRenderers)
+                UiBlock(childBlock, renderers)
             }
 
             @Composable
             override fun <T : Block> renderBlock(block: T) {
-                UiBlock(block, blockRenderers)
+                UiBlock(block, renderers)
             }
         }
         context.render(block)

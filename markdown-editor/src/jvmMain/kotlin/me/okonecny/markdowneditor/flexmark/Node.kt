@@ -19,14 +19,14 @@ val Node.source: String get() = chars.toString()
 /**
  * Returns the unprocessed Markdown source code corresponding to the node.
  */
-internal fun Node.rawCode(visualStartOffset: Int = 0): MappedText {
+internal fun Node.rawCode(): MappedText {
     val sequence = this.chars
     return MappedText(
         text = chars.toString(),
         textMapping = SequenceTextMapping(
             coveredVisualRange = TextRange(
-                visualStartOffset,
-                visualStartOffset + sequence.length
+                0,
+                sequence.length
             ),
             sequence = sequence
         )
@@ -36,7 +36,7 @@ internal fun Node.rawCode(visualStartOffset: Int = 0): MappedText {
 /**
  * Collects the node text, resolving all escapes.
  */
-internal fun Node.text(visualStartOffset: Int): MappedText {
+internal fun Node.text(): MappedText {
     val builder = TextCollectingVisitor()
     builder.collect(this)
 
@@ -54,7 +54,7 @@ internal fun Node.text(visualStartOffset: Int): MappedText {
     return MappedText(
         text = AnnotatedString(builder.text),
         textMapping = SequenceTextMapping(
-            TextRange(visualStartOffset, visualStartOffset + text.length),
+            TextRange(0, text.length),
             sequence
         )
     )

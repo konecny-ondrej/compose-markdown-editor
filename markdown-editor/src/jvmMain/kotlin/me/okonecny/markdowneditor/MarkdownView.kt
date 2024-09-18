@@ -180,7 +180,7 @@ internal fun parseInlines(
     return buildMappedString {
         inlines.forEach { inline ->
             when (inline) {
-                is Text -> append(inline.text(visualStartOffset = visualLength + visualStartOffset))
+                is Text -> append(inline.text().visuallyOffset(visualLength + visualStartOffset))
                 is TextBase -> append(
                     parseInlines(
                         inline.children,
@@ -204,7 +204,7 @@ internal fun parseInlines(
                 is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle(), visualStartOffset)
                 is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle(), visualStartOffset)
                 is GfmUser -> appendStyled(
-                    inline.rawCode(visualLength + visualStartOffset),
+                    inline.rawCode().visuallyOffset(visualLength + visualStartOffset),
                     styles.userMention.toSpanStyle()
                 )
 
@@ -272,7 +272,7 @@ internal fun parseInlines(
 
                 is Emoji -> appendEmoji(
                     inline,
-                    inline.rawCode(visualLength + visualStartOffset)
+                    inline.rawCode().visuallyOffset(visualLength + visualStartOffset)
                 )
 
                 else -> appendUnparsed(inline)

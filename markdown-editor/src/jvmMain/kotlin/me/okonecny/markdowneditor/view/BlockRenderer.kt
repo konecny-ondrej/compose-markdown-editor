@@ -2,7 +2,7 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
 
-interface BlockRenderer<T : Any> {
+interface BlockRenderer<in T : BaseNode, BaseNode> {
     @Composable
-    fun RenderContext.render(block: T)
+    fun RenderContext<BaseNode>.render(block: T)
 }

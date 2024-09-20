@@ -8,9 +8,9 @@ import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.LocalDocument
 
-internal class UiHeading : BlockRenderer<Heading> {
+internal class UiHeading : BlockRenderer<Heading, Node> {
     @Composable
-    override fun RenderContext.render(block: Heading) {
+    override fun RenderContext<Node>.render(block: Heading) {
         val inlines = parseInlines(block.children)
         val styles = DocumentTheme.current.styles
         val document = LocalDocument.current

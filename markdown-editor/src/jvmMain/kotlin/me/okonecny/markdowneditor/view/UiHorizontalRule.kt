@@ -7,11 +7,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.vladsch.flexmark.ast.ThematicBreak
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.markdowneditor.DocumentTheme
 
-internal class UiHorizontalRule : BlockRenderer<ThematicBreak> {
+internal class UiHorizontalRule : BlockRenderer<ThematicBreak, Node> {
     @Composable
-    override fun RenderContext.render(block: ThematicBreak) {
+    override fun RenderContext<Node>.render(block: ThematicBreak) {
         val lineStyle = DocumentTheme.current.lineStyle
         Box(
             modifier = Modifier.fillMaxWidth(1f)

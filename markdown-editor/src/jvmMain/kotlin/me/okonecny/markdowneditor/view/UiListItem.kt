@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.ListItem
-import com.vladsch.flexmark.util.ast.Block
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.DocumentTheme
 
-internal class UiListItem : BlockRenderer<ListItem> {
+internal class UiListItem : BlockRenderer<ListItem, Node> {
     @Composable
-    override fun RenderContext.render(block: ListItem) {
+    override fun RenderContext<Node>.render(block: ListItem) {
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(
@@ -24,7 +24,7 @@ internal class UiListItem : BlockRenderer<ListItem> {
                 style = DocumentTheme.current.styles.listNumber
             )
             Column {
-                renderBlocks(block.children.filterIsInstance<Block>())
+                renderBlocks(block.children)
             }
         }
     }

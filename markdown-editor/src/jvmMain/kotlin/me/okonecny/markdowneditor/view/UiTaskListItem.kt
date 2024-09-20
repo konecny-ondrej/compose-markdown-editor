@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
-import com.vladsch.flexmark.util.ast.Block
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.interactivetext.LocalInteractiveInputHandler
 import me.okonecny.interactivetext.ReplaceRange
@@ -17,9 +17,9 @@ import me.okonecny.markdowneditor.flexmark.range
 internal const val LIST_BULLET = "\u2022"
 internal val LocalListItemBullet = compositionLocalOf { LIST_BULLET }
 
-internal class UiTaskListItem : BlockRenderer<TaskListItem> {
+internal class UiTaskListItem : BlockRenderer<TaskListItem, Node> {
     @Composable
-    override fun RenderContext.render(block: TaskListItem) {
+    override fun RenderContext<Node>.render(block: TaskListItem) {
         val styles = DocumentTheme.current.styles
         Row {
             InteractiveText(
@@ -41,7 +41,7 @@ internal class UiTaskListItem : BlockRenderer<TaskListItem> {
                     onInput(ReplaceRange(taskMarkerRange, newMarker))
                 })
             Column {
-                renderBlocks(block.children.filterIsInstance<Block>())
+                renderBlocks(block.children)
             }
         }
     }

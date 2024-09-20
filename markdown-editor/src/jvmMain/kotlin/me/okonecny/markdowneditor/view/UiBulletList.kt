@@ -6,10 +6,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.vladsch.flexmark.ast.BulletList
 import com.vladsch.flexmark.ast.BulletListItem
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
+import com.vladsch.flexmark.util.ast.Node
 
-internal class UiBulletList : BlockRenderer<BulletList> {
+internal class UiBulletList : BlockRenderer<BulletList, Node> {
     @Composable
-    override fun RenderContext.render(block: BulletList) {
+    override fun RenderContext<Node>.render(block: BulletList) {
         CompositionLocalProvider(
             LocalListItemBullet provides LIST_BULLET
         ) {
@@ -18,7 +19,7 @@ internal class UiBulletList : BlockRenderer<BulletList> {
                     when (child) {
                         is TaskListItem -> renderBlock(child)
                         is BulletListItem -> renderBlock(child)
-                        else -> UiUnparsedBlock(child)
+                        else -> renderBlock(child)
                     }
                 }
             }

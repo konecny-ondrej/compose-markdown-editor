@@ -14,12 +14,12 @@ import me.okonecny.markdowneditor.flexmark.rawCode
 
 internal class UiCodeFence(
     codeFenceRenderers: List<CodeFenceRenderer>
-) : BlockRenderer<FencedCodeBlock> {
+) : BlockRenderer<FencedCodeBlock, Node> {
     private val codeFenceRenderers: Map<String, CodeFenceRenderer> =
         codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
 
     @Composable
-    override fun RenderContext.render(block: FencedCodeBlock) {
+    override fun RenderContext<Node>.render(block: FencedCodeBlock) {
         val styles = DocumentTheme.current.styles
         Column {
             val code = buildMappedString {

@@ -11,9 +11,9 @@ import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.BlockStyle
 import me.okonecny.markdowneditor.DocumentTheme
 
-internal class UiTableBlock : BlockRenderer<TableBlock> {
+internal class UiTableBlock : BlockRenderer<TableBlock, Node> {
     @Composable
-    override fun RenderContext.render(block: TableBlock) {
+    override fun RenderContext<Node>.render(block: TableBlock) {
         @Composable
         fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
             tableSection.children.forEach { tableRow ->
@@ -46,12 +46,12 @@ internal class UiTableBlock : BlockRenderer<TableBlock> {
                                     )
                                 }
 
-                                else -> UiUnparsedBlock(cell)
+                                else -> renderBlock(cell)
                             }
                         }
                     }
 
-                    else -> UiUnparsedBlock(tableRow)
+                    else -> renderBlock(tableRow)
                 }
             }
         }
@@ -63,7 +63,7 @@ internal class UiTableBlock : BlockRenderer<TableBlock> {
                     is TableSeparator -> Unit
                     is TableHead -> UiTableSection(tableSection, styles.table.headerCellStyle)
                     is TableBody -> UiTableSection(tableSection, styles.table.bodyCellStyle)
-                    else -> UiUnparsedBlock(tableSection)
+                    else -> renderBlock(tableSection)
                 }
             }
         }

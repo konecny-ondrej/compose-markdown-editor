@@ -10,7 +10,6 @@ import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.users.GfmUser
-import com.vladsch.flexmark.util.ast.Block
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.LocalNavigation
@@ -30,7 +29,8 @@ import java.nio.file.Path
 fun Renderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) = Renderers<Node>()
-    .withUnknownNodeTypeRenderer(UiUnparsedBlock())
+    .withUnknownBlockTypeRenderer(UiUnparsedBlock())
+    //TODO: .withUnknownInlineTypeRenderer()
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
     .withRenderer(UiHorizontalRule())
@@ -43,8 +43,8 @@ fun Renderers.Companion.flexmarkDefault(
     .withRenderer(UiBulletList())
     .withRenderer<BulletListItem>(UiListItem())
     .withRenderer(UiTaskListItem())
-    .withIgnoredBlockType<HtmlCommentBlock>()
-    .withIgnoredBlockType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
+    .withIgnoredNodeType<HtmlCommentBlock>()
+    .withIgnoredNodeType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
     .withRenderer(UiTableBlock())
 
 /**
@@ -142,7 +142,7 @@ private fun UiMdDocument(
 @Composable
 internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
     renderers.forBlock(block).run {
-        val context = object : RenderContext {
+        val context = object : RenderContext<Node> {
             override val document: MarkdownDocument = LocalDocument.current
             override val activeAnnotationTags: Set<String> = LinkHandlers.current.keys
 
@@ -155,12 +155,12 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                 me.okonecny.markdowneditor.parseInlines(inlines)
 
             @Composable
-            override fun <T : Block> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
-                UiBlock(childBlock, renderers)
+            override fun <T : Node> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
+                renderBlock(childBlock)
             }
 
             @Composable
-            override fun <T : Block> renderBlock(block: T) {
+            override fun <T : Node> renderBlock(block: T) {
                 UiBlock(block, renderers)
             }
         }
@@ -172,7 +172,7 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 
 // e.g. after the link with no URL.
 @Composable
-internal fun parseInlines(
+internal fun parseInlines( // TODO: split into renderers
     inlines: Iterable<Node>,
     visualStartOffset: Int = 0
 ): MappedText {

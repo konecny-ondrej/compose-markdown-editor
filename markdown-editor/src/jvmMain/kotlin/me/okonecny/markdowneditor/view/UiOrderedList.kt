@@ -6,10 +6,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.vladsch.flexmark.ast.OrderedList
 import com.vladsch.flexmark.ast.OrderedListItem
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
+import com.vladsch.flexmark.util.ast.Node
 
-internal class UiOrderedList : BlockRenderer<OrderedList> {
+internal class UiOrderedList : BlockRenderer<OrderedList, Node> {
     @Composable
-    override fun RenderContext.render(block: OrderedList) {
+    override fun RenderContext<Node>.render(block: OrderedList) {
         Column {
             var computedNumber: Int = block.startNumber
 
@@ -27,7 +28,7 @@ internal class UiOrderedList : BlockRenderer<OrderedList> {
                         renderBlock(child)
                     }
 
-                    else -> UiUnparsedBlock(child)
+                    else -> renderBlock(child)
                 }
             }
         }

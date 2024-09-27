@@ -17,6 +17,6 @@ internal fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
 
 @Composable
 internal fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle, visualStartOffset: Int = 0) {
-    val parsedText = parseInlines(inlineNode.children, visualStartOffset = visualLength + visualStartOffset)
+    val parsedText = parseInlines(inlineNode.children).visuallyOffset(visualLength + visualStartOffset)
     appendStyled(parsedText, style)
 }

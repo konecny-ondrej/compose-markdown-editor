@@ -184,10 +184,7 @@ internal fun parseInlines( // TODO: split into renderers
             when (inline) {
                 is Text -> append(inline.text().visuallyOffset(visualLength + visualStartOffset))
                 is TextBase -> append(
-                    parseInlines(
-                        inline.children,
-                        visualStartOffset = visualLength + visualStartOffset
-                    )
+                    parseInlines(inline.children).visuallyOffset(visualLength + visualStartOffset)
                 )
 
                 is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle(), visualStartOffset)
@@ -302,7 +299,7 @@ private fun annotateLinkByHandler(
 
 @Composable
 private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-    val linkText = parseInlines(linkRef.children, visualStartOffset = visualLength)
+    val linkText = parseInlines(linkRef.children).visuallyOffset(visualLength)
     val reference = linkRef.reference.ifEmpty { linkRef.text }
     val url = LocalDocument.current.resolveReference(reference.toString())?.url
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
@@ -319,7 +316,7 @@ private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
 @Composable
 private fun MappedText.Builder.appendLink(link: Link) {
     val url = link.url.toString()
-    val linkText = parseInlines(link.children, visualStartOffset = visualLength)
+    val linkText = parseInlines(link.children).visuallyOffset(visualLength)
     val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
     appendStyled(
         annotatedLinkText,

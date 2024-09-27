@@ -22,7 +22,7 @@ internal class UiTableBlock : BlockRenderer<TableBlock, Node> {
                         tableRow.children.forEach { cell ->
                             when (cell) {
                                 is TableCell -> {
-                                    val inlines = me.okonecny.markdowneditor.parseInlines(cell.children)
+                                    val inlines = renderInlines(cell.children)
                                     InteractiveText(
                                         interactiveId = document.getInteractiveId(cell),
                                         text = inlines.text,

@@ -16,7 +16,6 @@ import me.okonecny.interactivetext.LocalNavigation
 import me.okonecny.interactivetext.NavigableLazyColumn
 import me.okonecny.interactivetext.Navigation
 import me.okonecny.markdowneditor.flexmark.rawCode
-import me.okonecny.markdowneditor.flexmark.text
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
 import me.okonecny.markdowneditor.inline.appendEmoji
 import me.okonecny.markdowneditor.inline.appendImage
@@ -24,6 +23,9 @@ import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
+import me.okonecny.markdowneditor.view.inline.UiCode
+import me.okonecny.markdowneditor.view.inline.UiText
+import me.okonecny.markdowneditor.view.inline.UiTextBase
 import me.okonecny.markdowneditor.view.inline.UiUnparsedInline
 import java.nio.file.Path
 
@@ -47,8 +49,11 @@ fun Renderers.Companion.flexmarkDefault(
     .withIgnoredNodeType<HtmlCommentBlock>()
     .withIgnoredNodeType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
     .withRenderer(UiTableBlock())
-    //.withRenderer<MailLink>() // TODO
-    //.withRenderer<HtmlInlineBase>() // TODO
+    .withRenderer(UiText())
+    .withRenderer(UiTextBase())
+    .withRenderer(UiCode())
+//.withRenderer<MailLink>() // TODO
+//.withRenderer<HtmlInlineBase>() // TODO
 
 /**
  * Renders a Markdown document nicely.
@@ -162,16 +167,6 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                 return buildMappedString {
                     inlines.forEach { inline ->
                         when (inline) {
-                            is Text -> append(inline.text().visuallyOffset(visualLength))
-                            is TextBase -> append(
-                                renderInlines(inline.children).visuallyOffset(visualLength)
-                            )
-
-                            is Code -> {
-                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
-                                appendStyled(parsedText, styles.inlineCode.toSpanStyle())
-                            }
-
                             is SoftLineBreak -> append(
                                 MappedText(
                                     " ",

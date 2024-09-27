@@ -10,7 +10,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 internal class UiHeading : BlockRenderer<Heading, Node> {
     @Composable
     override fun RenderContext<Node>.render(block: Heading) {
-        val inlines = parseInlines(block.children)
+        val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
             interactiveId = document.getInteractiveId(block),

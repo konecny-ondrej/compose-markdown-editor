@@ -151,8 +151,10 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                 me.okonecny.markdowneditor.handleLinks()
 
             @Composable
-            override fun parseInlines(inlines: Iterable<Node>): MappedText =
-                me.okonecny.markdowneditor.parseInlines(inlines)
+            override fun renderInline(inline: Node): MappedText = parseInlines(listOf(inline))
+
+            @Composable
+            override fun renderInlines(inlines: Iterable<Node>): MappedText = parseInlines(inlines)
 
             @Composable
             override fun <T : Node> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->

@@ -13,7 +13,10 @@ interface RenderContext<in BaseNode> {
     fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit
 
     @Composable
-    fun parseInlines(inlines: Iterable<BaseNode>): MappedText
+    fun renderInlines(inlines: Iterable<BaseNode>): MappedText
+
+    @Composable
+    fun renderInline(inline: BaseNode): MappedText
 
     @Composable
     fun <T : BaseNode> renderBlocks(blocks: Iterable<T>)

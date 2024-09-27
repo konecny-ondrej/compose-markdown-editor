@@ -10,7 +10,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 internal class UiParagraph : BlockRenderer<Paragraph, Node> {
     @Composable
     override fun RenderContext<Node>.render(block: Paragraph) {
-        val inlines = parseInlines(block.children)
+        val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
             interactiveId = document.getInteractiveId(block),

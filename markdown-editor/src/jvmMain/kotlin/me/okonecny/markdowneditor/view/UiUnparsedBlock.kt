@@ -7,16 +7,14 @@ import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.LocalDocument
 import me.okonecny.markdowneditor.flexmark.range
 
 internal class UiUnparsedBlock : BlockRenderer<Node, Node> {
     @Composable
     override fun RenderContext<Node>.render(block: Node) {
         val text = "!${block.nodeName}!"
-        val document1 = LocalDocument.current
         InteractiveText(
-            interactiveId = document1.getInteractiveId(block),
+            interactiveId = document.getInteractiveId(block),
             text = text,
             textMapping = BoundedBlockTextMapping(
                 block.range,

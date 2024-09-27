@@ -174,47 +174,44 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 
 // e.g. after the link with no URL.
 @Composable
-internal fun parseInlines( // TODO: split into renderers
-    inlines: Iterable<Node>,
-    visualStartOffset: Int = 0
-): MappedText {
+internal fun parseInlines(inlines: Iterable<Node>): MappedText {
     val styles = DocumentTheme.current.styles
     return buildMappedString {
         inlines.forEach { inline ->
             when (inline) {
-                is Text -> append(inline.text().visuallyOffset(visualLength + visualStartOffset))
+                is Text -> append(inline.text().visuallyOffset(visualLength))
                 is TextBase -> append(
-                    parseInlines(inline.children).visuallyOffset(visualLength + visualStartOffset)
+                    parseInlines(inline.children).visuallyOffset(visualLength)
                 )
 
-                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle(), visualStartOffset)
+                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
                 is SoftLineBreak -> append(
                     MappedText(
                         " ",
                         SequenceTextMapping(
                             TextRange(
-                                visualLength + visualStartOffset,
-                                visualLength + visualStartOffset + 1
+                                visualLength,
+                                visualLength + 1
                             ), inline.chars
                         )
                     )
                 )
 
-                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle(), visualStartOffset)
-                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle(), visualStartOffset)
+                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
+                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
                 is GfmUser -> appendStyled(
-                    inline.rawCode().visuallyOffset(visualLength + visualStartOffset),
+                    inline.rawCode().visuallyOffset(visualLength),
                     styles.userMention.toSpanStyle()
                 )
 
-                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle(), visualStartOffset)
+                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
                 is HardLineBreak -> append(
                     MappedText(
                         System.lineSeparator(),
                         SequenceTextMapping(
                             TextRange(
-                                visualLength + visualStartOffset,
-                                visualLength + visualStartOffset + 1
+                                visualLength,
+                                visualLength + 1
                             ), inline.chars
                         )
                     )
@@ -227,8 +224,8 @@ internal fun parseInlines( // TODO: split into renderers
                         url,
                         SequenceTextMapping(
                             TextRange(
-                                visualLength + visualStartOffset,
-                                visualLength + visualStartOffset + inline.textLength
+                                visualLength,
+                                visualLength + inline.textLength
                             ), inline.text
                         )
                     )
@@ -271,7 +268,7 @@ internal fun parseInlines( // TODO: split into renderers
 
                 is Emoji -> appendEmoji(
                     inline,
-                    inline.rawCode().visuallyOffset(visualLength + visualStartOffset)
+                    inline.rawCode().visuallyOffset(visualLength)
                 )
 
                 else -> appendUnparsed(inline)

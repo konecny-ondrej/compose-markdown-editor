@@ -152,10 +152,172 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                 me.okonecny.markdowneditor.handleLinks()
 
             @Composable
-            override fun renderInline(inline: Node): MappedText = parseInlines(listOf(inline))
+            override fun renderInline(inline: Node): MappedText = renderInlines(listOf(inline))
 
             @Composable
-            override fun renderInlines(inlines: Iterable<Node>): MappedText = parseInlines(inlines)
+            override fun renderInlines(inlines: Iterable<Node>): MappedText {
+                val styles = DocumentTheme.current.styles
+                return buildMappedString {
+                    inlines.forEach { inline ->
+                        when (inline) {
+                            is Text -> append(inline.text().visuallyOffset(visualLength))
+                            is TextBase -> append(
+                                renderInlines(inline.children).visuallyOffset(visualLength)
+                            )
+
+                            is Code -> {
+                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
+                                appendStyled(parsedText, styles.inlineCode.toSpanStyle())
+                            }
+
+                            is SoftLineBreak -> append(
+                                MappedText(
+                                    " ",
+                                    SequenceTextMapping(
+                                        TextRange(
+                                            visualLength,
+                                            visualLength + 1
+                                        ), inline.chars
+                                    )
+                                )
+                            )
+
+                            is Emphasis -> {
+                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
+                                appendStyled(parsedText, styles.emphasis.toSpanStyle())
+                            }
+
+                            is StrongEmphasis -> {
+                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
+                                appendStyled(parsedText, styles.strong.toSpanStyle())
+                            }
+
+                            is GfmUser -> appendStyled(
+                                inline.rawCode().visuallyOffset(visualLength),
+                                styles.userMention.toSpanStyle()
+                            )
+
+                            is Strikethrough -> {
+                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
+                                appendStyled(parsedText, styles.strikethrough.toSpanStyle())
+                            }
+
+                            is HardLineBreak -> append(
+                                MappedText(
+                                    System.lineSeparator(),
+                                    SequenceTextMapping(
+                                        TextRange(
+                                            visualLength,
+                                            visualLength + 1
+                                        ), inline.chars
+                                    )
+                                )
+                            )
+
+                            is Link -> appendLink(inline)
+                            is AutoLink -> {
+                                val url = inline.text.toString()
+                                val linkText = MappedText(
+                                    url,
+                                    SequenceTextMapping(
+                                        TextRange(
+                                            visualLength,
+                                            visualLength + inline.textLength
+                                        ), inline.text
+                                    )
+                                )
+                                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+                                appendStyled(
+                                    annotatedLinkText,
+                                    if (linkText == annotatedLinkText) {
+                                        DocumentTheme.current.styles.deadLink.toSpanStyle()
+                                    } else {
+                                        DocumentTheme.current.styles.link.toSpanStyle()
+                                    }
+                                )
+                            }
+
+                            is LinkRef -> appendLinkRef(inline)
+                            is HtmlEntity -> {
+                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
+                                appendStyled(parsedText, styles.inlineCode.toSpanStyle())
+                            }
+                            // TODO: proper parsing of MailLinks.
+                            is MailLink -> appendUnparsed(inline)
+                            is HtmlInlineBase -> appendUnparsed(inline)
+                            is Image -> {
+                                var imageState by rememberImageState(
+                                    url = inline.url.toString(),
+                                    title = inline.title.toString()
+                                )
+                                appendImage(inline, imageState) { newState ->
+                                    imageState = newState
+                                }
+                            }
+
+                            is ImageRef -> {
+                                val reference = LocalDocument.current.resolveReference(inline.reference.toString())
+                                var imageState by rememberImageState(
+                                    url = reference?.url ?: "",
+                                    title = reference?.title ?: ""
+                                )
+                                appendImage(inline, imageState) { newState ->
+                                    imageState = newState
+                                }
+                            }
+
+                            is Emoji -> appendEmoji(
+                                inline,
+                                inline.rawCode().visuallyOffset(visualLength)
+                            )
+
+                            else -> appendUnparsed(inline)
+                        }
+                    }
+                }
+            }
+
+            @Composable
+            private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
+                val linkText = renderInlines(linkRef.children).visuallyOffset(visualLength)
+                val reference = linkRef.reference.ifEmpty { linkRef.text }
+                val url = LocalDocument.current.resolveReference(reference.toString())?.url
+                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+                appendStyled(
+                    annotatedLinkText,
+                    if (linkText == annotatedLinkText) {
+                        DocumentTheme.current.styles.deadLink.toSpanStyle()
+                    } else {
+                        DocumentTheme.current.styles.link.toSpanStyle()
+                    }
+                )
+            }
+
+            @Composable
+            private fun MappedText.Builder.appendLink(link: Link) {
+                val url = link.url.toString()
+                val linkText = renderInlines(link.children).visuallyOffset(visualLength)
+                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+                appendStyled(
+                    annotatedLinkText,
+                    if (link.isAnchor) {
+                        DocumentTheme.current.styles.inlineAnchor.toSpanStyle()
+                    } else if (linkText == annotatedLinkText) {
+                        DocumentTheme.current.styles.deadLink.toSpanStyle()
+                    } else {
+                        DocumentTheme.current.styles.link.toSpanStyle()
+                    }
+                )
+            }
+
+            @Composable
+            private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) {
+                val parsedText = renderInlines(unparsedNode.children).visuallyOffset(visualLength)
+                appendStyled(
+                    parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
+                )
+            }
+
 
             @Composable
             override fun <T : Node> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
@@ -174,128 +336,6 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 // region inlines
 
 // e.g. after the link with no URL.
-@Composable
-internal fun parseInlines(inlines: Iterable<Node>): MappedText {
-    val styles = DocumentTheme.current.styles
-    return buildMappedString {
-        inlines.forEach { inline ->
-            when (inline) {
-                is Text -> append(inline.text().visuallyOffset(visualLength))
-                is TextBase -> append(
-                    parseInlines(inline.children).visuallyOffset(visualLength)
-                )
-
-                is Code -> {
-                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
-                    appendStyled(parsedText, styles.inlineCode.toSpanStyle())
-                }
-
-                is SoftLineBreak -> append(
-                    MappedText(
-                        " ",
-                        SequenceTextMapping(
-                            TextRange(
-                                visualLength,
-                                visualLength + 1
-                            ), inline.chars
-                        )
-                    )
-                )
-
-                is Emphasis -> {
-                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
-                    appendStyled(parsedText, styles.emphasis.toSpanStyle())
-                }
-
-                is StrongEmphasis -> {
-                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
-                    appendStyled(parsedText, styles.strong.toSpanStyle())
-                }
-
-                is GfmUser -> appendStyled(
-                    inline.rawCode().visuallyOffset(visualLength),
-                    styles.userMention.toSpanStyle()
-                )
-
-                is Strikethrough -> {
-                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
-                    appendStyled(parsedText, styles.strikethrough.toSpanStyle())
-                }
-
-                is HardLineBreak -> append(
-                    MappedText(
-                        System.lineSeparator(),
-                        SequenceTextMapping(
-                            TextRange(
-                                visualLength,
-                                visualLength + 1
-                            ), inline.chars
-                        )
-                    )
-                )
-
-                is Link -> appendLink(inline)
-                is AutoLink -> {
-                    val url = inline.text.toString()
-                    val linkText = MappedText(
-                        url,
-                        SequenceTextMapping(
-                            TextRange(
-                                visualLength,
-                                visualLength + inline.textLength
-                            ), inline.text
-                        )
-                    )
-                    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-                    appendStyled(
-                        annotatedLinkText,
-                        if (linkText == annotatedLinkText) {
-                            DocumentTheme.current.styles.deadLink.toSpanStyle()
-                        } else {
-                            DocumentTheme.current.styles.link.toSpanStyle()
-                        }
-                    )
-                }
-
-                is LinkRef -> appendLinkRef(inline)
-                is HtmlEntity -> {
-                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
-                    appendStyled(parsedText, styles.inlineCode.toSpanStyle())
-                }
-                // TODO: proper parsing of MailLinks.
-                is MailLink -> appendUnparsed(inline)
-                is HtmlInlineBase -> appendUnparsed(inline)
-                is Image -> {
-                    var imageState by rememberImageState(
-                        url = inline.url.toString(),
-                        title = inline.title.toString()
-                    )
-                    appendImage(inline, imageState) { newState ->
-                        imageState = newState
-                    }
-                }
-
-                is ImageRef -> {
-                    val reference = LocalDocument.current.resolveReference(inline.reference.toString())
-                    var imageState by rememberImageState(
-                        url = reference?.url ?: "",
-                        title = reference?.title ?: ""
-                    )
-                    appendImage(inline, imageState) { newState ->
-                        imageState = newState
-                    }
-                }
-
-                is Emoji -> appendEmoji(
-                    inline,
-                    inline.rawCode().visuallyOffset(visualLength)
-                )
-
-                else -> appendUnparsed(inline)
-            }
-        }
-    }
-}
 
 private fun annotateLinkByHandler(
     linkText: MappedText,
@@ -312,46 +352,6 @@ private fun annotateLinkByHandler(
         }
         .ifEmpty { listOf(linkText) }
         .last()
-}
-
-@Composable
-private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-    val linkText = parseInlines(linkRef.children).visuallyOffset(visualLength)
-    val reference = linkRef.reference.ifEmpty { linkRef.text }
-    val url = LocalDocument.current.resolveReference(reference.toString())?.url
-    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-    appendStyled(
-        annotatedLinkText,
-        if (linkText == annotatedLinkText) {
-            DocumentTheme.current.styles.deadLink.toSpanStyle()
-        } else {
-            DocumentTheme.current.styles.link.toSpanStyle()
-        }
-    )
-}
-
-@Composable
-private fun MappedText.Builder.appendLink(link: Link) {
-    val url = link.url.toString()
-    val linkText = parseInlines(link.children).visuallyOffset(visualLength)
-    val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-    appendStyled(
-        annotatedLinkText,
-        if (link.isAnchor) {
-            DocumentTheme.current.styles.inlineAnchor.toSpanStyle()
-        } else if (linkText == annotatedLinkText) {
-            DocumentTheme.current.styles.deadLink.toSpanStyle()
-        } else {
-            DocumentTheme.current.styles.link.toSpanStyle()
-        }
-    )
-}
-
-@Composable
-internal fun MappedText.Builder.appendUnparsed(unparsedNode: Node) {
-    val parsedText = parseInlines(unparsedNode.children).visuallyOffset(visualLength)
-    appendStyled(parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
-    )
 }
 
 // endregion inlines

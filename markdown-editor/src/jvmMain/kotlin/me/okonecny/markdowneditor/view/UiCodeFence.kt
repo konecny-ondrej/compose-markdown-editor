@@ -9,7 +9,6 @@ import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.appendUnparsed
 import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.rawCode
 
@@ -27,7 +26,7 @@ internal class UiCodeFence(
                 block.children.forEach { child ->
                     when (child) {
                         is Text -> append(child.rawCode())
-                        else -> appendUnparsed(child)
+                        else -> append(renderInline(child))
                     }
                 }
             }

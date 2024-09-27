@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
@@ -186,7 +185,11 @@ internal fun parseInlines(inlines: Iterable<Node>): MappedText {
                     parseInlines(inline.children).visuallyOffset(visualLength)
                 )
 
-                is Code -> appendStyled(inline, styles.inlineCode.toSpanStyle())
+                is Code -> {
+                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
+                    appendStyled(parsedText, styles.inlineCode.toSpanStyle())
+                }
+
                 is SoftLineBreak -> append(
                     MappedText(
                         " ",
@@ -199,14 +202,26 @@ internal fun parseInlines(inlines: Iterable<Node>): MappedText {
                     )
                 )
 
-                is Emphasis -> appendStyled(inline, styles.emphasis.toSpanStyle())
-                is StrongEmphasis -> appendStyled(inline, styles.strong.toSpanStyle())
+                is Emphasis -> {
+                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
+                    appendStyled(parsedText, styles.emphasis.toSpanStyle())
+                }
+
+                is StrongEmphasis -> {
+                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
+                    appendStyled(parsedText, styles.strong.toSpanStyle())
+                }
+
                 is GfmUser -> appendStyled(
                     inline.rawCode().visuallyOffset(visualLength),
                     styles.userMention.toSpanStyle()
                 )
 
-                is Strikethrough -> appendStyled(inline, styles.strikethrough.toSpanStyle())
+                is Strikethrough -> {
+                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
+                    appendStyled(parsedText, styles.strikethrough.toSpanStyle())
+                }
+
                 is HardLineBreak -> append(
                     MappedText(
                         System.lineSeparator(),
@@ -243,7 +258,10 @@ internal fun parseInlines(inlines: Iterable<Node>): MappedText {
                 }
 
                 is LinkRef -> appendLinkRef(inline)
-                is HtmlEntity -> appendStyled(inline, styles.inlineCode.toSpanStyle())
+                is HtmlEntity -> {
+                    val parsedText = parseInlines(inline.children).visuallyOffset(visualLength)
+                    appendStyled(parsedText, styles.inlineCode.toSpanStyle())
+                }
                 // TODO: proper parsing of MailLinks.
                 is MailLink -> appendUnparsed(inline)
                 is HtmlInlineBase -> appendUnparsed(inline)
@@ -330,16 +348,10 @@ private fun MappedText.Builder.appendLink(link: Link) {
 }
 
 @Composable
-internal fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
-    appendStyled(
-        unparsedNode,
-        DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
+internal fun MappedText.Builder.appendUnparsed(unparsedNode: Node) {
+    val parsedText = parseInlines(unparsedNode.children).visuallyOffset(visualLength)
+    appendStyled(parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
     )
-
-@Composable
-internal fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
-    val parsedText = parseInlines(inlineNode.children).visuallyOffset(visualLength)
-    appendStyled(parsedText, style)
 }
 
 // endregion inlines

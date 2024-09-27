@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.*
@@ -25,13 +24,14 @@ import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
+import me.okonecny.markdowneditor.view.inline.UiUnparsedInline
 import java.nio.file.Path
 
 fun Renderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) = Renderers<Node>()
     .withUnknownBlockTypeRenderer(UiUnparsedBlock())
-    //TODO: .withUnknownInlineTypeRenderer()
+    .withUnknownInlineTypeRenderer(UiUnparsedInline())
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
     .withRenderer(UiHorizontalRule())
@@ -47,6 +47,8 @@ fun Renderers.Companion.flexmarkDefault(
     .withIgnoredNodeType<HtmlCommentBlock>()
     .withIgnoredNodeType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
     .withRenderer(UiTableBlock())
+    //.withRenderer<MailLink>() // TODO
+    //.withRenderer<HtmlInlineBase>() // TODO
 
 /**
  * Renders a Markdown document nicely.
@@ -242,9 +244,7 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                                 val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
                                 appendStyled(parsedText, styles.inlineCode.toSpanStyle())
                             }
-                            // TODO: proper parsing of MailLinks.
-                            is MailLink -> appendUnparsed(inline)
-                            is HtmlInlineBase -> appendUnparsed(inline)
+
                             is Image -> {
                                 var imageState by rememberImageState(
                                     url = inline.url.toString(),
@@ -271,7 +271,9 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                                 inline.rawCode().visuallyOffset(visualLength)
                             )
 
-                            else -> appendUnparsed(inline)
+                            else -> renderers.forInline(inline).run {
+                                append(render(inline).visuallyOffset(visualLength))
+                            }
                         }
                     }
                 }
@@ -307,14 +309,6 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                     } else {
                         DocumentTheme.current.styles.link.toSpanStyle()
                     }
-                )
-            }
-
-            @Composable
-            private fun MappedText.Builder.appendUnparsed(unparsedNode: Node) {
-                val parsedText = renderInlines(unparsedNode.children).visuallyOffset(visualLength)
-                appendStyled(
-                    parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
                 )
             }
 

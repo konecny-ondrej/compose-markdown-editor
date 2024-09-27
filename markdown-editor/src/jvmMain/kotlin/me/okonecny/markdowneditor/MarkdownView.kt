@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.emoji.Emoji
@@ -325,6 +327,19 @@ private fun MappedText.Builder.appendLink(link: Link) {
             DocumentTheme.current.styles.link.toSpanStyle()
         }
     )
+}
+
+@Composable
+internal fun MappedText.Builder.appendUnparsed(unparsedNode: Node) =
+    appendStyled(
+        unparsedNode,
+        DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
+    )
+
+@Composable
+internal fun MappedText.Builder.appendStyled(inlineNode: Node, style: SpanStyle) {
+    val parsedText = parseInlines(inlineNode.children).visuallyOffset(visualLength)
+    appendStyled(parsedText, style)
 }
 
 // endregion inlines

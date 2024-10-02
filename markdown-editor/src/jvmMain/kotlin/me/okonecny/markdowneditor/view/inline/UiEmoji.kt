@@ -1,5 +1,6 @@
-package me.okonecny.markdowneditor.inline
+package me.okonecny.markdowneditor.view.inline
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
@@ -10,11 +11,26 @@ import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.ext.emoji.internal.EmojiResolvedShortcut
+import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.buildMappedString
+import me.okonecny.markdowneditor.flexmark.rawCode
 import me.okonecny.markdowneditor.internal.Emoji
+import me.okonecny.markdowneditor.view.InlineRenderer
+import me.okonecny.markdowneditor.view.RenderContext
 
-internal fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedText) {
+internal class UiEmoji : InlineRenderer<Emoji, Node> {
+    @Composable
+    override fun RenderContext<Node>.render(inlineNode: Emoji): MappedText = buildMappedString {
+        appendEmoji(
+            inlineNode,
+            inlineNode.rawCode()
+        )
+    }
+}
+
+private fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedText) {
     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
         emojiNode,
         EmojiShortcutType.GITHUB,
@@ -57,5 +73,3 @@ internal val EmojiReference.Emoji.annotatedString: AnnotatedString
         append(unicodeString)
         pop()
     }
-
-internal fun String.isMaybeEmojiStart() = matches("^:[^:]+$".toRegex())

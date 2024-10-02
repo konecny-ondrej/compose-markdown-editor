@@ -4,6 +4,7 @@ import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.EmojiExtension
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
 import com.vladsch.flexmark.ext.gfm.users.GfmUsersExtension
 import com.vladsch.flexmark.ext.tables.TablesExtension
@@ -59,7 +60,8 @@ internal abstract class MarkdownEditorComponent {
                 TaskListExtension.create(),
                 EmojiExtension.create(),
                 AutolinkExtension.create(),
-                GfmUsersExtension.create()
+                GfmUsersExtension.create(),
+                StrikethroughExtension.create()
             )
         )
         return builder.build()

@@ -2,31 +2,23 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.ast.*
-import com.vladsch.flexmark.ext.emoji.Emoji
-import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
-import com.vladsch.flexmark.ext.gfm.users.GfmUser
 import com.vladsch.flexmark.util.ast.Document
 import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.LocalNavigation
 import me.okonecny.interactivetext.NavigableLazyColumn
 import me.okonecny.interactivetext.Navigation
-import me.okonecny.markdowneditor.flexmark.rawCode
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
-import me.okonecny.markdowneditor.inline.appendEmoji
-import me.okonecny.markdowneditor.inline.appendImage
-import me.okonecny.markdowneditor.inline.rememberImageState
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
-import me.okonecny.markdowneditor.view.inline.UiCode
-import me.okonecny.markdowneditor.view.inline.UiText
-import me.okonecny.markdowneditor.view.inline.UiTextBase
-import me.okonecny.markdowneditor.view.inline.UiUnparsedInline
+import me.okonecny.markdowneditor.view.inline.*
 import java.nio.file.Path
 
 fun Renderers.Companion.flexmarkDefault(
@@ -52,6 +44,19 @@ fun Renderers.Companion.flexmarkDefault(
     .withRenderer(UiText())
     .withRenderer(UiTextBase())
     .withRenderer(UiCode())
+    .withRenderer(UiEmphasis())
+    .withRenderer(UiStrongEmphasis())
+    .withRenderer(UiSoftLineBreak())
+    .withRenderer(UiGfmUser())
+    .withRenderer(UiStrikethrough())
+    .withRenderer(UiHardLineBreak())
+    .withRenderer(UiLink())
+    .withRenderer(UiAutoLink())
+    .withRenderer(UiLinkRef())
+    .withRenderer(UiHtmlEntity())
+    .withRenderer(UiImage())
+    .withRenderer(UiImageRef())
+    .withRenderer(UiEmoji())
 //.withRenderer<MailLink>() // TODO
 //.withRenderer<HtmlInlineBase>() // TODO
 
@@ -84,7 +89,7 @@ fun MarkdownView(
     }
 }
 
-private val LinkHandlers = compositionLocalOf { emptyMap<String, LinkHandler>() }
+internal val LinkHandlers = compositionLocalOf { emptyMap<String, LinkHandler>() }
 internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
     throw IllegalStateException("The editor component can only be used inside MarkdownView.")
 }
@@ -163,148 +168,13 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 
             @Composable
             override fun renderInlines(inlines: Iterable<Node>): MappedText {
-                val styles = DocumentTheme.current.styles
                 return buildMappedString {
                     inlines.forEach { inline ->
-                        when (inline) {
-                            is SoftLineBreak -> append(
-                                MappedText(
-                                    " ",
-                                    SequenceTextMapping(
-                                        TextRange(
-                                            visualLength,
-                                            visualLength + 1
-                                        ), inline.chars
-                                    )
-                                )
-                            )
-
-                            is Emphasis -> {
-                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
-                                appendStyled(parsedText, styles.emphasis.toSpanStyle())
-                            }
-
-                            is StrongEmphasis -> {
-                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
-                                appendStyled(parsedText, styles.strong.toSpanStyle())
-                            }
-
-                            is GfmUser -> appendStyled(
-                                inline.rawCode().visuallyOffset(visualLength),
-                                styles.userMention.toSpanStyle()
-                            )
-
-                            is Strikethrough -> {
-                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
-                                appendStyled(parsedText, styles.strikethrough.toSpanStyle())
-                            }
-
-                            is HardLineBreak -> append(
-                                MappedText(
-                                    System.lineSeparator(),
-                                    SequenceTextMapping(
-                                        TextRange(
-                                            visualLength,
-                                            visualLength + 1
-                                        ), inline.chars
-                                    )
-                                )
-                            )
-
-                            is Link -> appendLink(inline)
-                            is AutoLink -> {
-                                val url = inline.text.toString()
-                                val linkText = MappedText(
-                                    url,
-                                    SequenceTextMapping(
-                                        TextRange(
-                                            visualLength,
-                                            visualLength + inline.textLength
-                                        ), inline.text
-                                    )
-                                )
-                                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-                                appendStyled(
-                                    annotatedLinkText,
-                                    if (linkText == annotatedLinkText) {
-                                        DocumentTheme.current.styles.deadLink.toSpanStyle()
-                                    } else {
-                                        DocumentTheme.current.styles.link.toSpanStyle()
-                                    }
-                                )
-                            }
-
-                            is LinkRef -> appendLinkRef(inline)
-                            is HtmlEntity -> {
-                                val parsedText = renderInlines(inline.children).visuallyOffset(visualLength)
-                                appendStyled(parsedText, styles.inlineCode.toSpanStyle())
-                            }
-
-                            is Image -> {
-                                var imageState by rememberImageState(
-                                    url = inline.url.toString(),
-                                    title = inline.title.toString()
-                                )
-                                appendImage(inline, imageState) { newState ->
-                                    imageState = newState
-                                }
-                            }
-
-                            is ImageRef -> {
-                                val reference = LocalDocument.current.resolveReference(inline.reference.toString())
-                                var imageState by rememberImageState(
-                                    url = reference?.url ?: "",
-                                    title = reference?.title ?: ""
-                                )
-                                appendImage(inline, imageState) { newState ->
-                                    imageState = newState
-                                }
-                            }
-
-                            is Emoji -> appendEmoji(
-                                inline,
-                                inline.rawCode().visuallyOffset(visualLength)
-                            )
-
-                            else -> renderers.forInline(inline).run {
-                                append(render(inline).visuallyOffset(visualLength))
-                            }
+                        renderers.forInline(inline).run {
+                            append(render(inline).visuallyOffset(visualLength))
                         }
                     }
                 }
-            }
-
-            @Composable
-            private fun MappedText.Builder.appendLinkRef(linkRef: LinkRef) {
-                val linkText = renderInlines(linkRef.children).visuallyOffset(visualLength)
-                val reference = linkRef.reference.ifEmpty { linkRef.text }
-                val url = LocalDocument.current.resolveReference(reference.toString())?.url
-                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-                appendStyled(
-                    annotatedLinkText,
-                    if (linkText == annotatedLinkText) {
-                        DocumentTheme.current.styles.deadLink.toSpanStyle()
-                    } else {
-                        DocumentTheme.current.styles.link.toSpanStyle()
-                    }
-                )
-            }
-
-            @Composable
-            private fun MappedText.Builder.appendLink(link: Link) {
-                val url = link.url.toString()
-                val linkText = renderInlines(link.children).visuallyOffset(visualLength)
-                val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-                appendStyled(
-                    annotatedLinkText,
-                    if (link.isAnchor) {
-                        DocumentTheme.current.styles.inlineAnchor.toSpanStyle()
-                    } else if (linkText == annotatedLinkText) {
-                        DocumentTheme.current.styles.deadLink.toSpanStyle()
-                    } else {
-                        DocumentTheme.current.styles.link.toSpanStyle()
-                    }
-                )
             }
 
 
@@ -326,7 +196,7 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 
 // e.g. after the link with no URL.
 
-private fun annotateLinkByHandler(
+internal fun annotateLinkByHandler(
     linkText: MappedText,
     linkUrl: String?,
     linkHandlers: Map<String, LinkHandler>

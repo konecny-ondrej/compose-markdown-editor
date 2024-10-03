@@ -10,8 +10,8 @@ The libraries are hosted on Maven Central, so you can use them directly from the
 Gradle:
 ```kotlin
 dependencies {
-  api("me.okonecny:interactive-text:0.2.1") // You can omit this one if you only want the whole editor.
-  api("me.okonecny:markdown-editor:0.2.1")
+  api("me.okonecny:interactive-text:0.3.0") // You can omit this one if you only want the whole editor.
+  api("me.okonecny:markdown-editor:0.3.0")
 }
 ```
 
@@ -53,6 +53,8 @@ format using the fabulous [flexmark-java](https://github.com/vsch/flexmark-java)
 - Web links.
 - Toolbar with basic formatting tools.
 - Embedded images, both local and from the web.
+- User mentions with autocomplete.
+- Customizable rendering of everything (you can write a custom renderer for a block or an inline).
 
 To render the document, `MarkdownEditor` uses the `MarkdownView` component, which you can also use standalone to display
 documents that should not be editable.

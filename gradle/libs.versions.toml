@@ -1,6 +1,6 @@
 [versions]
-interactiveTextVersion = "0.2.1"
-markdownEditorVersion = "0.2.1"
+interactiveTextVersion = "0.3.0"
+markdownEditorVersion = "0.3.0"
 
 javaTargetVersion = "21"
 kotlin = "2.0.0"

@@ -90,11 +90,15 @@ sealed interface TextInputCommand {
     val needsValidCursor: Boolean
 }
 
-data class Type(val text: String) : TextInputCommand {
+sealed interface TextEditCommand : TextInputCommand
+
+data class Type(val text: String) : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = true
 }
 
-data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
+data class Delete(
+    val direction: Direction, val size: Size
+) : TextInputCommand, TextEditCommand {
     enum class Direction {
         BEFORE_CURSOR, AFTER_CURSOR
     }
@@ -108,11 +112,11 @@ data class Delete(val direction: Direction, val size: Size) : TextInputCommand {
 
 data class ReplaceRange(
     val sourceRange: TextRange, val newSource: String, val sourceCursorOffset: Int = 0
-) : TextInputCommand {
+) : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = sourceCursorOffset != 0
 }
 
-data object NewLine : TextInputCommand {
+data object NewLine : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = true
 }
 
@@ -120,11 +124,11 @@ data object Copy : TextInputCommand {
     override val needsValidCursor: Boolean = true
 }
 
-data object Cut : TextInputCommand {
+data object Cut : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = true
 }
 
-data object Paste : TextInputCommand {
+data object Paste : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = true
 }
 

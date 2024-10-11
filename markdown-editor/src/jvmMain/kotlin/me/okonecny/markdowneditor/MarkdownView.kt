@@ -79,6 +79,7 @@ fun MarkdownView(
     val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
     val parser = remember(markdown) { markdown.documentParser }
     val document = remember(sourceText, parser, basePath) { parser.parse(sourceText, basePath) }
+    val visualDocument = remember(sourceText, basePath) { markdown.markdownParser.parse(sourceText, basePath) }
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,

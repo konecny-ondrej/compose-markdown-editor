@@ -60,7 +60,7 @@ class DocumentParser(
     }
 }
 
-private val Node.unformattedText: String
+internal val Node.unformattedText: String
     get() {
         val builder = TextCollectingVisitor()
         builder.collect(this)

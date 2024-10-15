@@ -188,14 +188,12 @@ class FlexmarkParser(
                     info = "%s".format(node::class.simpleName),
                 )
             }
-            if (data != null) {
-                children.add(
-                    VisualNode(
-                        proposedChildren = parseChildren(node, document),
-                        data = data
-                    )
+            children.add(
+                VisualNode(
+                    proposedChildren = parseChildren(node, document),
+                    data = data
                 )
-            }
+            )
         }
         return children
     }

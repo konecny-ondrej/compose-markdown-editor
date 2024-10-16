@@ -6,33 +6,39 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import com.vladsch.flexmark.ext.emoji.Emoji
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.ext.emoji.internal.EmojiResolvedShortcut
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.ast.data.Emoji
 import me.okonecny.markdowneditor.buildMappedString
-import me.okonecny.markdowneditor.flexmark.rawCode
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.internal.Emoji
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiEmoji : InlineRenderer<Emoji, Node> {
+internal class UiEmoji : InlineRenderer<Emoji, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(inlineNode: Emoji): MappedText = buildMappedString {
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Emoji>): MappedText = buildMappedString {
         appendEmoji(
             inlineNode,
-            inlineNode.rawCode()
+            MappedText(
+                text = inlineNode.data.shortcut,
+                textMapping = BoundedBlockTextMapping(
+                    coveredSourceRange = inlineNode.sourceRange,
+                    visualTextRange = TextRange(0, inlineNode.data.shortcut.length)
+                )
+            )
         )
     }
 }
 
-private fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedText) {
+private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji>, fallback: MappedText) {
     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
-        emojiNode,
+        emojiNode.data.shortcut,
         EmojiShortcutType.GITHUB,
         EmojiImageType.IMAGE_ONLY,
         "/openmoji"
@@ -47,7 +53,7 @@ private fun MappedText.Builder.appendEmoji(emojiNode: Emoji, fallback: MappedTex
         MappedText(
             text = resolvedEmoji.annotatedString,
             textMapping = BoundedBlockTextMapping(
-                coveredSourceRange = TextRange(emojiNode.startOffset, emojiNode.endOffset),
+                coveredSourceRange = emojiNode.sourceRange,
                 visualTextRange = TextRange(visualLength, visualLength + emojiString.length)
             )
         )

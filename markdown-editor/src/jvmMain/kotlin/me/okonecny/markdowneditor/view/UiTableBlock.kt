@@ -4,36 +4,35 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import com.vladsch.flexmark.ext.tables.*
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.BlockStyle
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.*
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiTableBlock : BlockRenderer<TableBlock, Node> {
+internal class UiTableBlock : BlockRenderer<Table, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: TableBlock) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Table>) {
         @Composable
-        fun UiTableSection(tableSection: Node, cellStyle: BlockStyle) {
+        fun UiTableSection(tableSection: VisualNode<*>, cellStyle: BlockStyle) {
             tableSection.children.forEach { tableRow ->
-                when (tableRow) {
+                when (tableRow.data) {
                     is TableRow -> Row(Modifier.height(IntrinsicSize.Max)) {
                         tableRow.children.forEach { cell ->
-                            when (cell) {
+                            when (val cellData = cell.data) {
                                 is TableCell -> {
                                     val inlines = renderInlines(cell.children)
                                     InteractiveText(
-                                        interactiveId = document.getInteractiveId(cell),
+                                        interactiveId = cell.interactiveId,
                                         text = inlines.text,
                                         textMapping = inlines.textMapping,
                                         inlineContent = inlines.inlineContent,
                                         style = cellStyle.textStyle.copy(
-                                            textAlign = when (cell.alignment) {
+                                            textAlign = when (cellData.alignment) {
                                                 TableCell.Alignment.LEFT -> TextAlign.Left
                                                 TableCell.Alignment.CENTER -> TextAlign.Center
                                                 TableCell.Alignment.RIGHT -> TextAlign.Right
-                                                else -> TextAlign.Start
                                             }
                                         ),
                                         modifier = Modifier
@@ -41,8 +40,7 @@ internal class UiTableBlock : BlockRenderer<TableBlock, Node> {
                                             .weight(1.0f)
                                             .then(cellStyle.modifier),
                                         activeAnnotationTags = activeAnnotationTags,
-                                        onAnnotationCLick = handleLinks(),
-                                        userData = UserData.of(Node::class, cell)
+                                        onAnnotationCLick = handleLinks()
                                     )
                                 }
 
@@ -59,9 +57,8 @@ internal class UiTableBlock : BlockRenderer<TableBlock, Node> {
         val styles = DocumentTheme.current.styles
         Column(styles.table.modifier) {
             block.children.forEach { tableSection ->
-                when (tableSection) {
-                    is TableSeparator -> Unit
-                    is TableHead -> UiTableSection(tableSection, styles.table.headerCellStyle)
+                when (tableSection.data) {
+                    is TableHeader -> UiTableSection(tableSection, styles.table.headerCellStyle)
                     is TableBody -> UiTableSection(tableSection, styles.table.bodyCellStyle)
                     else -> renderBlock(tableSection)
                 }

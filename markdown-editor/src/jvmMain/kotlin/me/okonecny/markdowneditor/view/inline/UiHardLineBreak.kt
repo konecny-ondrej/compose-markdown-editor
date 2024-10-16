@@ -2,20 +2,21 @@ package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextRange
-import com.vladsch.flexmark.ast.HardLineBreak
-import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.ast.data.HardLineBreak
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
-import me.okonecny.markdowneditor.view.SequenceTextMapping
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiHardLineBreak : InlineRenderer<HardLineBreak, Node> {
+internal class UiHardLineBreak : InlineRenderer<HardLineBreak, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(inlineNode: HardLineBreak): MappedText = MappedText(
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<HardLineBreak>): MappedText = MappedText(
         System.lineSeparator(),
-        SequenceTextMapping(
-            TextRange(0, 1),
-            inlineNode.chars
+        BoundedBlockTextMapping(
+            visualTextRange = TextRange(0, 1),
+            coveredSourceRange = inlineNode.sourceRange
         )
     )
 }

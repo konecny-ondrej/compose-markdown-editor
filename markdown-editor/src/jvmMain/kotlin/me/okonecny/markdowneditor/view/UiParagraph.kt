@@ -1,26 +1,25 @@
 package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
-import com.vladsch.flexmark.ast.Paragraph
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.Paragraph
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiParagraph : BlockRenderer<Paragraph, Node> {
+internal class UiParagraph : BlockRenderer<Paragraph, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: Paragraph) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Paragraph>) {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
-            interactiveId = document.getInteractiveId(block),
+            interactiveId = block.interactiveId,
             text = inlines.text,
             textMapping = inlines.textMapping,
             style = styles.paragraph,
             inlineContent = inlines.inlineContent,
             activeAnnotationTags = activeAnnotationTags,
-            onAnnotationCLick = handleLinks(),
-            userData = UserData.of(Node::class, block)
+            onAnnotationCLick = handleLinks()
         )
     }
 }

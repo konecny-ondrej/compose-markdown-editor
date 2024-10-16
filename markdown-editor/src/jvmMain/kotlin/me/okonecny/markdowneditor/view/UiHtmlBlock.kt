@@ -2,22 +2,23 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.TextRange
-import com.vladsch.flexmark.ast.HtmlBlock
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
+import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.HtmlBlock
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiHtmlBlock : BlockRenderer<HtmlBlock, Node> {
+internal class UiHtmlBlock : BlockRenderer<HtmlBlock, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: HtmlBlock) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HtmlBlock>) {
         val styles = DocumentTheme.current.styles
         Column(modifier = styles.codeBlock.modifier) {
-            block.contentLines.forEach { line ->
+            block.data.lines.forEach { line ->
                 InteractiveText(
-                    interactiveId = document.getInteractiveId(block),
-                    text = line.toString(),
-                    textMapping = SequenceTextMapping(TextRange(0, line.length), line),
+                    interactiveId = block.interactiveId,
+                    text = line,
+                    textMapping = ZeroTextMapping,
                     style = styles.codeBlock.textStyle
                 )
             }

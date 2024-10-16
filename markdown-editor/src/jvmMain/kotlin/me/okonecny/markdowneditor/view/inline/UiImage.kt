@@ -19,35 +19,22 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
-import com.vladsch.flexmark.ast.Image
-import com.vladsch.flexmark.ast.ImageRef
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.*
+import me.okonecny.markdowneditor.ast.data.Image
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
+import me.okonecny.wysiwyg.ast.VisualNode
 import java.util.concurrent.atomic.AtomicLong
 
-internal class UiImage : InlineRenderer<Image, Node> {
+internal class UiImage : InlineRenderer<Image, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(inlineNode: Image): MappedText = buildMappedString {
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Image>): MappedText = buildMappedString {
+        val imageData = inlineNode.data
         var imageState by rememberImageState(
-            url = inlineNode.url.toString(),
-            title = inlineNode.title.toString()
-        )
-        appendImage(inlineNode, imageState) { newState ->
-            imageState = newState
-        }
-    }
-}
-
-internal class UiImageRef : InlineRenderer<ImageRef, Node> {
-    @Composable
-    override fun RenderContext<Node>.render(inlineNode: ImageRef): MappedText = buildMappedString {
-        val reference = document.resolveReference(inlineNode.reference.toString())
-        var imageState by rememberImageState(
-            url = reference?.url ?: "",
-            title = reference?.title ?: ""
+            url = imageData.url,
+            title = imageData.title ?: ""
         )
         appendImage(inlineNode, imageState) { newState ->
             imageState = newState
@@ -144,7 +131,7 @@ private val Size.dp: DpSize get() = DpSize(width.dp, height.dp)
 
 @Composable
 private fun MappedText.Builder.appendImage(
-    image: Node,
+    image: VisualNode<Image>,
     imageState: ImageState,
     onStateChange: (newState: ImageState) -> Unit
 ) {
@@ -153,7 +140,7 @@ private fun MappedText.Builder.appendImage(
             MappedText(
                 text = ZERO_WIDTH_SPACE,
                 textMapping = BoundedBlockTextMapping(
-                    coveredSourceRange = TextRange(image.startOffset, image.endOffset),
+                    coveredSourceRange = image.sourceRange,
                     visualTextRange = TextRange(0, 1)
                 )
             )
@@ -174,7 +161,7 @@ private fun MappedText.Builder.appendImage(
     val imageId = remember { imageCount.getAndIncrement() }
     appendInlineContent(
         BoundedBlockTextMapping(
-            coveredSourceRange = TextRange(image.startOffset, image.endOffset),
+            coveredSourceRange = image.sourceRange,
             visualTextRange = TextRange(visualLength, visualLength + 1)
         ),
         IMAGE_INLINE_ELEMENT_TYPE + imageId

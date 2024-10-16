@@ -4,22 +4,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextRange
-import com.vladsch.flexmark.ast.ListItem
-import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.OrderedListItem
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiListItem : BlockRenderer<ListItem, Node> {
+internal class UiOrderedListItem : BlockRenderer<OrderedListItem, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: ListItem) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<OrderedListItem>) {
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(
-                interactiveId = document.getInteractiveId(block),
+                interactiveId = block.interactiveId,
                 text = bullet,
-                textMapping = SequenceTextMapping(
-                    coveredVisualRange = TextRange(0, bullet.length),
-                    sequence = block.openingMarker
+                textMapping = BoundedBlockTextMapping(
+                    coveredSourceRange = block.sourceRange,
+                    visualTextRange = TextRange(0, bullet.length)
                 ),
                 style = DocumentTheme.current.styles.listNumber
             )

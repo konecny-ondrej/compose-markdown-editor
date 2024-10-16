@@ -2,64 +2,67 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.wysiwyg.ast.VisualNode
 import kotlin.reflect.KClass
 
-data class Renderers<BaseNode : Any>(
-    val unknownBlockRenderer: BlockRenderer<BaseNode, BaseNode> = noopBlockRenderer(),
-    val unknownInlineRenderer: InlineRenderer<BaseNode, BaseNode> = noopInlineRenderer(),
-    val blockRenderers: Map<KClass<out BaseNode>, BlockRenderer<BaseNode, BaseNode>> = emptyMap(),
-    val inlineRenderers: Map<KClass<out BaseNode>, InlineRenderer<BaseNode, BaseNode>> = emptyMap(),
-    val ignoredNodeTypes: Set<KClass<out BaseNode>> = emptySet()
+data class Renderers<Document>(
+    val unknownBlockRenderer: BlockRenderer<Any, Document> = noopBlockRenderer(),
+    val unknownInlineRenderer: InlineRenderer<Any, Document> = noopInlineRenderer(),
+    val blockRenderers: Map<KClass<*>, BlockRenderer<*, Document>> = emptyMap(),
+    val inlineRenderers: Map<KClass<*>, InlineRenderer<*, Document>> = emptyMap(),
+    val ignoredNodeTypes: Set<KClass<*>> = emptySet()
 ) {
-    inline fun <reified T : BaseNode> withRenderer(renderer: BlockRenderer<T, BaseNode>): Renderers<BaseNode> = copy(
-        blockRenderers = blockRenderers + (T::class to renderer as BlockRenderer<BaseNode, BaseNode>)
+    inline fun <reified T> withRenderer(renderer: BlockRenderer<T, Document>): Renderers<Document> = copy(
+        blockRenderers = blockRenderers + (T::class to renderer)
     )
 
-    inline fun <reified T : BaseNode> withRenderer(renderer: InlineRenderer<T, BaseNode>): Renderers<BaseNode> = copy(
-        inlineRenderers = inlineRenderers + (T::class to renderer as InlineRenderer<BaseNode, BaseNode>)
+    inline fun <reified T> withRenderer(renderer: InlineRenderer<T, Document>): Renderers<Document> = copy(
+        inlineRenderers = inlineRenderers + (T::class to renderer)
     )
 
-    inline fun <reified T : BaseNode> withIgnoredNodeType(): Renderers<BaseNode> = copy(
+    inline fun <reified T> withIgnoredNodeType(): Renderers<Document> = copy(
         ignoredNodeTypes = ignoredNodeTypes + T::class
     )
 
-    fun withUnknownBlockTypeRenderer(renderer: BlockRenderer<BaseNode, BaseNode>): Renderers<BaseNode> = copy(
+    fun withUnknownBlockTypeRenderer(renderer: BlockRenderer<Any, Document>): Renderers<Document> = copy(
         unknownBlockRenderer = renderer
     )
 
-    fun withUnknownInlineTypeRenderer(renderer: InlineRenderer<BaseNode, BaseNode>): Renderers<BaseNode> = copy(
+    fun withUnknownInlineTypeRenderer(renderer: InlineRenderer<Any, Document>): Renderers<Document> = copy(
         unknownInlineRenderer = renderer
     )
 
-    fun <T : BaseNode> forBlock(block: T): BlockRenderer<T, BaseNode> {
-        return if (ignoredNodeTypes.contains(block::class)) {
+    fun <T : Any> forBlock(block: VisualNode<T>): BlockRenderer<T, Document> {
+        val rendererType = block.data::class
+        return if (ignoredNodeTypes.contains(rendererType)) {
             noopBlockRenderer()
         } else {
-            blockRenderers[block::class] ?: unknownBlockRenderer
+            blockRenderers[rendererType] as? BlockRenderer<T, Document> ?: unknownBlockRenderer
         }
     }
 
-    fun <T : BaseNode> forInline(inline: T): InlineRenderer<T, BaseNode> {
-        return if (ignoredNodeTypes.contains(inline::class)) {
+    fun <T : Any> forInline(inline: VisualNode<T>): InlineRenderer<T, Document> {
+        val rendererType = inline.data::class
+        return if (ignoredNodeTypes.contains(rendererType)) {
             noopInlineRenderer()
         } else {
-            inlineRenderers[inline::class] ?: unknownInlineRenderer
+            inlineRenderers[rendererType] as? InlineRenderer<T, Document> ?: unknownInlineRenderer
         }
     }
 
     companion object {
-        private fun <T : BaseNode, BaseNode> noopBlockRenderer(): BlockRenderer<T, BaseNode> =
-            object : BlockRenderer<T, BaseNode> {
+        private fun <T, D> noopBlockRenderer(): BlockRenderer<T, D> =
+            object : BlockRenderer<T, D> {
                 @Composable
-                override fun RenderContext<BaseNode>.render(block: T) {
+                override fun RenderContext<D>.render(block: VisualNode<T>) {
                     // Empty on purpose. Should not render anything, just skip the node.
                 }
             }
 
-        private fun <T : BaseNode, BaseNode> noopInlineRenderer(): InlineRenderer<T, BaseNode> =
-            object : InlineRenderer<T, BaseNode> {
+        private fun <T, D> noopInlineRenderer(): InlineRenderer<T, D> =
+            object : InlineRenderer<T, D> {
                 @Composable
-                override fun RenderContext<BaseNode>.render(inlineNode: T): MappedText = MappedText.empty
+                override fun RenderContext<D>.render(inlineNode: VisualNode<T>): MappedText = MappedText.empty
             }
     }
 }

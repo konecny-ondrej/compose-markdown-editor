@@ -1,4 +1,4 @@
-package me.okonecny.markdowneditor.ast.data
+package me.okonecny.wysiwyg.ast.data
 
 data class Unparsed(
     val rawCode: String,

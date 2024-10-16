@@ -2,47 +2,41 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import com.vladsch.flexmark.ast.FencedCodeBlock
-import com.vladsch.flexmark.ast.Text
-import com.vladsch.flexmark.util.ast.Node
+import androidx.compose.ui.text.TextRange
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.buildMappedString
-import me.okonecny.markdowneditor.flexmark.rawCode
+import me.okonecny.markdowneditor.ast.data.CodeBlock
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiCodeFence(
     codeFenceRenderers: List<CodeFenceRenderer>
-) : BlockRenderer<FencedCodeBlock, Node> {
+) : BlockRenderer<CodeBlock, FlexmarkDocument> {
     private val codeFenceRenderers: Map<String, CodeFenceRenderer> =
         codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
 
     @Composable
-    override fun RenderContext<Node>.render(block: FencedCodeBlock) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock>) {
         val styles = DocumentTheme.current.styles
         Column {
-            val code = buildMappedString {
-                block.children.forEach { child ->
-                    when (child) {
-                        is Text -> append(child.rawCode())
-                        else -> append(renderInline(child))
-                    }
-                }
-            }
-            val codeFenceType = block.info.toString()
+            val codeBlockData = block.data
+            val codeFenceType = codeBlockData.info
             val codeFenceRenderer = codeFenceRenderers[codeFenceType]
             if (codeFenceRenderer == null) {
                 InteractiveText(
-                    interactiveId = document.getInteractiveId(block),
-                    text = code.text,
-                    textMapping = code.textMapping,
+                    interactiveId = block.interactiveId,
+                    text = codeBlockData.code,
+                    textMapping = BoundedBlockTextMapping(
+                        block.sourceRange,
+                        TextRange(0, codeBlockData.code.length)
+                    ),
                     style = styles.codeBlock.textStyle,
-                    modifier = styles.codeBlock.modifier,
-                    userData = UserData.of(Node::class, block)
+                    modifier = styles.codeBlock.modifier
                 )
             } else {
-                codeFenceRenderer.render(code, document.basePath)
+                codeFenceRenderer.render(codeBlockData.code, document.basePath)
             }
         }
 

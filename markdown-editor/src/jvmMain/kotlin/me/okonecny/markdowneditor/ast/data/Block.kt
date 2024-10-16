@@ -1,10 +1,12 @@
 package me.okonecny.markdowneditor.ast.data
 
 import me.okonecny.markdowneditor.view.LIST_BULLET
+import me.okonecny.wysiwyg.ast.data.HasText
 
 data class Heading(
-    val level: Level
-) {
+    val level: Level,
+    override val anchorName: String
+) : LinkTarget {
     enum class Level {
         H1, H2, H3, H4, H5, H6;
 
@@ -40,14 +42,26 @@ data class TaskListItem(
 )
 
 data object Table
+data object TableHeader
+data object TableBody
 data class TableRow(
     val rowNumber: Int
 )
 
-data object TableCell
+data class TableCell(
+    val alignment: Alignment,
+) {
+    enum class Alignment {
+        LEFT, CENTER, RIGHT
+    }
+}
+
 data class CodeBlock(
-    val info: String = ""
-)
+    val info: String = "",
+    val code: String
+) : HasText {
+    override val text: String by ::code
+}
 
 data object HorizontalRule
 data class HtmlBlock(

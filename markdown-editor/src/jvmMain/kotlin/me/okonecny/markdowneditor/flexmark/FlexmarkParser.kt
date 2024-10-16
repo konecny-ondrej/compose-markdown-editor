@@ -27,7 +27,9 @@ import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
 import com.vladsch.flexmark.ext.gfm.users.GfmUser
 import com.vladsch.flexmark.ext.tables.TableBlock
+import com.vladsch.flexmark.ext.tables.TableBody
 import com.vladsch.flexmark.ext.tables.TableCell
+import com.vladsch.flexmark.ext.tables.TableHead
 import com.vladsch.flexmark.ext.tables.TableRow
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.sequence.BasedSequence
@@ -35,11 +37,13 @@ import me.okonecny.markdowneditor.MarkdownReference
 import me.okonecny.markdowneditor.anchorRefId
 import me.okonecny.markdowneditor.ast.data.*
 import me.okonecny.markdowneditor.ast.data.Heading.Level
+import me.okonecny.markdowneditor.ast.data.TableCell.Alignment
 import me.okonecny.markdowneditor.isAnchor
 import me.okonecny.markdowneditor.unformattedText
 import me.okonecny.markdowneditor.view.inline.unicodeString
 import me.okonecny.wysiwyg.ast.Parser
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.data.Unparsed
 import me.tatarka.inject.annotations.Inject
 import java.nio.file.Path
 
@@ -74,16 +78,18 @@ class FlexmarkParser(
             parent = null,
             parentIndex = null,
             proposedChildren = parseChildren(rootNode, document),
-            data = document
+            data = document,
+            sourceRange = rootNode.range
         )
     }
 
-    private fun parseChildren(parentNode: Node, document: FlexmarkDocument): List<VisualNode<*>> {
-        val children = mutableListOf<VisualNode<*>>()
+    private fun parseChildren(parentNode: Node, document: FlexmarkDocument): List<VisualNode<Any>> {
+        val children = mutableListOf<VisualNode<Any>>()
         for (node in parentNode.children) {
-            val data: Any = when (node) {
+            val data: Any = when (node) { // TODO: make this extensible like the renderers.
                 is Heading -> me.okonecny.markdowneditor.ast.data.Heading(
-                    Level.forNumericLevel(node.level)
+                    Level.forNumericLevel(node.level),
+                    "" // TODO: generate anchor name
                 )
 
                 is Paragraph -> me.okonecny.markdowneditor.ast.data.Paragraph
@@ -101,14 +107,34 @@ class FlexmarkParser(
                 )
 
                 is TableBlock -> Table
+                is TableHead -> TableHeader
+                is TableBody -> TableBody
                 is TableRow -> TableRow(
                     node.rowNumber
                 )
 
-                is TableCell -> TableCell
-                is IndentedCodeBlock -> me.okonecny.markdowneditor.ast.data.CodeBlock()
+                is TableCell -> TableCell(
+                    alignment = when (node.alignment) {
+                        TableCell.Alignment.LEFT -> Alignment.LEFT
+                        TableCell.Alignment.CENTER -> Alignment.CENTER
+                        TableCell.Alignment.RIGHT -> Alignment.RIGHT
+                        null -> Alignment.LEFT
+                    }
+                )
+
+                is IndentedCodeBlock -> me.okonecny.markdowneditor.ast.data.CodeBlock(
+                    code = node.contentLines.joinToString(System.lineSeparator())
+                )
+
                 is FencedCodeBlock -> me.okonecny.markdowneditor.ast.data.CodeBlock(
-                    node.info.toString()
+                    info = node.info.toString(),
+                    code = buildString {
+                        node.children.forEach { child ->
+                            when (child) {
+                                is Text -> append(child.chars)
+                            }
+                        }
+                    }
                 )
 
                 is HtmlBlock -> me.okonecny.markdowneditor.ast.data.HtmlBlock(
@@ -191,7 +217,8 @@ class FlexmarkParser(
             children.add(
                 VisualNode(
                     proposedChildren = parseChildren(node, document),
-                    data = data
+                    data = data,
+                    sourceRange = node.range
                 )
             )
         }

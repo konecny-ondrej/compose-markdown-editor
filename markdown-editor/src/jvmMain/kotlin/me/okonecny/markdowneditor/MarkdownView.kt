@@ -8,38 +8,35 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import com.vladsch.flexmark.ast.*
-import com.vladsch.flexmark.util.ast.Document
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.LocalNavigation
 import me.okonecny.interactivetext.NavigableLazyColumn
 import me.okonecny.interactivetext.Navigation
+import me.okonecny.markdowneditor.ast.data.LinkTarget
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.*
 import me.okonecny.markdowneditor.view.inline.*
+import me.okonecny.wysiwyg.ast.VisualNode
 import java.nio.file.Path
 
 fun Renderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
-) = Renderers<Node>()
+) = Renderers<FlexmarkDocument>()
     .withUnknownBlockTypeRenderer(UiUnparsedBlock())
     .withUnknownInlineTypeRenderer(UiUnparsedInline())
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
     .withRenderer(UiHorizontalRule())
     .withRenderer(UiBlockQuote())
-    .withRenderer(UiIndentedCodeBlock())
     .withRenderer(UiCodeFence(codeFenceRenderers))
     .withRenderer(UiHtmlBlock())
     .withRenderer(UiOrderedList())
-    .withRenderer<OrderedListItem>(UiListItem())
+    .withRenderer(UiOrderedListItem())
     .withRenderer(UiBulletList())
-    .withRenderer<BulletListItem>(UiListItem())
+    .withRenderer(UiBulletListItem())
     .withRenderer(UiTaskListItem())
-    .withIgnoredNodeType<HtmlCommentBlock>()
-    .withIgnoredNodeType<Reference>() // TODO: skip references so the user cannot delete them accidentally. Or make them visible somehow.
     .withRenderer(UiTableBlock())
     .withRenderer(UiText())
     .withRenderer(UiTextBase())
@@ -51,11 +48,10 @@ fun Renderers.Companion.flexmarkDefault(
     .withRenderer(UiStrikethrough())
     .withRenderer(UiHardLineBreak())
     .withRenderer(UiLink())
+    .withRenderer(UiAnchor())
     .withRenderer(UiAutoLink())
-    .withRenderer(UiLinkRef())
     .withRenderer(UiHtmlEntity())
     .withRenderer(UiImage())
-    .withRenderer(UiImageRef())
     .withRenderer(UiEmoji())
 //.withRenderer<MailLink>() // TODO
 //.withRenderer<HtmlInlineBase>() // TODO
@@ -72,21 +68,19 @@ fun MarkdownView(
     scrollable: Boolean = true,
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList(),
     linkHandlers: List<LinkHandler> = emptyList(),
-    renderers: Renderers<Node> = Renderers.flexmarkDefault(
+    renderers: Renderers<FlexmarkDocument> = Renderers.flexmarkDefault(
         codeFenceRenderers
     )
 ) {
     val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
-    val parser = remember(markdown) { markdown.documentParser }
-    val document = remember(sourceText, parser, basePath) { parser.parse(sourceText, basePath) }
     val visualDocument = remember(sourceText, basePath) { markdown.markdownParser.parse(sourceText, basePath) }
 
     CompositionLocalProvider(
         LocalDocumentTheme provides documentTheme,
         LocalMarkdownEditorComponent provides markdown,
-        LocalDocument provides document
+        LocalDocument provides visualDocument.data
     ) {
-        UiMdDocument(document.ast, modifier, scrollable, linkHandlers, renderers)
+        UiMdDocument(visualDocument, modifier, scrollable, linkHandlers, renderers)
     }
 }
 
@@ -94,7 +88,7 @@ internal val LinkHandlers = compositionLocalOf { emptyMap<String, LinkHandler>()
 internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
     throw IllegalStateException("The editor component can only be used inside MarkdownView.")
 }
-internal val LocalDocument = compositionLocalOf<MarkdownDocument> {
+internal val LocalDocument = compositionLocalOf<FlexmarkDocument> {
     throw IllegalStateException("The document can only be used inside MarkdownView.")
 }
 
@@ -112,23 +106,22 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
-private fun Navigation.registerNode(node: Node, scrollId: Int) {
-    val anchorRefId: String? = when (node) {
-        is AnchorRefTarget -> node.anchorRefId
-        is Link -> node.anchorRefId
+private fun Navigation.registerNode(node: VisualNode<Any>, scrollId: Int) {
+    val anchorRefId: String? = when (val nodeData = node.data) {
+        is LinkTarget -> nodeData.anchorName
         else -> null
     }
     if (anchorRefId != null) registerAnchorTarget(anchorRefId, scrollId)
-    if (node.hasChildren()) node.children.forEach { registerNode(it, scrollId) }
+    node.children.forEach { registerNode(it, scrollId) }
 }
 
 @Composable
 private fun UiMdDocument(
-    markdownRoot: Document,
+    markdownRoot: VisualNode<FlexmarkDocument>,
     modifier: Modifier,
     scrollable: Boolean,
     linkHandlers: List<LinkHandler>,
-    renderers: Renderers<Node>
+    renderers: Renderers<FlexmarkDocument>
 ) {
     if (scrollable) {
         val navigation = LocalNavigation.current
@@ -154,10 +147,10 @@ private fun UiMdDocument(
 }
 
 @Composable
-internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
+internal fun UiBlock(block: VisualNode<Any>, renderers: Renderers<FlexmarkDocument>) {
     renderers.forBlock(block).run {
-        val context = object : RenderContext<Node> {
-            override val document: MarkdownDocument = LocalDocument.current
+        val context = object : RenderContext<FlexmarkDocument> {
+            override val document: FlexmarkDocument = LocalDocument.current
             override val activeAnnotationTags: Set<String> = LinkHandlers.current.keys
 
             @Composable
@@ -165,10 +158,10 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
                 me.okonecny.markdowneditor.handleLinks()
 
             @Composable
-            override fun renderInline(inline: Node): MappedText = renderInlines(listOf(inline))
+            override fun renderInline(inline: VisualNode<Any>): MappedText = renderInlines(listOf(inline))
 
             @Composable
-            override fun renderInlines(inlines: Iterable<Node>): MappedText {
+            override fun renderInlines(inlines: Iterable<VisualNode<Any>>): MappedText {
                 return buildMappedString {
                     inlines.forEach { inline ->
                         renderers.forInline(inline).run {
@@ -180,12 +173,12 @@ internal fun UiBlock(block: Node, renderers: Renderers<Node>) {
 
 
             @Composable
-            override fun <T : Node> renderBlocks(blocks: Iterable<T>) = blocks.forEach { childBlock ->
+            override fun renderBlocks(blocks: Iterable<VisualNode<Any>>) = blocks.forEach { childBlock ->
                 renderBlock(childBlock)
             }
 
             @Composable
-            override fun <T : Node> renderBlock(block: T) {
+            override fun renderBlock(block: VisualNode<Any>) {
                 UiBlock(block, renderers)
             }
         }

@@ -1,5 +1,8 @@
 package me.okonecny.wysiwyg.ast
 
+import androidx.compose.ui.text.TextRange
+import me.okonecny.interactivetext.InteractiveId
+import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
 import me.okonecny.lang.only
 import me.okonecny.lang.onlyOrNull
 import me.okonecny.wysiwyg.ast.data.Text
@@ -11,18 +14,28 @@ data class VisualNode<out T>(
     val data: T,
     val parentIndex: Int? = null,
     val parent: VisualNode<*>? = null,
-    private val proposedChildren: List<VisualNode<*>> = emptyList(),
-    // TODO: val interactiveId: InteractiveId
+    val sourceRange: TextRange, // TODO: remove. Won't be needed.
+    private val proposedChildren: List<VisualNode<Any>> = emptyList()
 ) {
     val isRoot: Boolean = parent == null
-    val children: List<VisualNode<*>> = proposedChildren
+    val children: List<VisualNode<Any>> = proposedChildren
         .ifEmpty { if (isRoot) listOf(nil(this)) else emptyList() }
         .mapIndexed { index, childNode ->
             childNode.copy(parent = this, parentIndex = index)
         }
+
     val allSiblings: List<VisualNode<*>> by lazy {
-        parent?.children ?: emptyList()
+        parent?.children ?: listOf(this)
     }
+
+    val interactiveId: InteractiveId by lazy { // FIXME: apparently these IDs are not unique :-D
+        if (parent == null || parentIndex == null) {
+            firstInteractiveId
+        } else {
+            parent.allSiblings.last().interactiveId + parentIndex
+        }
+    }
+
     val siblingsBefore by lazy {
         if (parentIndex == null) {
             emptyList()
@@ -62,19 +75,11 @@ data class VisualNode<out T>(
     companion object {
         private fun nil(parent: VisualNode<*>) = VisualNode(
             parent = parent,
-            data = Text("\uFEFF") // Zero-width space
-        )
-
-        // We have to start somewhere.
-        val emptyDocument = VisualNode(
-            parent = null,
-            parentIndex = null,
-            data = EmptyDocument
+            data = Text("\uFEFF"), // Zero-width space
+            sourceRange = TextRange.Zero
         )
     }
 }
-
-object EmptyDocument
 
 fun commonParent(node1: VisualNode<*>, node2: VisualNode<*>): VisualNode<*> {
     if (node1 == node2) return node1

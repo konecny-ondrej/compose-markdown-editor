@@ -1,14 +1,22 @@
 package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
-import com.vladsch.flexmark.ast.Text
-import com.vladsch.flexmark.util.ast.Node
+import androidx.compose.ui.text.TextRange
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
-import me.okonecny.markdowneditor.flexmark.text
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
+import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.data.Text
 
-internal class UiText : InlineRenderer<Text, Node> {
+internal class UiText : InlineRenderer<Text, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(inlineNode: Text): MappedText = inlineNode.text()
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Text>): MappedText = MappedText(
+        text = inlineNode.data.text,
+        textMapping = BoundedBlockTextMapping(
+            coveredSourceRange = inlineNode.sourceRange,
+            visualTextRange = TextRange(0, inlineNode.data.text.length)
+        )
+    )
 }

@@ -2,8 +2,9 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
 import me.okonecny.markdowneditor.MappedText
+import me.okonecny.wysiwyg.ast.VisualNode
 
-interface InlineRenderer<in T : BaseNode, BaseNode> {
+interface InlineRenderer<in T, D> {
     @Composable
-    fun RenderContext<BaseNode>.render(inlineNode: T): MappedText
+    fun RenderContext<D>.render(inlineNode: VisualNode<T>): MappedText
 }

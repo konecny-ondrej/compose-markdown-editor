@@ -1,34 +1,32 @@
 package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
-import com.vladsch.flexmark.ast.Heading
-import com.vladsch.flexmark.util.ast.Node
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.UserData
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.Heading
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiHeading : BlockRenderer<Heading, Node> {
+internal class UiHeading : BlockRenderer<Heading, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: Heading) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Heading>) {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
-            interactiveId = document.getInteractiveId(block),
+            interactiveId = block.interactiveId,
             text = inlines.text,
             textMapping = inlines.textMapping,
             inlineContent = inlines.inlineContent,
-            style = when (block.level) {
-                1 -> styles.h1
-                2 -> styles.h2
-                3 -> styles.h3
-                4 -> styles.h4
-                5 -> styles.h5
-                6 -> styles.h6
-                else -> styles.h1
+            style = when (block.data.level) {
+                Heading.Level.H1 -> styles.h1
+                Heading.Level.H2 -> styles.h2
+                Heading.Level.H3 -> styles.h3
+                Heading.Level.H4 -> styles.h4
+                Heading.Level.H5 -> styles.h5
+                Heading.Level.H6 -> styles.h6
             },
             activeAnnotationTags = activeAnnotationTags,
-            onAnnotationCLick = handleLinks(),
-            userData = UserData.of(Node::class, block)
+            onAnnotationCLick = handleLinks()
         )
     }
 }

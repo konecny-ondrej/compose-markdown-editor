@@ -6,39 +6,35 @@ import androidx.compose.material.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.text.TextRange
-import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem
-import com.vladsch.flexmark.util.ast.Node
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.LocalInteractiveInputHandler
-import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.flexmark.range
+import me.okonecny.markdowneditor.ast.data.TaskListItem
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
 internal const val LIST_BULLET = "\u2022"
 internal val LocalListItemBullet = compositionLocalOf { LIST_BULLET }
 
-internal class UiTaskListItem : BlockRenderer<TaskListItem, Node> {
+internal class UiTaskListItem : BlockRenderer<TaskListItem, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: TaskListItem) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<TaskListItem>) {
         val styles = DocumentTheme.current.styles
         Row {
             InteractiveText(
-                interactiveId = document.getInteractiveId(block),
+                interactiveId = block.interactiveId,
                 text = LocalListItemBullet.current,
-                textMapping = SequenceTextMapping(
-                    coveredVisualRange = TextRange(0, 1),
-                    sequence = block.openingMarker
+                textMapping = BoundedBlockTextMapping(
+                    visualTextRange = TextRange(0, 1),
+                    coveredSourceRange = TextRange(0, LocalListItemBullet.current.length)
                 ),
                 style = styles.listNumber
             )
-            val onInput = LocalInteractiveInputHandler.current
             Checkbox(
                 modifier = styles.taskListCheckbox.modifier,
-                checked = block.isItemDoneMarker,
+                checked = block.data.isDone,
                 onCheckedChange = { isChecked ->
-                    val taskMarkerRange = block.markerSuffix.range
-                    val newMarker = if (isChecked) "[X]" else "[ ]"
-                    onInput(ReplaceRange(taskMarkerRange, newMarker))
+                    TODO()
                 })
             Column {
                 renderBlocks(block.children)

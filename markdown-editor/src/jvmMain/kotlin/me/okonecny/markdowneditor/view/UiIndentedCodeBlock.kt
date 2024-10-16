@@ -2,23 +2,24 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextRange
-import com.vladsch.flexmark.ast.IndentedCodeBlock
-import com.vladsch.flexmark.util.ast.Node
-import me.okonecny.interactivetext.ChunkedSourceTextMapping
+import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.ast.data.CodeBlock
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.wysiwyg.ast.VisualNode
 
-internal class UiIndentedCodeBlock : BlockRenderer<IndentedCodeBlock, Node> {
+internal class UiIndentedCodeBlock : BlockRenderer<CodeBlock, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<Node>.render(block: IndentedCodeBlock) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock>) {
         val styles = DocumentTheme.current.styles
-        val lines = block.contentLines
         InteractiveText(
-            interactiveId = document.getInteractiveId(block),
-            text = lines.joinToString(System.lineSeparator()),
-            textMapping = ChunkedSourceTextMapping(lines.map { line ->
-                SequenceTextMapping(TextRange(0, line.length), line)
-            }),
+            interactiveId = block.interactiveId,
+            text = block.data.code,
+            textMapping = BoundedBlockTextMapping(
+                block.sourceRange,
+                TextRange(0, block.data.code.length)
+            ),
             style = styles.codeBlock.textStyle,
             modifier = styles.codeBlock.modifier
         )

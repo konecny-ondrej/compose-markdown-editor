@@ -18,7 +18,9 @@ data class AutoLink(
     override val text: String by ::target
 }
 
-data class Anchor(val name: String)
+data class Anchor(val name: String) : LinkTarget {
+    override val anchorName: String by ::name
+}
 
 data class Space(val count: UInt)
 

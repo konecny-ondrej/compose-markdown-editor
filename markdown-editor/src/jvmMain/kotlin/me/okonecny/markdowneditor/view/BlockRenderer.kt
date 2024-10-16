@@ -1,8 +1,9 @@
 package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
+import me.okonecny.wysiwyg.ast.VisualNode
 
-interface BlockRenderer<in T : BaseNode, BaseNode> {
+interface BlockRenderer<in T, D> {
     @Composable
-    fun RenderContext<BaseNode>.render(block: T)
+    fun RenderContext<D>.render(block: VisualNode<T>)
 }

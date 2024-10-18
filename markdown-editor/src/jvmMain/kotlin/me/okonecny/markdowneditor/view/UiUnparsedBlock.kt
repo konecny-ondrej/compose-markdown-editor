@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 internal class UiUnparsedBlock : BlockRenderer<Any, FlexmarkDocument> {
     @Composable
     override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Any>) {
-        val text = "!${block.data::class.simpleName}!"
+        val text = "!${block.data}!"
         InteractiveText(
             interactiveId = block.interactiveId,
             text = text,

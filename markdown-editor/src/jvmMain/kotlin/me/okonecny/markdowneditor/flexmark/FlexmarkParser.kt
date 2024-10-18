@@ -31,15 +31,13 @@ import com.vladsch.flexmark.ext.tables.TableBody
 import com.vladsch.flexmark.ext.tables.TableCell
 import com.vladsch.flexmark.ext.tables.TableHead
 import com.vladsch.flexmark.ext.tables.TableRow
+import com.vladsch.flexmark.html.renderer.HeaderIdGenerator
 import com.vladsch.flexmark.util.ast.Node
+import com.vladsch.flexmark.util.ast.TextCollectingVisitor
 import com.vladsch.flexmark.util.sequence.BasedSequence
-import me.okonecny.markdowneditor.MarkdownReference
-import me.okonecny.markdowneditor.anchorRefId
 import me.okonecny.markdowneditor.ast.data.*
 import me.okonecny.markdowneditor.ast.data.Heading.Level
 import me.okonecny.markdowneditor.ast.data.TableCell.Alignment
-import me.okonecny.markdowneditor.isAnchor
-import me.okonecny.markdowneditor.unformattedText
 import me.okonecny.markdowneditor.view.inline.unicodeString
 import me.okonecny.wysiwyg.ast.Parser
 import me.okonecny.wysiwyg.ast.VisualNode
@@ -248,3 +246,34 @@ class FlexmarkParser(
         }.reduce { m1, m2 -> m1 + m2 }
     }
 }
+
+internal val Link.anchorRefId: String?
+    get() {
+        if (!isAnchor) return null
+        val rawUrl = url?.toString() ?: "@"
+
+        return if (rawUrl == "@") {
+            HeaderIdGenerator.generateId(
+                unformattedText,
+                null,
+                null,
+                true,
+                true
+            )
+        } else {
+            rawUrl.substring(1)
+        }
+    }
+internal val Link.isAnchor: Boolean get() = url?.toString()?.startsWith("@") ?: false
+internal val Node.unformattedText: String
+    get() {
+        val builder = TextCollectingVisitor()
+        builder.collect(this)
+        return builder.text
+    }
+
+data class MarkdownReference(
+    val name: String,
+    val url: String,
+    val title: String?
+)

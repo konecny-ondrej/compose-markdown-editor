@@ -15,7 +15,6 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.logging.*
-import me.okonecny.markdowneditor.DocumentParser
 import me.okonecny.markdowneditor.flexmark.FlexmarkParser
 import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.Provides
@@ -31,7 +30,6 @@ annotation class MarkdownEditorScope
 @MarkdownEditorScope
 @Component
 internal abstract class MarkdownEditorComponent {
-    abstract val documentParser: DocumentParser
     abstract val httpClient: HttpClient
     abstract val imageLoader: ImageLoader
     abstract val markdownParser: FlexmarkParser

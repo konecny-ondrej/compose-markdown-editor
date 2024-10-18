@@ -24,16 +24,34 @@ data class VisualNode<out T>(
             childNode.copy(parent = this, parentIndex = index)
         }
 
+    val root: VisualNode<*> by lazy {
+        parent?.root ?: this
+    }
+
     val allSiblings: List<VisualNode<*>> by lazy {
         parent?.children ?: listOf(this)
     }
 
-    val interactiveId: InteractiveId by lazy { // FIXME: apparently these IDs are not unique :-D
-        if (parent == null || parentIndex == null) {
-            firstInteractiveId
+    val interactiveId: InteractiveId by lazy {
+        // Generates interactive ids in reading order.
+        // This is just a depth-first pre-order walk of the VisualNode tree.
+        // We just want to initialize the interactiveId on each node that we visit, so we don't have to compute them again.
+        if (parent == null) return@lazy firstInteractiveId
+        val previousNodeByInteractiveId = if (siblingsBefore.isEmpty()) {
+            parent
         } else {
-            parent.allSiblings.last().interactiveId + parentIndex
+            val previousSibling = siblingsBefore.last()
+            if (previousSibling.children.isEmpty()) {
+                previousSibling
+            } else {
+                var previousSiblingDeepestRightChild: VisualNode<*> = previousSibling.children.last()
+                while (previousSiblingDeepestRightChild.children.isNotEmpty()) {
+                    previousSiblingDeepestRightChild = previousSiblingDeepestRightChild.children.last()
+                }
+                previousSiblingDeepestRightChild
+            }
         }
+        previousNodeByInteractiveId.interactiveId + 1
     }
 
     val siblingsBefore by lazy {
@@ -43,6 +61,7 @@ data class VisualNode<out T>(
             allSiblings.subList(0, parentIndex)
         }
     }
+
     val siblingsAfter by lazy {
         if (parentIndex == null || parentIndex == parent?.children?.lastIndex) {
             emptyList()
@@ -50,6 +69,11 @@ data class VisualNode<out T>(
             allSiblings.subList(parentIndex + 1, allSiblings.size)
         }
     }
+
+    val nextSibling: VisualNode<*>? by lazy {
+        siblingsAfter.firstOrNull()
+    }
+
     val allParents: List<VisualNode<*>> by lazy {
         if (parent == null) {
             emptyList()

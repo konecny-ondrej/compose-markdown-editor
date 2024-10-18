@@ -70,10 +70,6 @@ data class VisualNode<out T>(
         }
     }
 
-    val nextSibling: VisualNode<*>? by lazy {
-        siblingsAfter.firstOrNull()
-    }
-
     val allParents: List<VisualNode<*>> by lazy {
         if (parent == null) {
             emptyList()

@@ -13,7 +13,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiHorizontalRule : BlockRenderer<HorizontalRule, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HorizontalRule>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HorizontalRule, FlexmarkDocument>) {
         val lineStyle = DocumentTheme.current.lineStyle
         Box(
             modifier = Modifier.fillMaxWidth(1f)

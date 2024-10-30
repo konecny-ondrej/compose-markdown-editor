@@ -14,7 +14,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiGfmUser : InlineRenderer<UserMention, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<UserMention>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<UserMention, FlexmarkDocument>): MappedText =
         buildMappedString {
             appendStyled(
                 MappedText(

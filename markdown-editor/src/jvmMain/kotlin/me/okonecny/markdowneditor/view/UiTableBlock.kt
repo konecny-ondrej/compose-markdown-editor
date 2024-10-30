@@ -13,9 +13,9 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiTableBlock : BlockRenderer<Table, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Table>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Table, FlexmarkDocument>) {
         @Composable
-        fun UiTableSection(tableSection: VisualNode<*>, cellStyle: BlockStyle) {
+        fun UiTableSection(tableSection: VisualNode<*, FlexmarkDocument>, cellStyle: BlockStyle) {
             tableSection.children.forEach { tableRow ->
                 when (tableRow.data) {
                     is TableRow -> Row(Modifier.height(IntrinsicSize.Max)) {

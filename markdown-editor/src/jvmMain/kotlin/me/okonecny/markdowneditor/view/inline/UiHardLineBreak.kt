@@ -12,11 +12,12 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiHardLineBreak : InlineRenderer<HardLineBreak, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<HardLineBreak>): MappedText = MappedText(
-        System.lineSeparator(),
-        BoundedBlockTextMapping(
-            visualTextRange = TextRange(0, 1),
-            coveredSourceRange = inlineNode.sourceRange
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<HardLineBreak, FlexmarkDocument>): MappedText =
+        MappedText(
+            System.lineSeparator(),
+            BoundedBlockTextMapping(
+                visualTextRange = TextRange(0, 1),
+                coveredSourceRange = inlineNode.sourceRange
+            )
         )
-    )
 }

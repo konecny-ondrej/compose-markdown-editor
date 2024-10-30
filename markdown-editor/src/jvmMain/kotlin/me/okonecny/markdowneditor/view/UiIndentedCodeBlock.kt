@@ -11,7 +11,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiIndentedCodeBlock : BlockRenderer<CodeBlock, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock, FlexmarkDocument>) {
         val styles = DocumentTheme.current.styles
         InteractiveText(
             interactiveId = block.interactiveId,

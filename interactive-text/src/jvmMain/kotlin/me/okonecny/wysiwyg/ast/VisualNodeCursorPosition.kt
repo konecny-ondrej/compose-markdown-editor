@@ -1,6 +1,6 @@
 package me.okonecny.wysiwyg.ast
 
-data class VisualNodeCursorPosition(
-    val node: VisualNode<*>,
+data class VisualNodeCursorPosition<D>(
+    val node: VisualNode<*, D>,
     val visualOffset: Int
 )

@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiStrikethrough : InlineRenderer<Strikethrough, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Strikethrough>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Strikethrough, FlexmarkDocument>): MappedText =
         buildMappedString {
             val parsedText = renderInlines(inlineNode.children)
             appendStyled(parsedText, DocumentTheme.current.styles.strikethrough.toSpanStyle())

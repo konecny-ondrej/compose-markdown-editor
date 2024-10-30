@@ -12,11 +12,12 @@ import me.okonecny.wysiwyg.ast.data.Text
 
 internal class UiText : InlineRenderer<Text, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Text>): MappedText = MappedText(
-        text = inlineNode.data.text,
-        textMapping = BoundedBlockTextMapping(
-            coveredSourceRange = inlineNode.sourceRange,
-            visualTextRange = TextRange(0, inlineNode.data.text.length)
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Text, FlexmarkDocument>): MappedText =
+        MappedText(
+            text = inlineNode.data.text,
+            textMapping = BoundedBlockTextMapping(
+                coveredSourceRange = inlineNode.sourceRange,
+                visualTextRange = TextRange(0, inlineNode.data.text.length)
+            )
         )
-    )
 }

@@ -10,19 +10,20 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiLink : InlineRenderer<Link, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Link>): MappedText = buildMappedString {
-        val linkData = inlineNode.data
-        val url = linkData.target
-        val linkText = renderInlines(inlineNode.children)
-        val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
-        appendStyled(
-            annotatedLinkText,
-            if (linkText == annotatedLinkText) {
-                DocumentTheme.current.styles.deadLink.toSpanStyle()
-            } else {
-                DocumentTheme.current.styles.link.toSpanStyle()
-            }
-        )
-    }
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Link, FlexmarkDocument>): MappedText =
+        buildMappedString {
+            val linkData = inlineNode.data
+            val url = linkData.target
+            val linkText = renderInlines(inlineNode.children)
+            val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+            appendStyled(
+                annotatedLinkText,
+                if (linkText == annotatedLinkText) {
+                    DocumentTheme.current.styles.deadLink.toSpanStyle()
+                } else {
+                    DocumentTheme.current.styles.link.toSpanStyle()
+                }
+            )
+        }
 }
 

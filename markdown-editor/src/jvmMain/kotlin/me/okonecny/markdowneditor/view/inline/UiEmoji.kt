@@ -22,21 +22,22 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiEmoji : InlineRenderer<Emoji, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Emoji>): MappedText = buildMappedString {
-        appendEmoji(
-            inlineNode,
-            MappedText(
-                text = inlineNode.data.shortcut,
-                textMapping = BoundedBlockTextMapping(
-                    coveredSourceRange = inlineNode.sourceRange,
-                    visualTextRange = TextRange(0, inlineNode.data.shortcut.length)
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Emoji, FlexmarkDocument>): MappedText =
+        buildMappedString {
+            appendEmoji(
+                inlineNode,
+                MappedText(
+                    text = inlineNode.data.shortcut,
+                    textMapping = BoundedBlockTextMapping(
+                        coveredSourceRange = inlineNode.sourceRange,
+                        visualTextRange = TextRange(0, inlineNode.data.shortcut.length)
+                    )
                 )
             )
-        )
-    }
+        }
 }
 
-private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji>, fallback: MappedText) {
+private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji, FlexmarkDocument>, fallback: MappedText) {
     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
         emojiNode.data.shortcut,
         EmojiShortcutType.GITHUB,

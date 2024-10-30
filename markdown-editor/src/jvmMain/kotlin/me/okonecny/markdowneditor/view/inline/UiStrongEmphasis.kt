@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiStrongEmphasis : InlineRenderer<StrongEmphasis, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<StrongEmphasis>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<StrongEmphasis, FlexmarkDocument>): MappedText =
         buildMappedString {
             val parsedText = renderInlines(inlineNode.children)
             appendStyled(parsedText, DocumentTheme.current.styles.strong.toSpanStyle())

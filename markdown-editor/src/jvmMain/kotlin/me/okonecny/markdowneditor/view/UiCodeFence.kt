@@ -18,7 +18,7 @@ internal class UiCodeFence(
         codeFenceRenderers.associateBy(CodeFenceRenderer::codeFenceType)
 
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<CodeBlock, FlexmarkDocument>) {
         val styles = DocumentTheme.current.styles
         Column {
             val codeBlockData = block.data

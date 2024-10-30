@@ -9,7 +9,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiBlockQuote : BlockRenderer<BlockQuote, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BlockQuote>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BlockQuote, FlexmarkDocument>) {
         Column(
             modifier = DocumentTheme.current.styles.blockQuote.modifier
         ) {

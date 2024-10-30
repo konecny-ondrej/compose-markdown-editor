@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiAutoLink : InlineRenderer<AutoLink, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<AutoLink>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<AutoLink, FlexmarkDocument>): MappedText =
         buildMappedString {
             val url = inlineNode.data.target
             val linkText = MappedText(

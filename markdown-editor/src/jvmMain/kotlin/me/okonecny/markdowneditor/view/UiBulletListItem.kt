@@ -13,7 +13,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiBulletListItem : BlockRenderer<BulletListItem, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BulletListItem>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BulletListItem, FlexmarkDocument>) {
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(

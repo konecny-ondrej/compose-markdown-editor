@@ -12,11 +12,12 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiSoftLineBreak : InlineRenderer<SoftLineBreak, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<SoftLineBreak>): MappedText = MappedText(
-        " ",
-        BoundedBlockTextMapping(
-            coveredSourceRange = inlineNode.sourceRange,
-            visualTextRange = TextRange(0, 1)
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<SoftLineBreak, FlexmarkDocument>): MappedText =
+        MappedText(
+            " ",
+            BoundedBlockTextMapping(
+                coveredSourceRange = inlineNode.sourceRange,
+                visualTextRange = TextRange(0, 1)
+            )
         )
-    )
 }

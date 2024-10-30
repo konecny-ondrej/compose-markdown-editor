@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiCode : InlineRenderer<CodeSpan, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<CodeSpan>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<CodeSpan, FlexmarkDocument>): MappedText =
         buildMappedString {
             val parsedText = renderInlines(inlineNode.children)
             appendStyled(parsedText, DocumentTheme.current.styles.inlineCode.toSpanStyle())

@@ -10,25 +10,26 @@ import me.okonecny.wysiwyg.ast.data.Text
 /**
  * Syntax tree for the editor to work with. The editor will add/remove/replace nodes based on the user actions.
  */
-data class VisualNode<out T>(
+data class VisualNode<out T, D>(
     val data: T,
     val parentIndex: Int? = null,
-    val parent: VisualNode<*>? = null,
+    val parent: VisualNode<*, D>? = null,
     val sourceRange: TextRange, // TODO: remove. Won't be needed.
-    private val proposedChildren: List<VisualNode<Any>> = emptyList()
+    private val proposedChildren: List<VisualNode<Any, D>> = emptyList()
 ) {
     val isRoot: Boolean = parent == null
-    val children: List<VisualNode<Any>> = proposedChildren
+    val children: List<VisualNode<Any, D>> = proposedChildren
         .ifEmpty { if (isRoot) listOf(nil(this)) else emptyList() }
         .mapIndexed { index, childNode ->
             childNode.copy(parent = this, parentIndex = index)
         }
 
-    val root: VisualNode<*> by lazy {
-        parent?.root ?: this
+    val root: VisualNode<D, D> by lazy {
+        parent?.root
+            ?: this as VisualNode<D, D> // If this is root, then the data type must be the same as the document type.
     }
 
-    val allSiblings: List<VisualNode<*>> by lazy {
+    val allSiblings: List<VisualNode<*, D>> by lazy {
         parent?.children ?: listOf(this)
     }
 
@@ -44,7 +45,7 @@ data class VisualNode<out T>(
             if (previousSibling.children.isEmpty()) {
                 previousSibling
             } else {
-                var previousSiblingDeepestRightChild: VisualNode<*> = previousSibling.children.last()
+                var previousSiblingDeepestRightChild: VisualNode<*, D> = previousSibling.children.last()
                 while (previousSiblingDeepestRightChild.children.isNotEmpty()) {
                     previousSiblingDeepestRightChild = previousSiblingDeepestRightChild.children.last()
                 }
@@ -70,7 +71,7 @@ data class VisualNode<out T>(
         }
     }
 
-    val allParents: List<VisualNode<*>> by lazy {
+    val allParents: List<VisualNode<*, D>> by lazy {
         if (parent == null) {
             emptyList()
         } else {
@@ -78,7 +79,7 @@ data class VisualNode<out T>(
         }
     }
 
-    fun isBetweenIncluding(node1: VisualNode<*>, node2: VisualNode<*>): Boolean {
+    fun isBetweenIncluding(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Boolean {
         val commonParent = commonParent(node1, node2)
 
         val myNodeInCommonParent = commonParent.children
@@ -93,7 +94,7 @@ data class VisualNode<out T>(
     }
 
     companion object {
-        private fun nil(parent: VisualNode<*>) = VisualNode(
+        private fun <D> nil(parent: VisualNode<*, D>) = VisualNode(
             parent = parent,
             data = Text("\uFEFF"), // Zero-width space
             sourceRange = TextRange.Zero
@@ -101,7 +102,7 @@ data class VisualNode<out T>(
     }
 }
 
-fun commonParent(node1: VisualNode<*>, node2: VisualNode<*>): VisualNode<*> {
+fun <D> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): VisualNode<*, D> {
     if (node1 == node2) return node1
     val startParents = node1.allParents
     val endParents = node2.allParents

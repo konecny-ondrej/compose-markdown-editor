@@ -11,7 +11,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiHtmlBlock : BlockRenderer<HtmlBlock, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HtmlBlock>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HtmlBlock, FlexmarkDocument>) {
         val styles = DocumentTheme.current.styles
         Column(modifier = styles.codeBlock.modifier) {
             block.data.lines.forEach { line ->

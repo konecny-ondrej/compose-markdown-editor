@@ -9,7 +9,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiHeading : BlockRenderer<Heading, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Heading>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Heading, FlexmarkDocument>) {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(

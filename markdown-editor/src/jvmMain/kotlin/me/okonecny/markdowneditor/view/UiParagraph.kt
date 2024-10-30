@@ -9,7 +9,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiParagraph : BlockRenderer<Paragraph, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Paragraph>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Paragraph, FlexmarkDocument>) {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(

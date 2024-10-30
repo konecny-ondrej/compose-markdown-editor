@@ -5,5 +5,5 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 interface BlockRenderer<in T, D> {
     @Composable
-    fun RenderContext<D>.render(block: VisualNode<T>)
+    fun RenderContext<D>.render(block: VisualNode<T, D>)
 }

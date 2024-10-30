@@ -106,7 +106,7 @@ private fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit {
     }
 }
 
-private fun Navigation.registerNode(node: VisualNode<Any>, scrollId: Int) {
+private fun Navigation.registerNode(node: VisualNode<Any, FlexmarkDocument>, scrollId: Int) {
     val anchorRefId: String? = when (val nodeData = node.data) {
         is LinkTarget -> nodeData.anchorName
         else -> null
@@ -117,7 +117,7 @@ private fun Navigation.registerNode(node: VisualNode<Any>, scrollId: Int) {
 
 @Composable
 private fun UiMdDocument(
-    markdownRoot: VisualNode<FlexmarkDocument>,
+    markdownRoot: VisualNode<FlexmarkDocument, FlexmarkDocument>,
     modifier: Modifier,
     scrollable: Boolean,
     linkHandlers: List<LinkHandler>,
@@ -147,7 +147,7 @@ private fun UiMdDocument(
 }
 
 @Composable
-internal fun UiBlock(block: VisualNode<Any>, renderers: Renderers<FlexmarkDocument>) {
+internal fun UiBlock(block: VisualNode<Any, FlexmarkDocument>, renderers: Renderers<FlexmarkDocument>) {
     renderers.forBlock(block).run {
         val context = object : RenderContext<FlexmarkDocument> {
             override val document: FlexmarkDocument = LocalDocument.current
@@ -158,10 +158,11 @@ internal fun UiBlock(block: VisualNode<Any>, renderers: Renderers<FlexmarkDocume
                 me.okonecny.markdowneditor.handleLinks()
 
             @Composable
-            override fun renderInline(inline: VisualNode<Any>): MappedText = renderInlines(listOf(inline))
+            override fun renderInline(inline: VisualNode<Any, FlexmarkDocument>): MappedText =
+                renderInlines(listOf(inline))
 
             @Composable
-            override fun renderInlines(inlines: Iterable<VisualNode<Any>>): MappedText {
+            override fun renderInlines(inlines: Iterable<VisualNode<Any, FlexmarkDocument>>): MappedText {
                 return buildMappedString {
                     inlines.forEach { inline ->
                         renderers.forInline(inline).run {
@@ -173,12 +174,13 @@ internal fun UiBlock(block: VisualNode<Any>, renderers: Renderers<FlexmarkDocume
 
 
             @Composable
-            override fun renderBlocks(blocks: Iterable<VisualNode<Any>>) = blocks.forEach { childBlock ->
-                renderBlock(childBlock)
-            }
+            override fun renderBlocks(blocks: Iterable<VisualNode<Any, FlexmarkDocument>>) =
+                blocks.forEach { childBlock ->
+                    renderBlock(childBlock)
+                }
 
             @Composable
-            override fun renderBlock(block: VisualNode<Any>) {
+            override fun renderBlock(block: VisualNode<Any, FlexmarkDocument>) {
                 UiBlock(block, renderers)
             }
         }

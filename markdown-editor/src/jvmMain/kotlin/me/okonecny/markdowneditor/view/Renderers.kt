@@ -32,7 +32,7 @@ data class Renderers<Document>(
         unknownInlineRenderer = renderer
     )
 
-    fun <T : Any> forBlock(block: VisualNode<T>): BlockRenderer<T, Document> {
+    fun <T : Any> forBlock(block: VisualNode<T, Document>): BlockRenderer<T, Document> {
         val rendererType = block.data::class
         return if (ignoredNodeTypes.contains(rendererType)) {
             noopBlockRenderer()
@@ -41,7 +41,7 @@ data class Renderers<Document>(
         }
     }
 
-    fun <T : Any> forInline(inline: VisualNode<T>): InlineRenderer<T, Document> {
+    fun <T : Any> forInline(inline: VisualNode<T, Document>): InlineRenderer<T, Document> {
         val rendererType = inline.data::class
         return if (ignoredNodeTypes.contains(rendererType)) {
             noopInlineRenderer()
@@ -54,7 +54,7 @@ data class Renderers<Document>(
         private fun <T, D> noopBlockRenderer(): BlockRenderer<T, D> =
             object : BlockRenderer<T, D> {
                 @Composable
-                override fun RenderContext<D>.render(block: VisualNode<T>) {
+                override fun RenderContext<D>.render(block: VisualNode<T, D>) {
                     // Empty on purpose. Should not render anything, just skip the node.
                 }
             }
@@ -62,7 +62,7 @@ data class Renderers<Document>(
         private fun <T, D> noopInlineRenderer(): InlineRenderer<T, D> =
             object : InlineRenderer<T, D> {
                 @Composable
-                override fun RenderContext<D>.render(inlineNode: VisualNode<T>): MappedText = MappedText.empty
+                override fun RenderContext<D>.render(inlineNode: VisualNode<T, D>): MappedText = MappedText.empty
             }
     }
 }

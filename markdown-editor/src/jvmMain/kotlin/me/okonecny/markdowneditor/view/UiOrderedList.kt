@@ -11,7 +11,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiOrderedList : BlockRenderer<OrderedList, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<OrderedList>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<OrderedList, FlexmarkDocument>) {
         val list = block.data
         Column {
             block.children.forEachIndexed { index, child ->

@@ -11,7 +11,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiBulletList : BlockRenderer<BulletList, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BulletList>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<BulletList, FlexmarkDocument>) {
         CompositionLocalProvider(
             LocalListItemBullet provides LIST_BULLET
         ) {

@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 class UiAnchor : InlineRenderer<Anchor, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Anchor>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Anchor, FlexmarkDocument>): MappedText =
         buildMappedString {
             val anchorText = renderInlines(inlineNode.children)
             appendStyled(

@@ -12,10 +12,11 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiUnparsedInline : InlineRenderer<Any, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Any>): MappedText = buildMappedString {
-        val parsedText = renderInlines(inlineNode.children)
-        appendStyled(
-            parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
-        )
-    }
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Any, FlexmarkDocument>): MappedText =
+        buildMappedString {
+            val parsedText = renderInlines(inlineNode.children)
+            appendStyled(
+                parsedText, DocumentTheme.current.styles.paragraph.toSpanStyle().copy(background = Color.Red)
+            )
+        }
 }

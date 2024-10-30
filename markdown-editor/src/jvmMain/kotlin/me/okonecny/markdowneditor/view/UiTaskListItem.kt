@@ -18,7 +18,7 @@ internal val LocalListItemBullet = compositionLocalOf { LIST_BULLET }
 
 internal class UiTaskListItem : BlockRenderer<TaskListItem, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<TaskListItem>) {
+    override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<TaskListItem, FlexmarkDocument>) {
         val styles = DocumentTheme.current.styles
         Row {
             InteractiveText(

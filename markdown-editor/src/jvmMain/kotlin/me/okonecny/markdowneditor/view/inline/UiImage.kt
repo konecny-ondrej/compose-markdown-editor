@@ -30,16 +30,17 @@ import java.util.concurrent.atomic.AtomicLong
 
 internal class UiImage : InlineRenderer<Image, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Image>): MappedText = buildMappedString {
-        val imageData = inlineNode.data
-        var imageState by rememberImageState(
-            url = imageData.url,
-            title = imageData.title ?: ""
-        )
-        appendImage(inlineNode, imageState) { newState ->
-            imageState = newState
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Image, FlexmarkDocument>): MappedText =
+        buildMappedString {
+            val imageData = inlineNode.data
+            var imageState by rememberImageState(
+                url = imageData.url,
+                title = imageData.title ?: ""
+            )
+            appendImage(inlineNode, imageState) { newState ->
+                imageState = newState
+            }
         }
-    }
 }
 
 
@@ -131,7 +132,7 @@ private val Size.dp: DpSize get() = DpSize(width.dp, height.dp)
 
 @Composable
 private fun MappedText.Builder.appendImage(
-    image: VisualNode<Image>,
+    image: VisualNode<Image, FlexmarkDocument>,
     imageState: ImageState,
     onStateChange: (newState: ImageState) -> Unit
 ) {

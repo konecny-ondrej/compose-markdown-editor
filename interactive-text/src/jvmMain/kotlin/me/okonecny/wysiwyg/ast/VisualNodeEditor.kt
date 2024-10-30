@@ -5,7 +5,7 @@ import me.okonecny.interactivetext.TextEditCommand
 /**
  * Edits a document node.
  */
-interface VisualNodeEditor<T : Any> {
+interface VisualNodeEditor<T : Any, D> {
     /**
      * Edit the node based on what the user wants.
      * @param node The node to edit.
@@ -15,18 +15,18 @@ interface VisualNodeEditor<T : Any> {
      * return null to delete the node.
      */
     fun edit(
-        node: VisualNode<T>,
+        node: VisualNode<T, D>,
         command: TextEditCommand,
-        editorState: VisualEditorState
-    ): VisualNode<T>?
+        editorState: VisualEditorState<D>
+    ): VisualNode<T, D>?
 
     companion object {
-        fun <T : Any> noop(): VisualNodeEditor<T> = object : VisualNodeEditor<T> {
+        fun <T : Any, D> noop(): VisualNodeEditor<T, D> = object : VisualNodeEditor<T, D> {
             override fun edit(
-                node: VisualNode<T>,
+                node: VisualNode<T, D>,
                 command: TextEditCommand,
-                editorState: VisualEditorState
-            ): VisualNode<T> = node
+                editorState: VisualEditorState<D>
+            ): VisualNode<T, D> = node
         }
     }
 }

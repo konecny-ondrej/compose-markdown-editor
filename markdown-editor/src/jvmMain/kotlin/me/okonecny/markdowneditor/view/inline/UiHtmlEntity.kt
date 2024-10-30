@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiHtmlEntity : InlineRenderer<HtmlEntity, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<HtmlEntity>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<HtmlEntity, FlexmarkDocument>): MappedText =
         buildMappedString {
             val parsedText = renderInlines(inlineNode.children)
             appendStyled(parsedText, DocumentTheme.current.styles.inlineCode.toSpanStyle())

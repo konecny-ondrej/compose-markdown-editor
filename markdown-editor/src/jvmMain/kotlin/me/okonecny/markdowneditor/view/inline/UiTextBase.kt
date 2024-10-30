@@ -10,6 +10,6 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiTextBase : InlineRenderer<TextBase, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<TextBase>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<TextBase, FlexmarkDocument>): MappedText =
         renderInlines(inlineNode.children)
 }

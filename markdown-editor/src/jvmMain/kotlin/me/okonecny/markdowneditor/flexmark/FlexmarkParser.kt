@@ -49,7 +49,7 @@ import java.nio.file.Path
 class FlexmarkParser(
     private val flexmarkParser: com.vladsch.flexmark.parser.Parser
 ) : Parser<String, FlexmarkDocument> {
-    override fun parse(input: String, basePath: Path): VisualNode<FlexmarkDocument> {
+    override fun parse(input: String, basePath: Path): VisualNode<FlexmarkDocument, FlexmarkDocument> {
         val rootNode = flexmarkParser.parse(input)
 
 
@@ -81,8 +81,8 @@ class FlexmarkParser(
         )
     }
 
-    private fun parseChildren(parentNode: Node, document: FlexmarkDocument): List<VisualNode<Any>> {
-        val children = mutableListOf<VisualNode<Any>>()
+    private fun parseChildren(parentNode: Node, document: FlexmarkDocument): List<VisualNode<Any, FlexmarkDocument>> {
+        val children = mutableListOf<VisualNode<Any, FlexmarkDocument>>()
         for (node in parentNode.children) {
             val data: Any = when (node) { // TODO: make this extensible like the renderers.
                 is Heading -> me.okonecny.markdowneditor.ast.data.Heading(

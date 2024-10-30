@@ -9,6 +9,8 @@ import me.okonecny.wysiwyg.ast.data.Text
 
 /**
  * Syntax tree for the editor to work with. The editor will add/remove/replace nodes based on the user actions.
+ * @param T Type of the data carried by this node.
+ * @param D Type of the data of the root node, the "document type" for short.
  */
 data class VisualNode<out T, D>(
     val data: T,

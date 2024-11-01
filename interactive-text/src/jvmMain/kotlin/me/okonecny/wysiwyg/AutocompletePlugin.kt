@@ -7,15 +7,16 @@ import me.okonecny.interactivetext.TextInputCommand
 /**
  * Plugin for suggesting fast text completions to the user in the form of a popup menu, which appears at the text cursor.
  */
-interface AutocompletePlugin {
+interface AutocompletePlugin<D : Any> {
     /**
      * Name of the plugin to be shown to the user in the autocomplete menu.
      */
     val name: String
+
     /**
      * Generate the suggestions to show to the user.
      */
-    fun generateSuggestions(editorState: WysiwygEditorState): List<AutocompleteSuggestion>
+    fun generateSuggestions(editorState: WysiwygEditorState<D>): List<AutocompleteSuggestion>
 }
 
 /**

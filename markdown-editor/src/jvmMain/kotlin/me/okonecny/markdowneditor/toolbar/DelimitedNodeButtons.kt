@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -15,6 +16,7 @@ import com.vladsch.flexmark.ast.StrongEmphasis
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
@@ -22,7 +24,10 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 
 @Composable
-internal fun EmphasisButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+internal fun EmphasisButton(
+    editorState: WysiwygEditorState<FlexmarkDocument>,
+    handleInput: (TextInputCommand) -> Unit
+) =
     DelimitedNodeButton<Emphasis>(
         "I",
         "Emphasis",
@@ -33,7 +38,10 @@ internal fun EmphasisButton(editorState: WysiwygEditorState, handleInput: (TextI
     )
 
 @Composable
-internal fun StrongEmphasisButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+internal fun StrongEmphasisButton(
+    editorState: WysiwygEditorState<FlexmarkDocument>,
+    handleInput: (TextInputCommand) -> Unit
+) =
     DelimitedNodeButton<StrongEmphasis>(
         "B",
         "Strong Emphasis",
@@ -44,7 +52,7 @@ internal fun StrongEmphasisButton(editorState: WysiwygEditorState, handleInput: 
     )
 
 @Composable
-internal fun CodeButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) =
+internal fun CodeButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) =
     DelimitedNodeButton<Code>(
         "\uf44f",
         "Inline Code",
@@ -61,7 +69,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     tooltip: String,
     textStyle: TextStyle,
     delimiter: String,
-    editorState: WysiwygEditorState,
+    editorState: WysiwygEditorState<FlexmarkDocument>,
     crossinline handleInput: (TextInputCommand) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,7 +78,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     val sourceCursor =
         editorState.sourceCursor ?: throw IllegalStateException("DelimitedNodeButton needs a source cursor.")
     val source = editorState.sourceText
-    val sourceSelection = editorState.sourceSelection
+    val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
     val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
 

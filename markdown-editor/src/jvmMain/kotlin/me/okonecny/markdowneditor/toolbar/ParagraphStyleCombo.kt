@@ -19,6 +19,7 @@ import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.Tooltip
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.flexmark.source
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
@@ -28,7 +29,10 @@ import kotlin.reflect.KClass
 private const val ARROW_DOWN = " \ueab4 "
 
 @Composable
-internal fun ParagraphStyleCombo(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
+internal fun ParagraphStyleCombo(
+    editorState: WysiwygEditorState<FlexmarkDocument>,
+    handleInput: (TextInputCommand) -> Unit
+) {
 
     val touchedBlocks = editorState.visualSelection
         .touchedNodesOfType<Block>(editorState.interactiveScope, editorState.sourceCursor)

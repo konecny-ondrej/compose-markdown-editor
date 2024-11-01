@@ -3,16 +3,17 @@ package me.okonecny.markdowneditor.autocomplete
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import me.okonecny.interactivetext.Type
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.AutocompleteSuggestion
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 class UserMentionAutocompletePlugin(
     private val userNames: List<String>
-) : AutocompletePlugin {
+) : AutocompletePlugin<FlexmarkDocument> {
     override val name: String = "Users"
 
-    override fun generateSuggestions(editorState: WysiwygEditorState): List<AutocompleteSuggestion> {
+    override fun generateSuggestions(editorState: WysiwygEditorState<FlexmarkDocument>): List<AutocompleteSuggestion> {
         // TODO: the default behaviour of autocomplete plugins out
         val contextWord = editorState.autocompleteContextWord
         if (!contextWord.startsWith("@")) return emptyList()

@@ -19,9 +19,9 @@ import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.textInput
 
 @Composable
-internal fun AutocompletePopup(
-    editorState: WysiwygEditorState,
-    plugins: List<AutocompletePlugin>,
+internal fun <D : Any> AutocompletePopup(
+    editorState: WysiwygEditorState<D>,
+    plugins: List<AutocompletePlugin<D>>,
     handleInput: (TextInputCommand) -> Unit
 ) {
     var dismissed by remember(editorState) { mutableStateOf(false) }
@@ -61,9 +61,9 @@ internal fun AutocompletePopup(
 }
 
 @Composable
-private fun AutocompleteMenu(
+private fun <D : Any> AutocompleteMenu(
     sourceText: String,
-    suggestionsByPlugin: Map<AutocompletePlugin, List<AutocompleteSuggestion>>,
+    suggestionsByPlugin: Map<AutocompletePlugin<D>, List<AutocompleteSuggestion>>,
     handleInput: (TextInputCommand) -> Unit,
     onDismissRequest: () -> Unit
 ) {

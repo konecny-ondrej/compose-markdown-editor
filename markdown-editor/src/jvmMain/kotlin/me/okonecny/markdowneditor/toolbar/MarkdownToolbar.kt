@@ -19,11 +19,12 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 fun MarkdownToolbar(
-    editorState: WysiwygEditorState,
+    editorState: WysiwygEditorState<FlexmarkDocument>,
     handleInput: (TextInputCommand) -> Unit
 ) {
     val toolbarInteractionSource = remember { MutableInteractionSource() }

@@ -3,6 +3,7 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.AutoLink
@@ -11,18 +12,19 @@ import com.vladsch.flexmark.ast.LinkRef
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun LinkButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
+internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
     val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
     val source = editorState.sourceText
-    val sourceSelection = editorState.sourceSelection
+    val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
     val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +
             visualSelection.touchedNodesOfType<LinkRef>(scope, sourceCursor) +

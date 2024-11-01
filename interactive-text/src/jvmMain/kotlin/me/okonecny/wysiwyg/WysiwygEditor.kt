@@ -7,22 +7,20 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.DpOffset
 import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
-import kotlin.math.abs
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
  */
 @Composable
-fun WysiwygEditor(
-    editorState: WysiwygEditorState,
+fun <D : Any> WysiwygEditor(
+    editorState: WysiwygEditorState<D>,
     modifier: Modifier = Modifier,
     selectionStyle: SelectionStyle,
-    autocompletePlugins: List<AutocompletePlugin>,
-    onChange: (WysiwygEditorState) -> Unit,
+    autocompletePlugins: List<AutocompletePlugin<D>>,
+    onChange: (WysiwygEditorState<D>) -> Unit,
     components: @Composable WysiwygEditorScope.() -> Unit
 ) {
     val (
@@ -123,7 +121,10 @@ fun WysiwygEditor(
                 NewLine -> TODO()
                 is Type -> { // TODO: actually edit something
                     newVisualCursorPosition = editorState.visualCursor ?: break
-                    newVisualCursorPosition = interactiveScope.moveCursorRight(newVisualCursorPosition, textInputCommand.text.length)
+                    newVisualCursorPosition = interactiveScope.moveCursorRight(
+                        newVisualCursorPosition,
+                        textInputCommand.text.length
+                    )
                 }
 
                 is Undo -> TODO()
@@ -175,7 +176,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
 
 // endregion dsl
 
-data class WysiwygEditorState(
+data class WysiwygEditorState<D : Any>(
     val sourceText: String,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager = UndoManager(),
@@ -191,20 +192,12 @@ data class WysiwygEditorState(
             val cursor = visualCursor ?: return null
             return interactiveScope.cursorVisualRect(cursor)
         }
-
-    val sourceSelection: TextRange
-        get() =
-            if (interactiveScope.isPlaced) {
-                visualSelection.computeSourceSelection(interactiveScope)
-            } else {
-                TextRange.Zero
-            }
 }
 
 @Composable
-fun rememberWysiwygEditorState(initialSourceText: String, vararg keys: Any?) = remember(keys) {
+fun <D : Any> rememberWysiwygEditorState(initialSourceText: String, vararg keys: Any?) = remember(keys) {
     mutableStateOf(
-        WysiwygEditorState(
+        WysiwygEditorState<D>(
             sourceText = initialSourceText
         )
     )

@@ -18,11 +18,12 @@ import com.vladsch.flexmark.ext.tables.TableCell
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun TableButton(editorState: WysiwygEditorState, handleInput: (TextInputCommand) -> Unit) {
+internal fun TableButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
     val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor

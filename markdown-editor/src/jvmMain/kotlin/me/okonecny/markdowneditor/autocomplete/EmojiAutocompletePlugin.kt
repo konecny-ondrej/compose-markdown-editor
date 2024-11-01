@@ -8,16 +8,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import me.okonecny.interactivetext.Type
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.inline.annotatedString
 import me.okonecny.markdowneditor.view.inline.unicodeString
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.AutocompleteSuggestion
 import me.okonecny.wysiwyg.WysiwygEditorState
 
-class EmojiAutocompletePlugin : AutocompletePlugin {
+class EmojiAutocompletePlugin : AutocompletePlugin<FlexmarkDocument> {
     override val name: String = "Emoji"
 
-    override fun generateSuggestions(editorState: WysiwygEditorState): List<AutocompleteSuggestion> {
+    override fun generateSuggestions(editorState: WysiwygEditorState<FlexmarkDocument>): List<AutocompleteSuggestion> {
         val contextWord = editorState.autocompleteContextWord
         if (!contextWord.isMaybeEmojiStart()) return emptyList()
         val emojiNamePrefix = contextWord.substring(1)
@@ -45,7 +46,7 @@ class EmojiAutocompletePlugin : AutocompletePlugin {
     }
 }
 
-val WysiwygEditorState.autocompleteContextWord: String
+val WysiwygEditorState<FlexmarkDocument>.autocompleteContextWord: String
     get() = (sourceCursor ?: sourceCursorRequest)?.let { cursor ->
         sourceText.wordBefore(cursor)
     } ?: ""

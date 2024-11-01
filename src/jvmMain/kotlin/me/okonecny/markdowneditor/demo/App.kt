@@ -11,6 +11,7 @@ import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.autocomplete.UserMentionAutocompletePlugin
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.rememberWysiwygEditorState
 
 @Composable
@@ -24,7 +25,7 @@ fun App() {
         md.bufferedReader().readText()
     })
 
-    var editorState by rememberWysiwygEditorState(markdownSource, filename)
+    var editorState by rememberWysiwygEditorState<FlexmarkDocument>(markdownSource, filename)
 
     MaterialTheme {
         Column {

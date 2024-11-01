@@ -6,12 +6,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.codefence.ExampleRenderer
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
-import me.okonecny.markdowneditor.toolbar.MarkdownToolbar
 import me.okonecny.markdowneditor.view.Renderers
 import me.okonecny.markdowneditor.view.flexmarkDefault
 import me.okonecny.wysiwyg.AutocompletePlugin
@@ -20,11 +18,11 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 import kotlin.io.path.Path
 
 @Composable
-fun MarkdownEditor(
-    editorState: WysiwygEditorState,
+fun <D : Any> MarkdownEditor(
+    editorState: WysiwygEditorState<D>,
     documentTheme: DocumentTheme,
-    autocompletePlugins: List<AutocompletePlugin> = listOf(EmojiAutocompletePlugin()),
-    onChange: (newEditorState: WysiwygEditorState) -> Unit
+    autocompletePlugins: List<AutocompletePlugin<D>> = listOf(),
+    onChange: (newEditorState: WysiwygEditorState<D>) -> Unit
 ) {
     WysiwygEditor(
         editorState = editorState,
@@ -57,7 +55,7 @@ fun MarkdownEditor(
             }
         }
         Toolbar { handleInput ->
-            MarkdownToolbar(editorState, handleInput)
+            //MarkdownToolbar(editorState, handleInput)
         }
     }
 }

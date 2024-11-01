@@ -10,6 +10,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
 import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
+import me.okonecny.wysiwyg.ast.VisualNode
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -25,6 +26,7 @@ fun <D : Any> WysiwygEditor(
 ) {
     val (
         sourceText,
+        visualDocument,
         interactiveScope,
         undoManager,
     ) = editorState
@@ -178,6 +180,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
 
 data class WysiwygEditorState<D : Any>(
     val sourceText: String,
+    val visualDocument: VisualNode<D, D>,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
@@ -195,10 +198,11 @@ data class WysiwygEditorState<D : Any>(
 }
 
 @Composable
-fun <D : Any> rememberWysiwygEditorState(initialSourceText: String, vararg keys: Any?) = remember(keys) {
+fun <D : Any> rememberWysiwygEditorState(initialSourceText: String, visualDocument: VisualNode<D, D>, vararg keys: Any?) = remember(keys) {
     mutableStateOf(
-        WysiwygEditorState<D>(
-            sourceText = initialSourceText
+        WysiwygEditorState(
+            sourceText = initialSourceText,
+            visualDocument = visualDocument
         )
     )
 }

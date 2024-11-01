@@ -38,6 +38,7 @@ import com.vladsch.flexmark.util.sequence.BasedSequence
 import me.okonecny.markdowneditor.ast.data.*
 import me.okonecny.markdowneditor.ast.data.Heading.Level
 import me.okonecny.markdowneditor.ast.data.TableCell.Alignment
+import me.okonecny.markdowneditor.internal.ImageLoader
 import me.okonecny.markdowneditor.view.inline.unicodeString
 import me.okonecny.wysiwyg.ast.Parser
 import me.okonecny.wysiwyg.ast.VisualNode
@@ -48,7 +49,8 @@ import java.nio.file.Path
 @Inject
 class FlexmarkParser(
     private val flexmarkParser: com.vladsch.flexmark.parser.Parser,
-    private val headerIdGenerator: HeaderIdGenerator
+    private val headerIdGenerator: HeaderIdGenerator,
+    private val imageLoader: ImageLoader
 ) : Parser<String, FlexmarkDocument> {
     override fun parse(input: String, basePath: Path): VisualNode<FlexmarkDocument, FlexmarkDocument> {
         val rootNode = flexmarkParser.parse(input)
@@ -70,7 +72,8 @@ class FlexmarkParser(
         val document = FlexmarkDocument(
             rootNode = rootNode,
             references = references + parseInlineReferences(rootNode.children),
-            basePath = basePath
+            basePath = basePath,
+            imageLoader = imageLoader
         )
 
         return VisualNode(

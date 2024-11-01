@@ -23,6 +23,7 @@ import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.*
 import me.okonecny.markdowneditor.ast.data.Image
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
+import me.okonecny.markdowneditor.internal.ImageLoader
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
 import me.okonecny.wysiwyg.ast.VisualNode
@@ -36,9 +37,14 @@ internal class UiImage : InlineRenderer<Image, FlexmarkDocument> {
             val basePath = document.basePath
             val imageData = inlineNode.data
             var imageState by rememberImageState(
+                loader = document.imageLoader,
                 url = imageData.url,
                 title = imageData.title ?: "",
-                basePath = basePath
+                basePath = basePath,
+                unloadedImage = document.imageLoader.unloadedImage(
+                    imageData.url,
+                    basePath
+                ) ?: painterResource("/image-load.svg")
             )
             appendImage(inlineNode, imageState) { newState ->
                 imageState = newState
@@ -54,6 +60,7 @@ private val imageCount =
 
 
 private data class ImageState(
+    val loader: ImageLoader,
     val url: String,
     val painter: Painter,
     val title: String = "",
@@ -65,17 +72,16 @@ private data class ImageState(
 
 @Composable
 private fun rememberImageState(
+    loader: ImageLoader,
     url: String,
     title: String,
     basePath: Path,
-    unloadedImage: Painter = LocalMarkdownEditorComponent.current.imageLoader.unloadedImage(
-        url,
-        basePath
-    ) ?: painterResource("/image-load.svg")
+    unloadedImage: Painter
 ): MutableState<ImageState> {
     return rememberSaveable(url, title) {
         mutableStateOf(
             ImageState(
+                loader = loader,
                 url = url,
                 painter = unloadedImage,
                 title = title,
@@ -92,13 +98,12 @@ private fun UiImage(
     modifier: Modifier = Modifier
 ) {
     if (!imageState.loaded) {
-        val editorComponent = LocalMarkdownEditorComponent.current
         val failedImage = painterResource("/image-failed.svg")
         LaunchedEffect(Unit) {
             onStateChange(
                 imageState.copy(
                     painter = try {
-                        editorComponent.imageLoader.load(imageState.url, imageState.basePath)
+                        imageState.loader.load(imageState.url, imageState.basePath)
                     } catch (e: Exception) {
                         Logger.e(e) { "Failed to load image." }
                         failedImage

@@ -22,7 +22,7 @@ import java.nio.file.Path
  */
 @Inject
 @MarkdownEditorScope
-internal class ImageLoader(
+class ImageLoader(
     lazyHttpClient: Lazy<HttpClient>
 ) {
     private val httpClient by lazyHttpClient

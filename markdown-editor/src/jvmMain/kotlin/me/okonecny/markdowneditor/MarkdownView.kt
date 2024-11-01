@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import me.okonecny.interactivetext.LocalNavigation
@@ -12,7 +11,6 @@ import me.okonecny.interactivetext.NavigableLazyColumn
 import me.okonecny.interactivetext.Navigation
 import me.okonecny.markdowneditor.ast.data.LinkTarget
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
-import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.view.RenderContext
 import me.okonecny.markdowneditor.view.Renderers
 import me.okonecny.markdowneditor.view.visuallyOffset
@@ -36,10 +34,6 @@ fun <D : Any> MarkdownView(
     ) {
         UiMdDocument(visualDocument, modifier, scrollable, linkHandlers, renderers)
     }
-}
-
-internal val LocalMarkdownEditorComponent = compositionLocalOf<MarkdownEditorComponent> {
-    throw IllegalStateException("The editor component can only be used inside MarkdownView.")
 }
 
 private fun <D : Any> Navigation.registerNode(node: VisualNode<Any, D>, scrollId: Int) {

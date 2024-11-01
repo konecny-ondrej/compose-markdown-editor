@@ -2,16 +2,16 @@ package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import me.okonecny.markdowneditor.codefence.ExampleRenderer
+import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
 import me.okonecny.markdowneditor.view.Renderers
-import me.okonecny.markdowneditor.view.flexmarkDefault
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.WysiwygEditor
 import me.okonecny.wysiwyg.WysiwygEditorState
@@ -22,6 +22,7 @@ fun <D : Any> MarkdownEditor(
     editorState: WysiwygEditorState<D>,
     documentTheme: DocumentTheme,
     autocompletePlugins: List<AutocompletePlugin<D>> = listOf(),
+    renderers: Renderers<D>,
     onChange: (newEditorState: WysiwygEditorState<D>) -> Unit
 ) {
     WysiwygEditor(
@@ -31,31 +32,33 @@ fun <D : Any> MarkdownEditor(
         onChange = onChange
     ) {
         View {
-            val basePath = Path("markdown-editor/src/jvmMain/resources")
-            val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
-            val visualDocument = remember(editorState.sourceText, basePath) {
-                markdown.markdownParser.parse(
-                    editorState.sourceText,
-                    basePath
-                )
-            }
-            CompositionLocalProvider(
-                LocalMarkdownEditorComponent provides markdown
-            ) {
-                MarkdownView(
-                    visualDocument = visualDocument,
-                    modifier = Modifier.fillMaxSize(1f),
-                    documentTheme = documentTheme,
-                    scrollable = true,
-                    linkHandlers = listOf(WebLink(LocalUriHandler.current)),
-                    renderers = Renderers.flexmarkDefault(
-                        codeFenceRenderers = listOf(ExampleRenderer())
-                    )
-                )
-            }
+            MarkdownView(
+                visualDocument = editorState.visualDocument,
+                modifier = Modifier.fillMaxSize(1f),
+                documentTheme = documentTheme,
+                scrollable = true,
+                linkHandlers = listOf(WebLink(LocalUriHandler.current)),
+                renderers = renderers
+            )
         }
         Toolbar { handleInput ->
             //MarkdownToolbar(editorState, handleInput)
         }
     }
+}
+
+@Composable
+fun rememberFlexmarkMarkdownEditorState(
+    initialSourceText: String,
+    vararg keys: Any?
+): MutableState<WysiwygEditorState<FlexmarkDocument>> = remember(keys) {
+    val basePath = Path("markdown-editor/src/jvmMain/resources")
+    val markdown = MarkdownEditorComponent::class.create()
+    val visualDocument = markdown.markdownParser.parse(initialSourceText, basePath)
+    mutableStateOf(
+        WysiwygEditorState(
+            sourceText = initialSourceText,
+            visualDocument = visualDocument
+        )
+    )
 }

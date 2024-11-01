@@ -11,8 +11,10 @@ import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownEditor
 import me.okonecny.markdowneditor.autocomplete.EmojiAutocompletePlugin
 import me.okonecny.markdowneditor.autocomplete.UserMentionAutocompletePlugin
-import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
-import me.okonecny.wysiwyg.rememberWysiwygEditorState
+import me.okonecny.markdowneditor.codefence.ExampleRenderer
+import me.okonecny.markdowneditor.rememberFlexmarkMarkdownEditorState
+import me.okonecny.markdowneditor.view.Renderers
+import me.okonecny.markdowneditor.view.flexmarkDefault
 
 @Composable
 @Preview
@@ -25,7 +27,6 @@ fun App() {
         md.bufferedReader().readText()
     })
 
-    var editorState by rememberWysiwygEditorState<FlexmarkDocument>(markdownSource, filename)
 
     MaterialTheme {
         Column {
@@ -36,6 +37,7 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
+            var editorState by rememberFlexmarkMarkdownEditorState(markdownSource, filename)
             MarkdownEditor(
                 editorState = editorState,
                 documentTheme = documentTheme,
@@ -46,6 +48,9 @@ fun App() {
                             "user1", "user2", "alice", "amanda", "bob", "barney"
                         )
                     )
+                ),
+                renderers = Renderers.flexmarkDefault(
+                    codeFenceRenderers = listOf(ExampleRenderer())
                 ),
                 onChange = { newEditorState -> editorState = newEditorState }
             )

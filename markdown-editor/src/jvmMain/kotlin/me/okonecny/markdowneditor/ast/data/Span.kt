@@ -14,8 +14,9 @@ data class Link(
 
 data class AutoLink(
     val target: String
-) : HasText {
+) : HasText<AutoLink> {
     override val text: String by ::target
+    override fun replaceText(text: String): AutoLink = AutoLink(text)
 }
 
 data class Anchor(val name: String) : LinkTarget {
@@ -34,8 +35,9 @@ data object HardLineBreak
 data object TextBase
 data class UserMention(
     val username: String
-) : HasText {
+) : HasText<UserMention> {
     override val text: String by ::username
+    override fun replaceText(text: String): UserMention = UserMention(text)
 }
 
 data object HtmlEntity

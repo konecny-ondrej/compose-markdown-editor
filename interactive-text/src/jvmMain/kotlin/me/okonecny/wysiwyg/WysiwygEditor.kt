@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
+import me.okonecny.wysiwyg.ast.data.HasText
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -121,12 +123,25 @@ fun <D : Any> WysiwygEditor(
                 }
 
                 NewLine -> TODO()
-                is Type -> { // TODO: actually edit something
+                is Type -> {
                     newVisualCursorPosition = editorState.visualCursor ?: break
                     newVisualCursorPosition = interactiveScope.moveCursorRight(
                         newVisualCursorPosition,
                         textInputCommand.text.length
                     )
+                    val editedNode = editorState.nodeCursor?.node?.findChildByDataType(HasText::class)
+                    // TODO: handle selection
+                    if (editedNode != null) {
+                        onChange(
+                            editorState.copy(
+                                visualDocument = editedNode.replaceWith(
+                                    editedNode.copy(
+                                        data = editedNode.data.replaceText(editedNode.data.text + textInputCommand.text)
+                                    )
+                                ).root
+                            )
+                        )
+                    }
                 }
 
                 is Undo -> TODO()
@@ -189,6 +204,26 @@ data class WysiwygEditorState<D : Any>(
     var visualCursor by interactiveScope::cursorPosition
     var visualSelection by interactiveScope::selection
 
+    val nodeCursor: VisualNodeCursorPosition<D>?
+        get() {
+            val visualCursor = visualCursor ?: return null
+            val interactiveId = visualCursor.componentId
+
+            val nodes = mutableListOf<VisualNode<Any, D>>(visualDocument)
+            while (nodes.isNotEmpty()) { // TODO: this is probably unnecessarily slow.
+                val firstNode = nodes.removeFirst()
+                if (firstNode.interactiveId == interactiveId) {
+                    return VisualNodeCursorPosition(
+                        firstNode,
+                        visualCursor.visualOffset
+                    )
+                } else {
+                    nodes.addAll(firstNode.children)
+                }
+            }
+            return null
+        }
+
     val visualCursorRect: Rect?
         get() {
             if (!interactiveScope.isPlaced) return null
@@ -198,7 +233,11 @@ data class WysiwygEditorState<D : Any>(
 }
 
 @Composable
-fun <D : Any> rememberWysiwygEditorState(initialSourceText: String, visualDocument: VisualNode<D, D>, vararg keys: Any?) = remember(keys) {
+fun <D : Any> rememberWysiwygEditorState(
+    initialSourceText: String,
+    visualDocument: VisualNode<D, D>,
+    vararg keys: Any?
+) = remember(keys) {
     mutableStateOf(
         WysiwygEditorState(
             sourceText = initialSourceText,

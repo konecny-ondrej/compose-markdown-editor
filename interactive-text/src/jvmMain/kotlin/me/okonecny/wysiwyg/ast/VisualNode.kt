@@ -6,6 +6,7 @@ import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstI
 import me.okonecny.lang.only
 import me.okonecny.lang.onlyOrNull
 import me.okonecny.wysiwyg.ast.data.Text
+import kotlin.reflect.KClass
 
 /**
  * Syntax tree for the editor to work with. The editor will add/remove/replace nodes based on the user actions.
@@ -102,13 +103,28 @@ data class VisualNode<out T : Any, D : Any>(
      * @return The new node as a part of a copy of the entire tree.
      */
     fun <T : Any> replaceWith(newNode: VisualNode<T, D>): VisualNode<T, D> {
-        val parentNode = parent ?: return newNode // When replacing the root node, just use the new node as the new root.
+        val parentNode =
+            parent ?: return newNode // When replacing the root node, just use the new node as the new root.
 
         val expectedParentIndex = siblingsBefore.size
-        val replacedParent = parentNode.replaceWith(parentNode.copy(
-            proposedChildren = siblingsBefore + newNode + siblingsAfter
-        ))
+        val replacedParent = parentNode.replaceWith(
+            parentNode.copy(
+                proposedChildren = siblingsBefore + newNode + siblingsAfter
+            )
+        )
         return replacedParent.children[expectedParentIndex] as VisualNode<T, D>
+    }
+
+    fun <T : Any> findChildByDataType(dataType: KClass<T>): VisualNode<T, D>? {
+        if (dataType.isInstance(data)) {
+            return this as VisualNode<T, D>
+        }
+
+        return children
+            .map { child ->
+                child.findChildByDataType(dataType)
+            }
+            .firstOrNull()
     }
 
     companion object {

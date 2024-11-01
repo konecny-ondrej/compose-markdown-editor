@@ -6,4 +6,6 @@ package me.okonecny.wysiwyg.ast.data
  */
 data class Text(
     override val text: String
-) : HasText
+) : HasText<Text> {
+    override fun replaceText(text: String): Text = Text(text)
+}

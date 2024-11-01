@@ -27,6 +27,7 @@ fun App() {
         md.bufferedReader().readText()
     })
 
+    var editorState by rememberFlexmarkMarkdownEditorState(markdownSource, filename)
 
     MaterialTheme {
         Column {
@@ -37,7 +38,6 @@ fun App() {
             }
 
             val documentTheme = DocumentTheme.default
-            var editorState by rememberFlexmarkMarkdownEditorState(markdownSource, filename)
             MarkdownEditor(
                 editorState = editorState,
                 documentTheme = documentTheme,

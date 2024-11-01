@@ -129,18 +129,26 @@ fun <D : Any> WysiwygEditor(
                         newVisualCursorPosition,
                         textInputCommand.text.length
                     )
-                    val editedNode = editorState.nodeCursor?.node?.findChildByDataType(HasText::class)
+                    val nodeCursor = editorState.nodeCursor
+                    val editedNode = nodeCursor?.node?.findChildByDataType(HasText::class)
                     // TODO: handle selection
-                    if (editedNode != null) {
-                        onChange(
-                            editorState.copy(
-                                visualDocument = editedNode.replaceWith(
-                                    editedNode.copy(
-                                        data = editedNode.data.replaceText(editedNode.data.text + textInputCommand.text)
+                    if (nodeCursor != null && editedNode != null) {
+                        val editedText = editedNode.data.text
+                        val newState = editorState.copy(
+                            visualDocument = editedNode.replaceWith(
+                                editedNode.copy(
+                                    data = editedNode.data.replaceText(
+                                        editedText.substring(0, nodeCursor.visualOffset)
+                                                + textInputCommand.text
+                                                + editedText.substring(nodeCursor.visualOffset, editedText.length)
                                     )
-                                ).root
-                            )
+                                )
+                            ).root
                         )
+                        onChange(newState)
+                        // TODO: move the cursor after rendering the document. => reintroduce cursorRequest...
+                        newState.visualSelection = Selection.empty
+                        newState.visualCursor = newVisualCursorPosition
                     }
                 }
 
@@ -151,17 +159,6 @@ fun <D : Any> WysiwygEditor(
             }
 
             // TODO: register undo action
-            val changed = true
-            if (changed) {
-                editorState.visualSelection = Selection.empty
-                editorState.visualCursor = newVisualCursorPosition
-                onChange(
-                    editorState.copy(
-//                        sourceText = editedSourceEditor.sourceText,
-//                        undoManager = editedUndoManager
-                    )
-                )
-            }
         }
     }
 }

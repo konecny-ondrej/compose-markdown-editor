@@ -148,29 +148,6 @@ fun WysiwygEditor(
     }
 }
 
-private fun computeVisualCursor(sourceCursor: Int, scope: InteractiveScope): CursorPosition {
-    val componentAtCursor = scope.componentAtSource(sourceCursor)
-    val cursorVisualRange = componentAtCursor.textMapping.toVisual(TextRange(sourceCursor))
-    if (cursorVisualRange != null && cursorVisualRange.collapsed) return CursorPosition(
-        componentAtCursor.id,
-        cursorVisualRange.start
-    )
-
-    // Decide if start or end is closer to the source cursor pos.
-    val componentSourceRange = componentAtCursor.textMapping.coveredSourceRange
-    val visualOffset = if (componentSourceRange == null) {
-        componentAtCursor.visualTextRange.start
-    } else {
-        val visualRange = cursorVisualRange ?: componentAtCursor.visualTextRange
-        if (abs(componentSourceRange.start - sourceCursor) <= abs(componentSourceRange.end - sourceCursor)) {
-            visualRange.start
-        } else {
-            visualRange.end
-        }
-    }
-    return CursorPosition(componentAtCursor.id, visualOffset)
-}
-
 // region dsl
 
 interface WysiwygEditorScope {

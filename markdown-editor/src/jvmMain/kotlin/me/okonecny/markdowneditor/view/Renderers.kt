@@ -5,18 +5,18 @@ import me.okonecny.markdowneditor.MappedText
 import me.okonecny.wysiwyg.ast.VisualNode
 import kotlin.reflect.KClass
 
-data class Renderers<Document>(
+data class Renderers<Document : Any>(
     val unknownBlockRenderer: BlockRenderer<Any, Document> = noopBlockRenderer(),
     val unknownInlineRenderer: InlineRenderer<Any, Document> = noopInlineRenderer(),
     val blockRenderers: Map<KClass<*>, BlockRenderer<*, Document>> = emptyMap(),
     val inlineRenderers: Map<KClass<*>, InlineRenderer<*, Document>> = emptyMap(),
     val ignoredNodeTypes: Set<KClass<*>> = emptySet()
 ) {
-    inline fun <reified T> withRenderer(renderer: BlockRenderer<T, Document>): Renderers<Document> = copy(
+    inline fun <reified T : Any> withRenderer(renderer: BlockRenderer<T, Document>): Renderers<Document> = copy(
         blockRenderers = blockRenderers + (T::class to renderer)
     )
 
-    inline fun <reified T> withRenderer(renderer: InlineRenderer<T, Document>): Renderers<Document> = copy(
+    inline fun <reified T : Any> withRenderer(renderer: InlineRenderer<T, Document>): Renderers<Document> = copy(
         inlineRenderers = inlineRenderers + (T::class to renderer)
     )
 
@@ -51,7 +51,7 @@ data class Renderers<Document>(
     }
 
     companion object {
-        private fun <T, D> noopBlockRenderer(): BlockRenderer<T, D> =
+        private fun <T : Any, D : Any> noopBlockRenderer(): BlockRenderer<T, D> =
             object : BlockRenderer<T, D> {
                 @Composable
                 override fun RenderContext<D>.render(block: VisualNode<T, D>) {
@@ -59,7 +59,7 @@ data class Renderers<Document>(
                 }
             }
 
-        private fun <T, D> noopInlineRenderer(): InlineRenderer<T, D> =
+        private fun <T : Any, D : Any> noopInlineRenderer(): InlineRenderer<T, D> =
             object : InlineRenderer<T, D> {
                 @Composable
                 override fun RenderContext<D>.render(inlineNode: VisualNode<T, D>): MappedText = MappedText.empty

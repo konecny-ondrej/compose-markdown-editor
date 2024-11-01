@@ -2,7 +2,7 @@ package me.okonecny.wysiwyg.ast
 
 import kotlin.reflect.KClass
 
-data class VisualNodeEditors<D>(
+data class VisualNodeEditors<D : Any>(
     val nodeEditors: Map<KClass<*>, VisualNodeEditor<*, D>>
 ) {
     inline fun <reified T : Any> forNodeOfType(node: VisualNode<T, D>): VisualNodeEditor<T, D> =

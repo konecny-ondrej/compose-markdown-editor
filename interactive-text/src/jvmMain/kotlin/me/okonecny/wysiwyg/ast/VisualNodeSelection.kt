@@ -1,6 +1,6 @@
 package me.okonecny.wysiwyg.ast
 
-data class VisualNodeSelection<D>(
+data class VisualNodeSelection<D : Any>(
     val start: VisualNodeCursorPosition<D>,
     val end: VisualNodeCursorPosition<D>
 ) {
@@ -20,7 +20,7 @@ enum class VisualNodeSelectionMode {
     OUTSIDE
 }
 
-fun <D> VisualNode<*, D>.selectionMode(selection: VisualNodeSelection<D>?): VisualNodeSelectionMode {
+fun <D : Any> VisualNode<*, D>.selectionMode(selection: VisualNodeSelection<D>?): VisualNodeSelectionMode {
     // Check myself first.
     if (selection == null) return VisualNodeSelectionMode.OUTSIDE
     if (selection.start.node == selection.end.node && selection.start.node == this) return VisualNodeSelectionMode.CONTAINS_SELECTION
@@ -45,7 +45,7 @@ fun <D> VisualNode<*, D>.selectionMode(selection: VisualNodeSelection<D>?): Visu
     return VisualNodeSelectionMode.OUTSIDE
 }
 
-fun <D> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean {
+fun <D : Any> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean {
     if (this == null) return false
     if (start.node == node || end.node == node) return true
     return node.isBetweenIncluding(start.node, end.node)

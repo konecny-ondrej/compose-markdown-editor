@@ -1,6 +1,6 @@
 package me.okonecny.wysiwyg.ast
 
-data class VisualEditorState<D>(
+data class VisualEditorState<D : Any>(
     val cursorPosition: VisualNodeCursorPosition<D>,
     val selection: VisualNodeSelection<D>?
 )

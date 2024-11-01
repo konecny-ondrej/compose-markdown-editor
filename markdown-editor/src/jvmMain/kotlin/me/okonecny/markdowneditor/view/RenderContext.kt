@@ -5,7 +5,7 @@ import androidx.compose.ui.text.AnnotatedString
 import me.okonecny.markdowneditor.MappedText
 import me.okonecny.wysiwyg.ast.VisualNode
 
-interface RenderContext<Document> {
+interface RenderContext<Document : Any> {
     val document: Document
     val activeAnnotationTags: Set<String>
 

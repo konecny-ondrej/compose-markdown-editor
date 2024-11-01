@@ -5,6 +5,6 @@ import java.nio.file.Path
 /**
  * Parses the input into our internal AST represented by VisualNode instances.
  */
-interface Parser<in IN, Document> {
+interface Parser<in IN, Document : Any> {
     fun parse(input: IN, basePath: Path): VisualNode<Document, Document>
 }

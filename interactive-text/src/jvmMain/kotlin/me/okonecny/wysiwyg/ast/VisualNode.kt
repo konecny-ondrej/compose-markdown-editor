@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.data.Text
  * @param T Type of the data carried by this node.
  * @param D Type of the data of the root node, the "document type" for short.
  */
-data class VisualNode<out T, D>(
+data class VisualNode<out T : Any, D : Any>(
     val data: T,
     val parentIndex: Int? = null,
     val parent: VisualNode<*, D>? = null,
@@ -31,7 +31,7 @@ data class VisualNode<out T, D>(
             ?: this as VisualNode<D, D> // If this is root, then the data type must be the same as the document type.
     }
 
-    val allSiblings: List<VisualNode<*, D>> by lazy {
+    val allSiblings: List<VisualNode<Any, D>> by lazy {
         parent?.children ?: listOf(this)
     }
 
@@ -96,7 +96,7 @@ data class VisualNode<out T, D>(
     }
 
     companion object {
-        private fun <D> nil(parent: VisualNode<*, D>) = VisualNode(
+        private fun <D : Any> nil(parent: VisualNode<*, D>) = VisualNode(
             parent = parent,
             data = Text("\uFEFF"), // Zero-width space
             sourceRange = TextRange.Zero
@@ -104,7 +104,7 @@ data class VisualNode<out T, D>(
     }
 }
 
-fun <D> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): VisualNode<*, D> {
+fun <D : Any> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): VisualNode<*, D> {
     if (node1 == node2) return node1
     val startParents = node1.allParents
     val endParents = node2.allParents

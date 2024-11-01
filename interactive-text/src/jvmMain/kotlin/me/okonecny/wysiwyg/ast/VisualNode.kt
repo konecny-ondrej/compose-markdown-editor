@@ -95,6 +95,22 @@ data class VisualNode<out T : Any, D : Any>(
         return myIndexInParent in n1f1..n2f1
     }
 
+    /**
+     * Replaces the node with the new node specified.
+     * More specifically this copies the entire tree and places the new node instead of this one.
+     * @param newNode New node to use instead of this one.
+     * @return The new node as a part of a copy of the entire tree.
+     */
+    fun <T : Any> replaceWith(newNode: VisualNode<T, D>): VisualNode<T, D> {
+        val parentNode = parent ?: return newNode // When replacing the root node, just use the new node as the new root.
+
+        val expectedParentIndex = siblingsBefore.size
+        val replacedParent = parentNode.replaceWith(parentNode.copy(
+            proposedChildren = siblingsBefore + newNode + siblingsAfter
+        ))
+        return replacedParent.children[expectedParentIndex] as VisualNode<T, D>
+    }
+
     companion object {
         private fun <D : Any> nil(parent: VisualNode<*, D>) = VisualNode(
             parent = parent,

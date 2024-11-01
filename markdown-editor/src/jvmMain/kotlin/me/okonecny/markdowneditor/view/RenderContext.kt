@@ -12,6 +12,8 @@ interface RenderContext<Document : Any> {
     @Composable
     fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit
 
+    fun annotateLinkByHandler(linkText: MappedText, linkUrl: String?): MappedText
+
     @Composable
     fun renderInlines(inlines: Iterable<VisualNode<Any, Document>>): MappedText
 

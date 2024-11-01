@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -11,6 +12,10 @@ import me.okonecny.interactivetext.DisabledInteractiveContainer
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MarkdownView
+import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
+import me.okonecny.markdowneditor.internal.create
+import me.okonecny.markdowneditor.view.Renderers
+import me.okonecny.markdowneditor.view.flexmarkDefault
 import java.nio.file.Path
 
 /**
@@ -50,7 +55,14 @@ class ExampleRenderer : CodeFenceRenderer {
                         .background(Color(0xAAAAAAFF))
                 ) {
                     DisabledInteractiveContainer {
-                        MarkdownView(markdownCode, basePath, scrollable = false)
+                        val markdown = remember(basePath) { MarkdownEditorComponent::class.create() }
+                        val visualDocument =
+                            remember(code, basePath) { markdown.markdownParser.parse(markdownCode, basePath) }
+                        MarkdownView(
+                            visualDocument,
+                            scrollable = false,
+                            renderers = Renderers.flexmarkDefault()
+                        )
                     }
                 }
                 Text(

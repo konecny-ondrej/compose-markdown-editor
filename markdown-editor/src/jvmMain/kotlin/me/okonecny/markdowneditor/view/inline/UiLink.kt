@@ -1,8 +1,10 @@
 package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
-import me.okonecny.markdowneditor.*
+import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.ast.data.Link
+import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.InlineRenderer
 import me.okonecny.markdowneditor.view.RenderContext
@@ -15,7 +17,7 @@ internal class UiLink : InlineRenderer<Link, FlexmarkDocument> {
             val linkData = inlineNode.data
             val url = linkData.target
             val linkText = renderInlines(inlineNode.children)
-            val annotatedLinkText = annotateLinkByHandler(linkText, url, LinkHandlers.current)
+            val annotatedLinkText = annotateLinkByHandler(linkText, url)
             appendStyled(
                 annotatedLinkText,
                 if (linkText == annotatedLinkText) {

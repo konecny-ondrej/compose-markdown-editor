@@ -69,5 +69,5 @@ internal abstract class MarkdownEditorComponent {
 
     @Provides
     @MarkdownEditorScope
-    protected fun headerIdGenerator(): HeaderIdGenerator = HeaderIdGenerator()
+    protected fun headerIdGenerator(parser: Parser): HeaderIdGenerator = HeaderIdGenerator(parser.options)
 }

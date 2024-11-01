@@ -47,7 +47,8 @@ import java.nio.file.Path
 
 @Inject
 class FlexmarkParser(
-    private val flexmarkParser: com.vladsch.flexmark.parser.Parser
+    private val flexmarkParser: com.vladsch.flexmark.parser.Parser,
+    private val headerIdGenerator: HeaderIdGenerator
 ) : Parser<String, FlexmarkDocument> {
     override fun parse(input: String, basePath: Path): VisualNode<FlexmarkDocument, FlexmarkDocument> {
         val rootNode = flexmarkParser.parse(input)
@@ -90,7 +91,7 @@ class FlexmarkParser(
             val data: Any = when (node) { // TODO: make this extensible like the renderers.
                 is Heading -> me.okonecny.markdowneditor.ast.data.Heading(
                     Level.forNumericLevel(node.level),
-                    "" // TODO: generate anchor name
+                    headerIdGenerator.getId(node.text) ?: ""
                 )
 
                 is Paragraph -> me.okonecny.markdowneditor.ast.data.Paragraph

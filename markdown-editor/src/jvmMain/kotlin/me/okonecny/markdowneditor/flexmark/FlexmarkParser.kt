@@ -75,13 +75,16 @@ class FlexmarkParser(
         return VisualNode(
             parent = null,
             parentIndex = null,
-            proposedChildren = parseChildren(rootNode, document),
+            proposedChildren = parseChildren(rootNode, document::resolveReference),
             data = document,
             sourceRange = rootNode.range
         )
     }
 
-    private fun parseChildren(parentNode: Node, document: FlexmarkDocument): List<VisualNode<Any, FlexmarkDocument>> {
+    private fun parseChildren(
+        parentNode: Node,
+        resolveReference: (reference: String) -> MarkdownReference?
+    ): List<VisualNode<Any, FlexmarkDocument>> {
         val children = mutableListOf<VisualNode<Any, FlexmarkDocument>>()
         for (node in parentNode.children) {
             val data: Any = when (node) { // TODO: make this extensible like the renderers.
@@ -156,7 +159,7 @@ class FlexmarkParser(
 
                 is LinkRef -> {
                     val rawReference = node.reference.ifEmpty { node.text }
-                    val resolvedReference = document.resolveReference(rawReference.toString())
+                    val resolvedReference = resolveReference(rawReference.toString())
                     me.okonecny.markdowneditor.ast.data.Link(
                         target = resolvedReference?.url ?: "",
                         title = resolvedReference?.title
@@ -170,7 +173,7 @@ class FlexmarkParser(
 
                 is ImageRef -> {
                     val rawReference = node.reference.ifEmpty { node.text }
-                    val resolvedReference = document.resolveReference(rawReference.toString())
+                    val resolvedReference = resolveReference(rawReference.toString())
                     me.okonecny.markdowneditor.ast.data.Image(
                         url = resolvedReference?.url ?: "",
                         title = resolvedReference?.title
@@ -214,7 +217,7 @@ class FlexmarkParser(
             }
             children.add(
                 VisualNode(
-                    proposedChildren = parseChildren(node, document),
+                    proposedChildren = parseChildren(node, resolveReference),
                     data = data,
                     sourceRange = node.range
                 )

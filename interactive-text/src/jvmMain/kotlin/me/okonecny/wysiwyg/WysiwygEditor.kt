@@ -29,8 +29,6 @@ fun WysiwygEditor(
         sourceText,
         interactiveScope,
         undoManager,
-        sourceCursor,
-        sourceCursorRequest
     ) = editorState
 
     val clipboardManager = LocalClipboardManager.current
@@ -46,9 +44,6 @@ fun WysiwygEditor(
             modifier = modifier,
             onCursorMovement = { newVisualCursor ->
                 editorState.visualCursor = newVisualCursor
-                val component = interactiveScope.componentUnderCursor ?: return@InteractiveContainer
-                val newSourceCursor = component.textMapping.toSource(TextRange(newVisualCursor.visualOffset))
-                onChange(editorState.copy(sourceCursor = newSourceCursor?.start))
             },
             onInput = inputQueue::add
         ) {
@@ -56,7 +51,7 @@ fun WysiwygEditor(
         }
 
         val visualCursorRect = editorState.visualCursorRect
-        if (sourceCursor != null && visualCursorRect != null) {
+        if (visualCursorRect != null) {
             ConstraintLayout {
                 val (toolbar, autocompletePopup) = createRefs()
                 val toolbarOffset = with(LocalDensity.current) {
@@ -71,7 +66,7 @@ fun WysiwygEditor(
                     translationX = toolbarOffset.x
                     translationY = toolbarOffset.y
                 }) {
-                    editorScope.toolbar(inputQueue::add)
+//                    editorScope.toolbar(inputQueue::add)
                 }
 
                 Box(Modifier.constrainAs(autocompletePopup) {
@@ -92,89 +87,60 @@ fun WysiwygEditor(
             }
         }
     }
-    LaunchedEffect(sourceCursorRequest) {
-        if (interactiveScope.isPlaced) {
-            sourceCursorRequest?.apply {
-                editorState.visualCursor = computeVisualCursor(
-                    this,
-                    interactiveScope
-                )
-                onChange(
-                    editorState.copy(
-                        sourceCursor = sourceCursorRequest,
-                        sourceCursorRequest = null
-                    )
-                )
-            }
-        }
-    }
+
     LaunchedEffect(inputQueue.size) {
         for (i in inputQueue.lastIndex downTo 0) {
             val textInputCommand = inputQueue.removeAt(i)
             if (editorState.visualCursor == null && textInputCommand.needsValidCursor) break
-            val sourceEditor = SourceEditor(sourceText, sourceCursor ?: break, editorState.sourceSelection)
 
-            var editedUndoManager = undoManager
-            val editedSourceEditor = when (textInputCommand) {
+            lateinit var newVisualCursorPosition: CursorPosition
+            when (textInputCommand) {
                 Copy -> {
-                    clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
-                    sourceEditor
+                    clipboardManager.setText(AnnotatedString("TODO"))
+                    TODO()
                 }
 
                 Cut -> {
-                    clipboardManager.setText(AnnotatedString(sourceEditor.selectedText))
-                    sourceEditor.deleteSelection()
+                    clipboardManager.setText(AnnotatedString("TODO"))
+                    TODO()
                 }
 
-                Paste -> sourceEditor.type(clipboardManager.getText()?.text ?: "")
+                Paste -> TODO()
                 is Delete -> {
                     when (textInputCommand.size) {
                         Delete.Size.LETTER -> when (textInputCommand.direction) {
-                            Delete.Direction.BEFORE_CURSOR -> sourceEditor.deleteLetterBeforeCursor()
-                            Delete.Direction.AFTER_CURSOR -> sourceEditor.deleteLetterAfterCursor()
+                            Delete.Direction.BEFORE_CURSOR -> TODO()
+                            Delete.Direction.AFTER_CURSOR -> TODO()
                         }
 
                         Delete.Size.WORD -> when (textInputCommand.direction) {
-                            Delete.Direction.BEFORE_CURSOR -> sourceEditor.deleteWordBeforeCursor()
-                            Delete.Direction.AFTER_CURSOR -> sourceEditor.deleteWordAfterCursor()
+                            Delete.Direction.BEFORE_CURSOR -> TODO()
+                            Delete.Direction.AFTER_CURSOR -> TODO()
                         }
                     }
                 }
 
-                NewLine -> sourceEditor.typeNewLine()
-                is Type -> sourceEditor.type(textInputCommand.text)
-                is ReplaceRange -> sourceEditor.replaceRange(
-                    textInputCommand.sourceRange,
-                    textInputCommand.newSource,
-                    textInputCommand.sourceCursorOffset
-                )
-
-                is Undo -> if (undoManager.hasHistory) {
-                    editedUndoManager = undoManager.undo()
-                    editedUndoManager.currentHistory
-                } else sourceEditor
-
-                is Redo -> if (undoManager.hasHistory) {
-                    editedUndoManager = undoManager.redo()
-                    editedUndoManager.currentHistory
-                } else sourceEditor
-            }
-
-            if (undoManager == editedUndoManager) { // TODO: maybe don't add every letter types, but bigger chunks.
-                if (!editedUndoManager.hasHistory) {
-                    editedUndoManager = editedUndoManager.add(sourceEditor)
+                NewLine -> TODO()
+                is Type -> { // TODO: actually edit something
+                    newVisualCursorPosition = editorState.visualCursor ?: break
+                    newVisualCursorPosition = interactiveScope.moveCursorRight(newVisualCursorPosition, textInputCommand.text.length)
                 }
-                editedUndoManager = editedUndoManager.add(editedSourceEditor)
+
+                is Undo -> TODO()
+
+                is Redo -> TODO()
+                is ReplaceRange -> TODO("remove this")
             }
-            if (editedSourceEditor.hasChangedWrt(sourceEditor)) {
+
+            // TODO: register undo action
+            val changed = true
+            if (changed) {
                 editorState.visualSelection = Selection.empty
-                editorState.visualCursor = CursorPosition.invalid
+                editorState.visualCursor = newVisualCursorPosition
                 onChange(
                     editorState.copy(
-                        sourceText = editedSourceEditor.sourceText,
-                        undoManager = editedUndoManager,
-                        sourceCursor = null,
-                        sourceCursorRequest = editedSourceEditor.sourceCursor
+//                        sourceText = editedSourceEditor.sourceText,
+//                        undoManager = editedUndoManager
                     )
                 )
             }
@@ -236,8 +202,8 @@ data class WysiwygEditorState(
     val sourceText: String,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager = UndoManager(),
-    val sourceCursor: Int? = null,
-    val sourceCursorRequest: Int? = null
+    val sourceCursor: Int? = null, // TODO: remove
+    val sourceCursorRequest: Int? = null // TODO: remove
 ) {
     var visualCursor by interactiveScope::cursorPosition
     var visualSelection by interactiveScope::selection

@@ -110,7 +110,7 @@ data class Delete(
     override val needsValidCursor: Boolean = true
 }
 
-data class ReplaceRange(
+data class ReplaceRange( // TODO: remove
     val sourceRange: TextRange, val newSource: String, val sourceCursorOffset: Int = 0
 ) : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = sourceCursorOffset != 0

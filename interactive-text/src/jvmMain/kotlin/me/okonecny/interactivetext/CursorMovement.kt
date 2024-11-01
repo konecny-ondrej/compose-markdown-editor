@@ -197,6 +197,15 @@ fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition
 fun InteractiveScope.moveCursorLeftByWord(oldPosition: CursorPosition): CursorPosition =
     moveCursorByWord(oldPosition, ::moveCursorLeft)
 
+fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition, stepCount: Int): CursorPosition {
+    require(stepCount >= 0) { "stepCount must be non-negative, was $stepCount." }
+    var cursorPosition = oldPosition
+    for (i in 0..<stepCount) {
+        cursorPosition = moveCursorRight(cursorPosition)
+    }
+    return cursorPosition
+}
+
 fun InteractiveScope.moveCursorRight(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByCharsInComponent(oldPosition, 1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition

@@ -127,6 +127,10 @@ data class VisualNode<out T : Any, D : Any>(
             .firstOrNull()
     }
 
+    override fun toString(): String {
+        return "VisualNode(${parent?.data?.let { "parent=" + it::class.simpleName } ?: "<ROOT>"}, data=$data)"
+    }
+
     companion object {
         private fun <D : Any> nil(parent: VisualNode<*, D>) = VisualNode(
             parent = parent,

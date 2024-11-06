@@ -139,3 +139,9 @@ data object Undo : TextInputCommand {
 data object Redo : TextInputCommand {
     override val needsValidCursor: Boolean = false
 }
+
+data class MoveCursorOnLine(
+    val steps: Int
+) : TextInputCommand {
+    override val needsValidCursor: Boolean = steps != 0
+}

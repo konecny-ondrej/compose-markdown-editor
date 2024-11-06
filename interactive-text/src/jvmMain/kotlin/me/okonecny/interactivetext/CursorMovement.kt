@@ -183,6 +183,15 @@ private fun InteractiveScope.moveCursorByLine(cursorPosition: CursorPosition, li
     return CursorPosition(component.id, newCursorOffset)
 }
 
+fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition, stepCount: Int): CursorPosition {
+    require(stepCount >= 0) { "stepCount must be non-negative, was $stepCount." }
+    var cursorPosition = oldPosition
+    for (i in 0..<stepCount) {
+        cursorPosition = moveCursorLeft(cursorPosition)
+    }
+    return cursorPosition
+}
+
 fun InteractiveScope.moveCursorLeft(oldPosition: CursorPosition): CursorPosition {
     val lineCursorPosition = moveCursorByCharsInComponent(oldPosition, -1)
     if (lineCursorPosition != oldPosition) return lineCursorPosition

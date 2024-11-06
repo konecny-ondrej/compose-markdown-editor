@@ -90,76 +90,72 @@ fun <D : Any> WysiwygEditor(
         }
     }
 
-    LaunchedEffect(inputQueue.size) {
-        for (i in inputQueue.lastIndex downTo 0) {
-            val textInputCommand = inputQueue.removeAt(i)
-            if (editorState.visualCursor == null && textInputCommand.needsValidCursor) break
+    LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size) {
+        val textInputCommand = inputQueue.removeFirstOrNull() ?: return@LaunchedEffect
+        if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
-            lateinit var newVisualCursorPosition: CursorPosition
-            when (textInputCommand) {
-                Copy -> {
-                    clipboardManager.setText(AnnotatedString("TODO"))
-                    TODO()
-                }
-
-                Cut -> {
-                    clipboardManager.setText(AnnotatedString("TODO"))
-                    TODO()
-                }
-
-                Paste -> TODO()
-                is Delete -> {
-                    when (textInputCommand.size) {
-                        Delete.Size.LETTER -> when (textInputCommand.direction) {
-                            Delete.Direction.BEFORE_CURSOR -> TODO()
-                            Delete.Direction.AFTER_CURSOR -> TODO()
-                        }
-
-                        Delete.Size.WORD -> when (textInputCommand.direction) {
-                            Delete.Direction.BEFORE_CURSOR -> TODO()
-                            Delete.Direction.AFTER_CURSOR -> TODO()
-                        }
-                    }
-                }
-
-                NewLine -> TODO()
-                is Type -> {
-                    newVisualCursorPosition = editorState.visualCursor ?: break
-                    newVisualCursorPosition = interactiveScope.moveCursorRight(
-                        newVisualCursorPosition,
-                        textInputCommand.text.length
-                    )
-                    val nodeCursor = editorState.nodeCursor
-                    val editedNode = nodeCursor?.node?.findChildByDataType(HasText::class)
-                    // TODO: handle selection
-                    if (nodeCursor != null && editedNode != null) {
-                        val editedText = editedNode.data.text
-                        val newState = editorState.copy(
-                            visualDocument = editedNode.replaceWith(
-                                editedNode.copy(
-                                    data = editedNode.data.replaceText(
-                                        editedText.substring(0, nodeCursor.visualOffset)
-                                                + textInputCommand.text
-                                                + editedText.substring(nodeCursor.visualOffset, editedText.length)
-                                    )
-                                )
-                            ).root
-                        )
-                        onChange(newState)
-                        // TODO: move the cursor after rendering the document. => reintroduce cursorRequest...
-                        newState.visualSelection = Selection.empty
-                        newState.visualCursor = newVisualCursorPosition
-                    }
-                }
-
-                is Undo -> TODO()
-
-                is Redo -> TODO()
-                is ReplaceRange -> TODO("remove this")
+        when (textInputCommand) {
+            Copy -> {
+                clipboardManager.setText(AnnotatedString("TODO"))
+                TODO()
             }
 
-            // TODO: register undo action
+            Cut -> {
+                clipboardManager.setText(AnnotatedString("TODO"))
+                TODO()
+            }
+
+            Paste -> TODO()
+            is Delete -> {
+                when (textInputCommand.size) {
+                    Delete.Size.LETTER -> when (textInputCommand.direction) {
+                        Delete.Direction.BEFORE_CURSOR -> TODO()
+                        Delete.Direction.AFTER_CURSOR -> TODO()
+                    }
+
+                    Delete.Size.WORD -> when (textInputCommand.direction) {
+                        Delete.Direction.BEFORE_CURSOR -> TODO()
+                        Delete.Direction.AFTER_CURSOR -> TODO()
+                    }
+                }
+            }
+
+            NewLine -> TODO()
+            is Type -> {
+                val nodeCursor = editorState.nodeCursor ?: return@LaunchedEffect
+                val editedNode = nodeCursor.node.findChildByDataType(HasText::class) ?: return@LaunchedEffect
+                val editedText = editedNode.data.text
+                val newState = editorState.copy(
+                    visualDocument = editedNode.replaceWith(
+                        editedNode.copy(
+                            data = editedNode.data.replaceText(
+                                editedText.substring(0, nodeCursor.visualOffset)
+                                        + textInputCommand.text
+                                        + editedText.substring(nodeCursor.visualOffset, editedText.length)
+                            )
+                        )
+                    ).root
+                )
+                inputQueue.add(MoveCursorOnLine(textInputCommand.text.length))
+                onChange(newState)
+            }
+
+            is Undo -> TODO()
+
+            is Redo -> TODO()
+            is ReplaceRange -> TODO("remove this")
+            is MoveCursorOnLine -> {
+                val oldCursorPosition = editorState.visualCursor ?: return@LaunchedEffect
+                editorState.visualCursor = if (textInputCommand.steps > 0) {
+                    interactiveScope.moveCursorRight(oldCursorPosition, textInputCommand.steps)
+                } else {
+                    interactiveScope.moveCursorLeft(oldCursorPosition, -textInputCommand.steps)
+                }
+                editorState.visualSelection = Selection.empty
+            }
         }
+
+        // TODO: register undo action
     }
 }
 

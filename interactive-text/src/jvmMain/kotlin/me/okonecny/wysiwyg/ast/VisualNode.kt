@@ -146,6 +146,29 @@ data class VisualNode<out T : Any, D : Any>(
             .firstOrNull()
     }
 
+    /**
+     * Assume this node to be a container of text. Then find a child node (or self), which contains the character
+     * at the specific offset from the start of the text in this container.
+     */
+    fun findTextChildAtOffset(charOffset: Int): VisualNode<HasText<*>, D> {
+        var textLengthSoFar = 0
+        var currentNode: VisualNode<*, D> = this
+
+        while (textLengthSoFar < charOffset) {
+            if (currentNode.data is HasText<*>) {
+                val textNode = currentNode as VisualNode<HasText<*>, D>
+                textLengthSoFar += textNode.data.text.length
+                if (textLengthSoFar >= charOffset) return textNode
+            }
+            currentNode = currentNode.nextNodeInReadingOrder ?: throw IndexOutOfBoundsException(
+                "Index %d is larger than the text length %d".format(charOffset, textLengthSoFar)
+            )
+        }
+        throw IndexOutOfBoundsException(
+            "Index %d is larger than the text length %d".format(charOffset, textLengthSoFar)
+        )
+    }
+
     override fun toString(): String {
         return "VisualNode(${parent?.data?.let { "parent=" + it::class.simpleName } ?: "<ROOT>"}, data=$data)"
     }

@@ -5,6 +5,7 @@ import me.okonecny.interactivetext.InteractiveId
 import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
 import me.okonecny.lang.only
 import me.okonecny.lang.onlyOrNull
+import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
 import kotlin.reflect.KClass
 
@@ -38,10 +39,14 @@ data class VisualNode<out T : Any, D : Any>(
 
     val interactiveId: InteractiveId by lazy {
         // Generates interactive ids in reading order.
-        // This is just a depth-first pre-order walk of the VisualNode tree.
-        // We just want to initialize the interactiveId on each node that we visit, so we don't have to compute them again.
-        if (parent == null) return@lazy firstInteractiveId
-        val previousNodeByInteractiveId = if (siblingsBefore.isEmpty()) {
+        previousNodeInReadingOrder?.interactiveId?.plus(1) ?: firstInteractiveId;
+    }
+
+    val previousNodeInReadingOrder: VisualNode<Any, D>? by lazy {
+        // This is just a reverse depth-first pre-order walk of the VisualNode tree.
+        // We just want to initialize the "previous node" on each node that we visit, so we don't have to compute them again.
+        if (parent == null) return@lazy null
+        if (siblingsBefore.isEmpty()) {
             parent
         } else {
             val previousSibling = siblingsBefore.last()
@@ -55,7 +60,21 @@ data class VisualNode<out T : Any, D : Any>(
                 previousSiblingDeepestRightChild
             }
         }
-        previousNodeByInteractiveId.interactiveId + 1
+    }
+
+    val nextNodeInReadingOrder: VisualNode<Any, D>? by lazy {
+        // This is just a depth-first pre-order walk of the Visual Node tree.
+        if (children.isNotEmpty()) return@lazy children.first()
+
+        if (siblingsAfter.isNotEmpty()) {
+            return@lazy siblingsAfter.first()
+        } else {
+            var parentWithSiblings: VisualNode<Any, D> = parent ?: return@lazy null
+            while (parentWithSiblings.siblingsAfter.isEmpty()) {
+                parentWithSiblings = parentWithSiblings.parent ?: return@lazy null
+            }
+            return@lazy parentWithSiblings.siblingsAfter.first()
+        }
     }
 
     val siblingsBefore by lazy {

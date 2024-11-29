@@ -12,7 +12,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
-import me.okonecny.wysiwyg.ast.data.HasText
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -90,7 +89,20 @@ fun <D : Any> WysiwygEditor(
         }
     }
 
-    LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size) {
+    LaunchedEffect(editorState.visualCursorRequest) {
+        val request = editorState.visualCursorRequest ?: return@LaunchedEffect
+        val oldCursorPosition = editorState.visualCursor ?: return@LaunchedEffect
+        editorState.visualCursor = if (request.steps > 0) {
+            interactiveScope.moveCursorRight(oldCursorPosition, request.steps)
+        } else {
+            interactiveScope.moveCursorLeft(oldCursorPosition, -request.steps)
+        }
+        editorState.visualSelection = Selection.empty
+        onChange(editorState.copy(visualCursorRequest = null))
+    }
+
+    LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size, editorState.visualCursorRequest) {
+        if (editorState.visualCursorRequest != null) return@LaunchedEffect
         val textInputCommand = inputQueue.removeFirstOrNull() ?: return@LaunchedEffect
         if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
@@ -123,20 +135,21 @@ fun <D : Any> WysiwygEditor(
             NewLine -> TODO()
             is Type -> {
                 val nodeCursor = editorState.nodeCursor ?: return@LaunchedEffect
-                val editedNode = nodeCursor.node.findChildByDataType(HasText::class) ?: return@LaunchedEffect
-                val editedText = editedNode.data.text
+                val editedTextNodeWithOffset = nodeCursor.textNodeUnderCursor
+                val editedTextNode = editedTextNodeWithOffset.node
+                val editedText = editedTextNode.data.text
                 val newState = editorState.copy(
-                    visualDocument = editedNode.replaceWith(
-                        editedNode.copy(
-                            data = editedNode.data.replaceText(
-                                editedText.substring(0, nodeCursor.visualOffset)
+                    visualDocument = editedTextNode.replaceWith(
+                        editedTextNode.copy(
+                            data = editedTextNode.data.replaceText(
+                                editedText.substring(0, editedTextNodeWithOffset.charOffset)
                                         + textInputCommand.text
-                                        + editedText.substring(nodeCursor.visualOffset, editedText.length)
+                                        + editedText.substring(editedTextNodeWithOffset.charOffset, editedText.length)
                             )
                         )
-                    ).root
+                    ).root,
+                    visualCursorRequest = MoveCursorOnLine(textInputCommand.text.length)
                 )
-                inputQueue.add(MoveCursorOnLine(textInputCommand.text.length))
                 onChange(newState)
             }
 
@@ -145,13 +158,7 @@ fun <D : Any> WysiwygEditor(
             is Redo -> TODO()
             is ReplaceRange -> TODO("remove this")
             is MoveCursorOnLine -> {
-                val oldCursorPosition = editorState.visualCursor ?: return@LaunchedEffect
-                editorState.visualCursor = if (textInputCommand.steps > 0) {
-                    interactiveScope.moveCursorRight(oldCursorPosition, textInputCommand.steps)
-                } else {
-                    interactiveScope.moveCursorLeft(oldCursorPosition, -textInputCommand.steps)
-                }
-                editorState.visualSelection = Selection.empty
+                onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
         }
 
@@ -192,7 +199,8 @@ data class WysiwygEditorState<D : Any>(
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
-    val sourceCursorRequest: Int? = null // TODO: remove
+    val sourceCursorRequest: Int? = null, // TODO: remove
+    val visualCursorRequest: MoveCursorOnLine? = null
 ) {
     var visualCursor by interactiveScope::cursorPosition
     var visualSelection by interactiveScope::selection

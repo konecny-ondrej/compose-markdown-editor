@@ -8,7 +8,7 @@ data class VisualNodeSelection<D : Any>(
      * Node that contains the entire selection.
      */
     val containingNode: VisualNode<*, D> by lazy {
-        commonParent(start.node, end.node)
+        commonParent(start.containerNode, end.containerNode)
     }
 }
 
@@ -23,9 +23,9 @@ enum class VisualNodeSelectionMode {
 fun <D : Any> VisualNode<*, D>.selectionMode(selection: VisualNodeSelection<D>?): VisualNodeSelectionMode {
     // Check myself first.
     if (selection == null) return VisualNodeSelectionMode.OUTSIDE
-    if (selection.start.node == selection.end.node && selection.start.node == this) return VisualNodeSelectionMode.CONTAINS_SELECTION
-    if (selection.start.node == this) return VisualNodeSelectionMode.CONTAINS_START
-    if (selection.end.node == this) return VisualNodeSelectionMode.CONTAINS_END
+    if (selection.start.containerNode == selection.end.containerNode && selection.start.containerNode == this) return VisualNodeSelectionMode.CONTAINS_SELECTION
+    if (selection.start.containerNode == this) return VisualNodeSelectionMode.CONTAINS_START
+    if (selection.end.containerNode == this) return VisualNodeSelectionMode.CONTAINS_END
 
     // Search DOWN
     val containsStart = children.any { it.selectionMode(selection) == VisualNodeSelectionMode.CONTAINS_START }
@@ -47,6 +47,6 @@ fun <D : Any> VisualNode<*, D>.selectionMode(selection: VisualNodeSelection<D>?)
 
 fun <D : Any> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean {
     if (this == null) return false
-    if (start.node == node || end.node == node) return true
-    return node.isBetweenIncluding(start.node, end.node)
+    if (start.containerNode == node || end.containerNode == node) return true
+    return node.isBetweenIncluding(start.containerNode, end.containerNode)
 }

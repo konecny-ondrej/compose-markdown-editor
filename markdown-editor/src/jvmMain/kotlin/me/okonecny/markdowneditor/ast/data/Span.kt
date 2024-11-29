@@ -23,15 +23,27 @@ data class Anchor(val name: String) : LinkTarget {
     override val anchorName: String by ::name
 }
 
-data class Space(val count: UInt)
+data class Space(val count: Int) : HasText<Space> {
+    override val text: String = " ".repeat(count)
+
+    override fun replaceText(text: String): Space = Space(text.length)
+}
 
 data class Image(
     val url: String,
     val title: String?
 )
 
-data object SoftLineBreak
-data object HardLineBreak
+data object SoftLineBreak : HasText<SoftLineBreak> {
+    override val text: String = "\n"
+    override fun replaceText(text: String): SoftLineBreak = this
+}
+
+data object HardLineBreak : HasText<HardLineBreak> {
+    override val text: String = "\n"
+    override fun replaceText(text: String): HardLineBreak = this
+}
+
 data object TextBase
 data class UserMention(
     val username: String

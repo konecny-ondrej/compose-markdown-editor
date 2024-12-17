@@ -146,6 +146,24 @@ data class VisualNode<out T : Any, D : Any>(
             .firstOrNull()
     }
 
+    fun <T : Any> findNextByDataType(dataType: KClass<T>): VisualNode<T, D>? {
+        var currentNode: VisualNode<Any, D> = this
+        while (!dataType.isInstance(currentNode.data)) {
+            currentNode = currentNode.nextNodeInReadingOrder ?: return null
+        }
+
+        return currentNode as VisualNode<T, D>
+    }
+
+    fun <T : Any> findPrevByDataType(dataType: KClass<T>): VisualNode<T, D>? {
+        var currentNode: VisualNode<Any, D> = this
+        while (!dataType.isInstance(currentNode.data)) {
+            currentNode = currentNode.previousNodeInReadingOrder ?: return null
+        }
+
+        return currentNode as VisualNode<T, D>
+    }
+
     data class TextWithCharOffset<D : Any>(
         val node: VisualNode<HasText<*>, D>,
         val charOffset: Int

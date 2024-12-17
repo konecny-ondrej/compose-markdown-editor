@@ -75,7 +75,7 @@ internal fun Modifier.cursorLine(
             drawContent()
             val cursorAlphaValue = cursorAlpha.value.coerceIn(0f, 1f)
             val cursorRect = try {
-                textLayoutResult.getCursorRect(offset)
+                textLayoutResult.getCursorRect(offset.coerceIn(0, textLayoutResult.layoutInput.text.length))
             } catch (e: NullPointerException) { // Workaround for the Paragraph bugging out sometimes.
                 return@drawWithContent
             }

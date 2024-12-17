@@ -159,7 +159,7 @@ data class VisualNode<out T : Any, D : Any>(
         var textLengthSoFar = 0
         var currentNode: VisualNode<*, D> = this
 
-        while (textLengthSoFar < charOffset) {
+        while (textLengthSoFar <= charOffset) {
             if (currentNode.data is HasText<*>) {
                 val currentTextNode = currentNode as VisualNode<HasText<*>, D>
                 val currentTextLength = currentTextNode.data.text.length

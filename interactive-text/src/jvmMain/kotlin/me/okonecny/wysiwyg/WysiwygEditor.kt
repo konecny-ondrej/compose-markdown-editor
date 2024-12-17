@@ -12,6 +12,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
+import me.okonecny.wysiwyg.ast.data.HasText
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -89,17 +90,47 @@ fun <D : Any> WysiwygEditor(
         }
     }
 
-    LaunchedEffect(editorState.visualCursorRequest) {
-        val request = editorState.visualCursorRequest ?: return@LaunchedEffect
-        val oldCursorPosition = editorState.visualCursor ?: return@LaunchedEffect
-        editorState.visualCursor = if (request.steps > 0) {
-            interactiveScope.moveCursorRight(oldCursorPosition, request.steps)
-        } else {
-            interactiveScope.moveCursorLeft(oldCursorPosition, -request.steps)
+    fun moveCursor() {
+        val request = editorState.visualCursorRequest ?: return
+        val oldCursorPosition = editorState.nodeCursor ?: return
+
+        var currentNode = oldCursorPosition.textNodeUnderCursor.node
+        var currentCharOffset = oldCursorPosition.textNodeUnderCursor.charOffset
+        var currentVisualOffset = oldCursorPosition.visualOffset
+        if (request.steps > 0) {
+            for (i in 1..request.steps) {
+                if (currentCharOffset == currentNode.data.text.length) {
+                    currentNode = currentNode.findNextByDataType(HasText::class) ?: return
+                    currentCharOffset = 0
+                }
+                currentCharOffset++
+                currentVisualOffset++
+            }
+        } else if (request.steps < 0) {
+            for (i in 1..-request.steps) {
+                if (currentCharOffset == 0) {
+                    currentNode = currentNode.findPrevByDataType(HasText::class) ?: return
+                    currentCharOffset = currentNode.data.text.length
+                }
+                currentCharOffset--
+                currentVisualOffset--
+            }
         }
+
+        // TODO: this "containing block" logic is markdown-specific. Move this logic to MarkdownEditor.
+        var visualBlock: VisualNode<*, *> = currentNode
+        while (visualBlock.parent?.parent != null) {
+            visualBlock = visualBlock.parent!!
+        }
+
+        editorState.visualCursor = CursorPosition(
+            visualBlock.interactiveId,
+            currentVisualOffset
+        )
         editorState.visualSelection = Selection.empty
         onChange(editorState.copy(visualCursorRequest = null))
     }
+    moveCursor()
 
     LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size, editorState.visualCursorRequest) {
         if (editorState.visualCursorRequest != null) return@LaunchedEffect

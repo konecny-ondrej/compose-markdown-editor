@@ -26,12 +26,7 @@ fun <D : Any> WysiwygEditor(
     onChange: (WysiwygEditorState<D>) -> Unit,
     components: @Composable WysiwygEditorScope.() -> Unit
 ) {
-    val (
-        sourceText,
-        visualDocument,
-        interactiveScope,
-        undoManager,
-    ) = editorState
+    val interactiveScope = editorState.interactiveScope
 
     val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
@@ -117,14 +112,13 @@ fun <D : Any> WysiwygEditor(
             }
         }
 
-        // TODO: this "containing block" logic is markdown-specific. Move this logic to MarkdownEditor.
-        var visualBlock: VisualNode<*, *> = currentNode
-        while (visualBlock.parent?.parent != null) {
-            visualBlock = visualBlock.parent!!
+        var renderedContainingNode: VisualNode<*, *> = currentNode
+        while (!interactiveScope.hasComponent(renderedContainingNode.interactiveId)) {
+            renderedContainingNode = renderedContainingNode.parent ?: return
         }
 
         editorState.visualCursor = CursorPosition(
-            visualBlock.interactiveId,
+            renderedContainingNode.interactiveId,
             currentVisualOffset
         )
         editorState.visualSelection = Selection.empty

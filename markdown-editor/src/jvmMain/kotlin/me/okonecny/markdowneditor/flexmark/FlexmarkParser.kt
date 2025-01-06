@@ -91,6 +91,7 @@ class FlexmarkParser(
     ): List<VisualNode<Any, FlexmarkDocument>> {
         val children = mutableListOf<VisualNode<Any, FlexmarkDocument>>()
         for (node in parentNode.children) {
+            var wantChildren = true
             val data: Any = when (node) { // TODO: make this extensible like the renderers.
                 is Heading -> me.okonecny.markdowneditor.ast.data.Heading(
                     Level.forNumericLevel(node.level),
@@ -195,6 +196,7 @@ class FlexmarkParser(
                 is AutoLink -> me.okonecny.markdowneditor.ast.data.AutoLink(node.text.toString())
                 is HtmlEntity -> me.okonecny.markdowneditor.ast.data.HtmlEntity
                 is Emoji -> {
+                    wantChildren = false
                     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
                         node,
                         EmojiShortcutType.GITHUB,
@@ -221,7 +223,7 @@ class FlexmarkParser(
             }
             children.add(
                 VisualNode(
-                    proposedChildren = parseChildren(node, resolveReference),
+                    proposedChildren = if (wantChildren) parseChildren(node, resolveReference) else emptyList(),
                     data = data,
                     sourceRange = node.range
                 )

@@ -13,6 +13,7 @@ import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.edit.TypeEditor
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -159,23 +160,7 @@ fun <D : Any> WysiwygEditor(
 
             NewLine -> TODO()
             is Type -> {
-                val nodeCursor = editorState.nodeCursor ?: return@LaunchedEffect
-                val editedTextNodeWithOffset = nodeCursor.textNodeUnderCursor
-                val editedTextNode = editedTextNodeWithOffset.node
-                val editedText = editedTextNode.data.text
-                val newState = editorState.copy(
-                    visualDocument = editedTextNode.replaceWith(
-                        editedTextNode.copy(
-                            data = editedTextNode.data.replaceText(
-                                editedText.substring(0, editedTextNodeWithOffset.charOffset)
-                                        + textInputCommand.text
-                                        + editedText.substring(editedTextNodeWithOffset.charOffset, editedText.length)
-                            )
-                        )
-                    ).root,
-                    visualCursorRequest = MoveCursorOnLine(textInputCommand.text.length)
-                )
-                onChange(newState)
+                onChange(TypeEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
             }
 
             is Undo -> TODO()

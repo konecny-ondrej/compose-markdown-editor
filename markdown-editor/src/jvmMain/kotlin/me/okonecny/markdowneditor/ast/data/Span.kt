@@ -1,6 +1,7 @@
 package me.okonecny.markdowneditor.ast.data
 
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.ast.data.Text
 
 data object StrongEmphasis
 data object Emphasis
@@ -56,4 +57,7 @@ data object HtmlEntity
 data class Emoji(
     val shortcut: String,
     val unicode: String
-)
+) : HasText {
+    override val text: String = " ".repeat(unicode.length)
+    override fun replaceText(text: String): HasText = Text(text)
+}

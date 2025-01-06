@@ -59,7 +59,7 @@ data class TableCell(
 data class CodeBlock(
     val info: String = "",
     val code: String
-) : HasText<CodeBlock> {
+) : HasText {
     override val text: String by ::code
     override fun replaceText(text: String): CodeBlock = copy(code = text)
 }

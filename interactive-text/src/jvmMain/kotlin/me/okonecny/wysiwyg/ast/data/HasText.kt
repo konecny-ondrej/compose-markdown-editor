@@ -1,7 +1,7 @@
 package me.okonecny.wysiwyg.ast.data
 
-interface HasText<T : HasText<T>> {
+interface HasText {
     val text: String
 
-    fun replaceText(text: String): T
+    fun replaceText(text: String): HasText
 }

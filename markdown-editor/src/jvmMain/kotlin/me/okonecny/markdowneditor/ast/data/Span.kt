@@ -14,7 +14,7 @@ data class Link(
 
 data class AutoLink(
     val target: String
-) : HasText<AutoLink> {
+) : HasText {
     override val text: String by ::target
     override fun replaceText(text: String): AutoLink = AutoLink(text)
 }
@@ -23,9 +23,8 @@ data class Anchor(val name: String) : LinkTarget {
     override val anchorName: String by ::name
 }
 
-data class Space(val count: Int) : HasText<Space> {
+data class Space(val count: Int) : HasText {
     override val text: String = " ".repeat(count)
-
     override fun replaceText(text: String): Space = Space(text.length)
 }
 
@@ -34,12 +33,12 @@ data class Image(
     val title: String?
 )
 
-data object SoftLineBreak : HasText<SoftLineBreak> {
+data object SoftLineBreak : HasText {
     override val text: String = "\n"
     override fun replaceText(text: String): SoftLineBreak = this
 }
 
-data object HardLineBreak : HasText<HardLineBreak> {
+data object HardLineBreak : HasText {
     override val text: String = "\n"
     override fun replaceText(text: String): HardLineBreak = this
 }
@@ -47,7 +46,7 @@ data object HardLineBreak : HasText<HardLineBreak> {
 data object TextBase
 data class UserMention(
     val username: String
-) : HasText<UserMention> {
+) : HasText {
     override val text: String by ::username
     override fun replaceText(text: String): UserMention = UserMention(text)
 }

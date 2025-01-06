@@ -39,7 +39,7 @@ data class VisualNode<out T : Any, D : Any>(
 
     val interactiveId: InteractiveId by lazy {
         // Generates interactive ids in reading order.
-        previousNodeInReadingOrder?.interactiveId?.plus(1) ?: firstInteractiveId;
+        previousNodeInReadingOrder?.interactiveId?.plus(1) ?: firstInteractiveId
     }
 
     val previousNodeInReadingOrder: VisualNode<Any, D>? by lazy {
@@ -165,7 +165,7 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     data class TextWithCharOffset<D : Any>(
-        val node: VisualNode<HasText<*>, D>,
+        val node: VisualNode<HasText, D>,
         val charOffset: Int
     )
 
@@ -178,8 +178,8 @@ data class VisualNode<out T : Any, D : Any>(
         var currentNode: VisualNode<*, D> = this
 
         while (textLengthSoFar <= charOffset) {
-            if (currentNode.data is HasText<*>) {
-                val currentTextNode = currentNode as VisualNode<HasText<*>, D>
+            if (currentNode.data is HasText) {
+                val currentTextNode = currentNode as VisualNode<HasText, D>
                 val currentTextLength = currentTextNode.data.text.length
                 val totalTextLength = textLengthSoFar + currentTextLength
                 if (totalTextLength >= charOffset) return TextWithCharOffset(

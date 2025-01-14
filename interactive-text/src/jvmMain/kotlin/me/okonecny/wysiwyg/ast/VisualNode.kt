@@ -134,6 +134,24 @@ data class VisualNode<out T : Any, D : Any>(
         return replacedParent.children[expectedParentIndex] as VisualNode<T, D>
     }
 
+    /**
+     * Removes this node.
+     * More specifically this copies the entire tree without the subtree to which this node is the root.
+     * @return A copy of the entire tree without the subtree specified by this node. Null if you remove the root itself.
+     */
+    fun removeNode(): VisualNode<D, D>? {
+        val parentNode =
+            parent ?: return null // When removing the root node, just return null as there is nothing left.
+        val replacedParent = parentNode.replaceWith(
+            parentNode.copy(
+                proposedChildren = siblingsBefore + siblingsAfter
+            )
+        )
+        return replacedParent.root
+    }
+
+    inline fun <reified T : Any> findChildByDataType(): VisualNode<T, D>? = findChildByDataType(T::class)
+
     fun <T : Any> findChildByDataType(dataType: KClass<T>): VisualNode<T, D>? {
         if (dataType.isInstance(data)) {
             return this as VisualNode<T, D>
@@ -146,18 +164,18 @@ data class VisualNode<out T : Any, D : Any>(
             .firstOrNull()
     }
 
-    fun <T : Any> findNextByDataType(dataType: KClass<T>): VisualNode<T, D>? {
+    inline fun <reified T : Any> findNextByDataType(): VisualNode<T, D>? {
         var currentNode: VisualNode<Any, D> = this
-        while (!dataType.isInstance(currentNode.data)) {
+        while (currentNode.data !is T) {
             currentNode = currentNode.nextNodeInReadingOrder ?: return null
         }
 
         return currentNode as VisualNode<T, D>
     }
 
-    fun <T : Any> findPrevByDataType(dataType: KClass<T>): VisualNode<T, D>? {
+    inline fun <reified T : Any> findPrevByDataType(): VisualNode<T, D>? {
         var currentNode: VisualNode<Any, D> = this
-        while (!dataType.isInstance(currentNode.data)) {
+        while (currentNode.data !is T) {
             currentNode = currentNode.previousNodeInReadingOrder ?: return null
         }
 
@@ -167,7 +185,10 @@ data class VisualNode<out T : Any, D : Any>(
     data class TextWithCharOffset<D : Any>(
         val node: VisualNode<HasText, D>,
         val charOffset: Int
-    )
+    ) {
+        val isAtStart: Boolean = charOffset == 0
+        val isAtEnd: Boolean = node.data.text.length == charOffset
+    }
 
     /**
      * Assume this node to be a container of text. Then find a child node (or self), which contains the character

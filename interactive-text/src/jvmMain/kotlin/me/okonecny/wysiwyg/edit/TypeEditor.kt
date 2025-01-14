@@ -6,8 +6,7 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 class TypeEditor : CommandEditor<Type> {
     override fun <D : Any> edit(editorState: WysiwygEditorState<D>, command: Type): WysiwygEditorState<D>? {
-        val nodeCursor = editorState.nodeCursor ?: return null
-        val editedTextNodeWithOffset = nodeCursor.textNodeUnderCursor
+        val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
         val editedTextNode = editedTextNodeWithOffset.node
         val editedText = editedTextNode.data.text
         return editorState.copy(

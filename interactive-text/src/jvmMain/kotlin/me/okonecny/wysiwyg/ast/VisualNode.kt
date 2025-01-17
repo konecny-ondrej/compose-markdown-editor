@@ -165,7 +165,7 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     inline fun <reified T : Any> findNextByDataType(): VisualNode<T, D>? {
-        var currentNode: VisualNode<Any, D> = this
+        var currentNode: VisualNode<Any, D> = this.nextNodeInReadingOrder ?: return null
         while (currentNode.data !is T) {
             currentNode = currentNode.nextNodeInReadingOrder ?: return null
         }
@@ -174,12 +174,22 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     inline fun <reified T : Any> findPrevByDataType(): VisualNode<T, D>? {
-        var currentNode: VisualNode<Any, D> = this
+        var currentNode: VisualNode<Any, D> = this.previousNodeInReadingOrder ?: return null
         while (currentNode.data !is T) {
             currentNode = currentNode.previousNodeInReadingOrder ?: return null
         }
 
         return currentNode as VisualNode<T, D>
+    }
+
+    fun findFarthestParent(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
+        var currentNode: VisualNode<Any, D> = this.parent ?: return null
+        var prevNode: VisualNode<Any, D>? = null
+        while (predicate(currentNode)) {
+            prevNode = currentNode
+            currentNode = currentNode.parent ?: return null
+        }
+        return prevNode
     }
 
     data class TextWithCharOffset<D : Any>(
@@ -216,6 +226,14 @@ data class VisualNode<out T : Any, D : Any>(
         throw IndexOutOfBoundsException(
             "Index %d is larger than the text length %d".format(charOffset, textLengthSoFar)
         )
+    }
+
+    val totalTextLength: Int by lazy {
+        if (data is HasText) {
+            data.text.length
+        } else {
+            children.sumOf(VisualNode<Any, D>::totalTextLength)
+        }
     }
 
     override fun toString(): String {

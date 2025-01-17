@@ -13,6 +13,7 @@ import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.edit.DeleteEditor
 import me.okonecny.wysiwyg.edit.TypeEditor
 
 /**
@@ -92,11 +93,12 @@ fun <D : Any> WysiwygEditor(
 
         var currentNode = oldCursorPosition.textNodeUnderCursor.node
         var currentCharOffset = oldCursorPosition.textNodeUnderCursor.charOffset
+        var renderedContainerNode: VisualNode<*, *> = oldCursorPosition.containerNode
         var currentVisualOffset = oldCursorPosition.visualOffset
         if (request.steps > 0) {
             for (i in 1..request.steps) {
                 if (currentCharOffset == currentNode.data.text.length) {
-                    currentNode = currentNode.findNextByDataType(HasText::class) ?: return
+                    currentNode = currentNode.findNextByDataType<HasText>() ?: return
                     currentCharOffset = 0
                 }
                 currentCharOffset++
@@ -105,21 +107,25 @@ fun <D : Any> WysiwygEditor(
         } else if (request.steps < 0) {
             for (i in 1..-request.steps) {
                 if (currentCharOffset == 0) {
-                    currentNode = currentNode.findPrevByDataType(HasText::class) ?: return
+                    currentNode = currentNode.findPrevByDataType<HasText>() ?: return
                     currentCharOffset = currentNode.data.text.length
+                    renderedContainerNode = currentNode
+                    while (!interactiveScope.hasComponent(renderedContainerNode.interactiveId)) {
+                        renderedContainerNode = renderedContainerNode.parent ?: return
+                    }
+                    currentVisualOffset = renderedContainerNode.totalTextLength
+                } else {
+                    currentCharOffset--
+                    currentVisualOffset--
                 }
-                currentCharOffset--
-                currentVisualOffset--
             }
         }
 
-        var renderedContainingNode: VisualNode<*, *> = currentNode
-        while (!interactiveScope.hasComponent(renderedContainingNode.interactiveId)) {
-            renderedContainingNode = renderedContainingNode.parent ?: return
-        }
+
+
 
         editorState.visualCursor = CursorPosition(
-            renderedContainingNode.interactiveId,
+            renderedContainerNode.interactiveId,
             currentVisualOffset
         )
         editorState.visualSelection = Selection.empty
@@ -145,17 +151,7 @@ fun <D : Any> WysiwygEditor(
 
             Paste -> TODO()
             is Delete -> {
-                when (textInputCommand.size) {
-                    Delete.Size.LETTER -> when (textInputCommand.direction) {
-                        Delete.Direction.BEFORE_CURSOR -> TODO()
-                        Delete.Direction.AFTER_CURSOR -> TODO()
-                    }
-
-                    Delete.Size.WORD -> when (textInputCommand.direction) {
-                        Delete.Direction.BEFORE_CURSOR -> TODO()
-                        Delete.Direction.AFTER_CURSOR -> TODO()
-                    }
-                }
+                onChange(DeleteEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
             }
 
             NewLine -> TODO()

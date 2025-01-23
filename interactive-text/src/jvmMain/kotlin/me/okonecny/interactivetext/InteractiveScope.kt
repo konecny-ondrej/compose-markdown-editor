@@ -31,7 +31,7 @@ data class InteractiveScope(
     val componentUnderCursor: InteractiveComponent?
         get() {
             val cursor = cursorPosition ?: return null
-            return if (!isPlaced || !hasComponent(cursor.componentId)) null else {
+            return if (!isPlaced) null else {
                 getComponent(cursor.componentId)
             }
         }

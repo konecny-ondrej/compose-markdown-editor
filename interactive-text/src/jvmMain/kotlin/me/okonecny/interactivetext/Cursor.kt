@@ -109,6 +109,7 @@ private val cursorAnimationSpec: AnimationSpec<Float> = infiniteRepeatable(
  */
 fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect? {
     if (cursorPosition == CursorPosition.invalid) return null
+    if (!hasComponent(cursorPosition.componentId)) return null
     val component = getComponent(cursorPosition.componentId)
     val componentLayoutCoordinates = component.attachedLayoutCoordinates ?: return null
     val componentTextLayout = component.textLayoutResult

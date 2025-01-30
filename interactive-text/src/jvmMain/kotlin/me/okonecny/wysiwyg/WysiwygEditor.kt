@@ -89,6 +89,12 @@ fun <D : Any> WysiwygEditor(
 
     fun moveCursor() {
         val request = editorState.visualCursorRequest ?: return
+        if (request is SetCursor) {
+            editorState.visualCursor = request.newPosition
+            editorState.visualSelection = Selection.empty
+            onChange(editorState.copy(visualCursorRequest = null))
+        }
+        if (request !is MoveCursorOnLine) return
         val oldCursorPosition = editorState.nodeCursor ?: return
 
         var currentNode = oldCursorPosition.textNodeUnderCursor.node
@@ -120,9 +126,6 @@ fun <D : Any> WysiwygEditor(
                 }
             }
         }
-
-
-
 
         editorState.visualCursor = CursorPosition(
             renderedContainerNode.interactiveId,
@@ -166,6 +169,9 @@ fun <D : Any> WysiwygEditor(
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
+            is SetCursor -> {
+                onChange(editorState.copy(visualCursorRequest = textInputCommand))
+            }
         }
 
         // TODO: register undo action
@@ -206,7 +212,7 @@ data class WysiwygEditorState<D : Any>(
     val undoManager: UndoManager = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
     val sourceCursorRequest: Int? = null, // TODO: remove
-    val visualCursorRequest: MoveCursorOnLine? = null
+    val visualCursorRequest: CursorMoveCommand? = null
 ) {
     var visualCursor by interactiveScope::cursorPosition
     var visualSelection by interactiveScope::selection

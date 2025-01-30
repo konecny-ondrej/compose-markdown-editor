@@ -19,7 +19,8 @@ fun Modifier.textInput(
 
     if (textInputSession == null && textInputService != null) {
         Logger.d("Start text input.")
-        textInputSession = textInputService.startInput(value = TextFieldValue(""),
+        textInputSession = textInputService.startInput(
+            value = TextFieldValue(""),
             imeOptions = ImeOptions.Default,
             onEditCommand = { editCommands ->
                 editCommands.forEach { command: EditCommand ->
@@ -140,8 +141,16 @@ data object Redo : TextInputCommand {
     override val needsValidCursor: Boolean = false
 }
 
+interface CursorMoveCommand
+
 data class MoveCursorOnLine(
     val steps: Int
-) : TextInputCommand {
+) : TextInputCommand, CursorMoveCommand {
     override val needsValidCursor: Boolean = steps != 0
+}
+
+data class SetCursor(
+    val newPosition: CursorPosition
+) : TextInputCommand, CursorMoveCommand {
+    override val needsValidCursor: Boolean = false
 }

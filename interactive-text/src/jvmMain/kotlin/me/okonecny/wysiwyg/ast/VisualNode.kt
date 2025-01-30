@@ -183,13 +183,15 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     fun findFarthestParent(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
-        var currentNode: VisualNode<Any, D> = this.parent ?: return null
-        var prevNode: VisualNode<Any, D>? = null
-        while (predicate(currentNode)) {
-            prevNode = currentNode
-            currentNode = currentNode.parent ?: return null
+        var currentNode: VisualNode<Any, D>? = this.parent
+        var lastMatchingNode: VisualNode<Any, D>? = null
+        while (currentNode != null) {
+            if (predicate(currentNode)) {
+                lastMatchingNode = currentNode
+            }
+            currentNode = currentNode.parent
         }
-        return prevNode
+        return lastMatchingNode
     }
 
     data class TextWithCharOffset<D : Any>(
@@ -234,6 +236,11 @@ data class VisualNode<out T : Any, D : Any>(
         } else {
             children.sumOf(VisualNode<Any, D>::totalTextLength)
         }
+    }
+
+    val textLengthBefore: Int by lazy {
+        val prevTextNode = findPrevByDataType<HasText>() ?: return@lazy 0
+        prevTextNode.data.text.length + prevTextNode.textLengthBefore
     }
 
     override fun toString(): String {

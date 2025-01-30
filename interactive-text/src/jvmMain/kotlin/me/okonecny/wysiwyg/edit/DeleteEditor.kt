@@ -62,6 +62,7 @@ class DeleteEditor : CommandEditor<Delete> {
             ).root
         }
 
+        // FIXME! This acts WEIRD. Sometimes this computes invalid cursor position when deleting text across "thematic break". The line should be deleted instead.
         return editorState.copy(
             visualDocument = newRootNode,
             visualCursorRequest = if (removeNode) {
@@ -71,8 +72,8 @@ class DeleteEditor : CommandEditor<Delete> {
                     containerNode.interactiveId,
                     when(command.direction) {
                         Delete.Direction.BEFORE_CURSOR -> newTextNodeUnderCursor.node.textLengthBefore + newTextNodeUnderCursor.charOffset - containerNode.textLengthBefore
-                        Delete.Direction.AFTER_CURSOR -> containerNode.textLengthBefore + containerNode.totalTextLength
-                    })) // FIXME? Test this.
+                        Delete.Direction.AFTER_CURSOR -> containerNode.textLengthBefore
+                    }))
             } else {
                 when (command.direction) {
                     Delete.Direction.BEFORE_CURSOR -> MoveCursorOnLine(-deleteRange.length)

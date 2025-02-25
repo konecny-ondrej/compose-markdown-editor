@@ -53,7 +53,7 @@ class DeleteEditor : CommandEditor<Delete> {
 
         val newText = editedTextNode.data.text.removeRange(deleteRange)
         val removeNode = newText.isEmpty()
-        val removedNode = editedTextNode.findFarthestParent { it.children.size == 1 } ?: editedTextNode
+        val removedNode = editedTextNode.findParentWhile { it.children.size == 1 } ?: editedTextNode
         val newRootNode = if (removeNode) {
             removedNode.removeNode() ?: return null // Cannot remove the document itself.
         } else {
@@ -62,18 +62,16 @@ class DeleteEditor : CommandEditor<Delete> {
             ).root
         }
 
-        // FIXME! This acts WEIRD. Sometimes this computes invalid cursor position when deleting text across "thematic break". The line should be deleted instead.
         return editorState.copy(
             visualDocument = newRootNode,
             visualCursorRequest = if (removeNode) {
                 val newTextNodeUnderCursor = newRootNode.findTextChildAtOffset(editedTextNode.textLengthBefore)
-                val containerNode = newTextNodeUnderCursor.node.findFarthestParent { it.parent?.isRoot == true } ?: return null
-                SetCursor(CursorPosition(
-                    containerNode.interactiveId,
-                    when(command.direction) {
-                        Delete.Direction.BEFORE_CURSOR -> newTextNodeUnderCursor.node.textLengthBefore + newTextNodeUnderCursor.charOffset - containerNode.textLengthBefore
-                        Delete.Direction.AFTER_CURSOR -> containerNode.textLengthBefore
-                    }))
+                SetCursor(
+                    CursorPosition(
+                        newTextNodeUnderCursor.node.interactiveId,
+                        newTextNodeUnderCursor.charOffset
+                    )
+                )
             } else {
                 when (command.direction) {
                     Delete.Direction.BEFORE_CURSOR -> MoveCursorOnLine(-deleteRange.length)

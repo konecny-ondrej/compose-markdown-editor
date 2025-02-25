@@ -90,7 +90,22 @@ fun <D : Any> WysiwygEditor(
     fun moveCursor() {
         val request = editorState.visualCursorRequest ?: return
         if (request is SetCursor) {
-            editorState.visualCursor = request.newPosition
+            val requestedCursor = request.newPosition
+            if (interactiveScope.hasComponent(requestedCursor.componentId)) {
+                editorState.visualCursor = request.newPosition
+            } else {
+                val requestedNode = editorState.visualDocument
+                    .findChildById(requestedCursor.componentId)
+                val renderedNode = requestedNode
+                    ?.findClosestParentMatching { interactiveScope.hasComponent(it.interactiveId) }
+                    ?: return
+
+                editorState.visualCursor = CursorPosition(
+                    renderedNode.interactiveId,
+                    renderedNode.findOffsetByTextChild(requestedNode, requestedCursor.visualOffset)
+                )
+            }
+
             editorState.visualSelection = Selection.empty
             onChange(editorState.copy(visualCursorRequest = null))
         }
@@ -169,6 +184,7 @@ fun <D : Any> WysiwygEditor(
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
+
             is SetCursor -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }

@@ -7,7 +7,6 @@ import me.okonecny.lang.only
 import me.okonecny.lang.onlyOrNull
 import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
-import kotlin.reflect.KClass
 
 /**
  * Syntax tree for the editor to work with. The editor will add/remove/replace nodes based on the user actions.
@@ -150,19 +149,14 @@ data class VisualNode<out T : Any, D : Any>(
         return replacedParent.root
     }
 
-    inline fun <reified T : Any> findChildByDataType(): VisualNode<T, D>? = findChildByDataType(T::class)
-
-    fun <T : Any> findChildByDataType(dataType: KClass<T>): VisualNode<T, D>? {
-        if (dataType.isInstance(data)) {
-            return this as VisualNode<T, D>
-        }
-
-        return children
-            .map { child ->
-                child.findChildByDataType(dataType)
+    fun findChildById(id: InteractiveId): VisualNode<*, D>? =
+        if (interactiveId == id) {
+            this
+        } else {
+            children.firstNotNullOfOrNull { child ->
+                child.findChildById(id)
             }
-            .firstOrNull()
-    }
+        }
 
     inline fun <reified T : Any> findNextByDataType(): VisualNode<T, D>? {
         var currentNode: VisualNode<Any, D> = this.nextNodeInReadingOrder ?: return null
@@ -182,7 +176,34 @@ data class VisualNode<out T : Any, D : Any>(
         return currentNode as VisualNode<T, D>
     }
 
-    fun findFarthestParent(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
+    /**
+     * Walks the parent node chain while the predicate matches.
+     * @return Farthest parent node matching the predicate continuously.
+     */
+    fun findParentWhile(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
+        var currentNode: VisualNode<Any, D>? = this.parent
+        var lastMatchingNode: VisualNode<Any, D>? = null
+        while (currentNode != null) {
+            if (predicate(currentNode)) {
+                lastMatchingNode = currentNode
+            } else break
+            currentNode = currentNode.parent
+        }
+        return lastMatchingNode
+    }
+
+    fun findClosestParentMatching(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
+        var currentNode: VisualNode<Any, D>? = this.parent
+        while (currentNode != null) {
+            if (predicate(currentNode)) {
+                return currentNode
+            }
+            currentNode = currentNode.parent
+        }
+        return null
+    }
+
+    fun findFarthestParentMatching(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
         var currentNode: VisualNode<Any, D>? = this.parent
         var lastMatchingNode: VisualNode<Any, D>? = null
         while (currentNode != null) {
@@ -222,12 +243,34 @@ data class VisualNode<out T : Any, D : Any>(
                 textLengthSoFar = totalTextLength
             }
             currentNode = currentNode.nextNodeInReadingOrder ?: throw IndexOutOfBoundsException(
-                "Index %d is larger than the text length %d".format(charOffset, textLengthSoFar)
+                "Offset %d is larger than the text length %d".format(charOffset, textLengthSoFar)
             )
         }
         throw IndexOutOfBoundsException(
-            "Index %d is larger than the text length %d".format(charOffset, textLengthSoFar)
+            "Offset %d is larger than the text length %d".format(charOffset, textLengthSoFar)
         )
+    }
+
+    /**
+     * Assume this node to be a container of text. Also assume a child node that also contains text and an offset within
+     * that text.
+     * Then find text offset inside this container node corresponding to the offset in the child node.
+     * Basically this an inverse function to findTextChildAtOffset().
+     */
+    fun findOffsetByTextChild(childNode: VisualNode<*, D>, offset: Int): Int {
+        if (childNode == this) return offset
+
+        var textLengthSoFar = offset
+        var currentNode: VisualNode<Any, D>? = childNode.previousNodeInReadingOrder
+        while (currentNode != null) {
+            val currentData = currentNode.data
+            if (currentData is HasText) {
+                textLengthSoFar += currentData.text.length
+            }
+            if (currentNode == this) return textLengthSoFar
+            currentNode = currentNode.previousNodeInReadingOrder
+        }
+        throw IllegalArgumentException("The passed node must be a child of this node.")
     }
 
     val totalTextLength: Int by lazy {

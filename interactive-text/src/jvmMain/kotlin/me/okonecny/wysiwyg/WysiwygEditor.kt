@@ -119,7 +119,7 @@ fun <D : Any> WysiwygEditor(
         if (request.steps > 0) {
             for (i in 1..request.steps) {
                 if (currentCharOffset == currentNode.data.text.length) {
-                    currentNode = currentNode.findNextByDataType<HasText>() ?: return
+                    currentNode = currentNode.findNext<HasText>() ?: return
                     currentCharOffset = 0
                 }
                 currentCharOffset++
@@ -128,7 +128,7 @@ fun <D : Any> WysiwygEditor(
         } else if (request.steps < 0) {
             for (i in 1..-request.steps) {
                 if (currentCharOffset == 0) {
-                    currentNode = currentNode.findPrevByDataType<HasText>() ?: return
+                    currentNode = currentNode.findPrev<HasText>() ?: return
                     currentCharOffset = currentNode.data.text.length
                     renderedContainerNode = currentNode
                     while (!interactiveScope.hasComponent(renderedContainerNode.interactiveId)) {

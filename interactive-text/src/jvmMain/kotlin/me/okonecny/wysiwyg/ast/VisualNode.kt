@@ -158,22 +158,21 @@ data class VisualNode<out T : Any, D : Any>(
             }
         }
 
-    inline fun <reified T : Any> findNextByDataType(): VisualNode<T, D>? {
-        var currentNode: VisualNode<Any, D> = this.nextNodeInReadingOrder ?: return null
-        while (currentNode.data !is T) {
-            currentNode = currentNode.nextNodeInReadingOrder ?: return null
+    inline fun <reified T : Any> findNext(predicate: (VisualNode<T, D>) -> Boolean = { true }): VisualNode<T, D>? =
+        find(VisualNode<Any, D>::nextNodeInReadingOrder, predicate)
+
+    inline fun <reified T : Any> findPrev(predicate: (VisualNode<T, D>) -> Boolean = { true }): VisualNode<T, D>? =
+        find(VisualNode<Any, D>::previousNodeInReadingOrder, predicate)
+
+    inline fun <reified T : Any> find(
+        successor: VisualNode<Any, D>.() -> VisualNode<Any, D>?,
+        predicate: (VisualNode<T, D>) -> Boolean = { true }
+    ): VisualNode<T, D>? {
+        var currentNode: VisualNode<Any, D> = this.successor() ?: return null
+        while (currentNode.data !is T || !predicate(currentNode as VisualNode<T, D>)) {
+            currentNode = currentNode.successor() ?: return null
         }
-
-        return currentNode as VisualNode<T, D>
-    }
-
-    inline fun <reified T : Any> findPrevByDataType(): VisualNode<T, D>? {
-        var currentNode: VisualNode<Any, D> = this.previousNodeInReadingOrder ?: return null
-        while (currentNode.data !is T) {
-            currentNode = currentNode.previousNodeInReadingOrder ?: return null
-        }
-
-        return currentNode as VisualNode<T, D>
+        return currentNode
     }
 
     /**
@@ -282,7 +281,7 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     val textLengthBefore: Int by lazy {
-        val prevTextNode = findPrevByDataType<HasText>() ?: return@lazy 0
+        val prevTextNode = findPrev<HasText>() ?: return@lazy 0
         prevTextNode.data.text.length + prevTextNode.textLengthBefore
     }
 

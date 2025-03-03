@@ -21,8 +21,8 @@ class DeleteEditor : CommandEditor<Delete> {
 // TODO: take selection into account.
         val editedTextNode = editedTextNodeWithOffset.node.let {
             when (command.direction) {
-                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart) it.findPrevByDataType<HasText>() else it
-                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNextByDataType<HasText>() else it
+                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart) it.findPrev<HasText>() else it
+                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext<HasText>() else it
             }
         } ?: return null
 

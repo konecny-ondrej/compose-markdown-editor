@@ -159,12 +159,12 @@ data class VisualNode<out T : Any, D : Any>(
         }
 
     inline fun <reified T : Any> findNext(predicate: (VisualNode<T, D>) -> Boolean = { true }): VisualNode<T, D>? =
-        find(VisualNode<Any, D>::nextNodeInReadingOrder, predicate)
+        findFirst(VisualNode<Any, D>::nextNodeInReadingOrder, predicate)
 
     inline fun <reified T : Any> findPrev(predicate: (VisualNode<T, D>) -> Boolean = { true }): VisualNode<T, D>? =
-        find(VisualNode<Any, D>::previousNodeInReadingOrder, predicate)
+        findFirst(VisualNode<Any, D>::previousNodeInReadingOrder, predicate)
 
-    inline fun <reified T : Any> find(
+    inline fun <reified T : Any> findFirst(
         successor: VisualNode<Any, D>.() -> VisualNode<Any, D>?,
         predicate: (VisualNode<T, D>) -> Boolean = { true }
     ): VisualNode<T, D>? {
@@ -191,16 +191,8 @@ data class VisualNode<out T : Any, D : Any>(
         return lastMatchingNode
     }
 
-    fun findClosestParentMatching(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
-        var currentNode: VisualNode<Any, D>? = this.parent
-        while (currentNode != null) {
-            if (predicate(currentNode)) {
-                return currentNode
-            }
-            currentNode = currentNode.parent
-        }
-        return null
-    }
+    fun findClosestParentMatching(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? =
+        findFirst(VisualNode<Any, D>::parent, predicate)
 
     fun findFarthestParentMatching(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
         var currentNode: VisualNode<Any, D>? = this.parent

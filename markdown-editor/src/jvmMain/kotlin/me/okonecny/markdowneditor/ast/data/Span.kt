@@ -36,12 +36,12 @@ data class Image(
 
 data object SoftLineBreak : HasText {
     override val text: String = "\n"
-    override fun replaceText(text: String): SoftLineBreak = this
+    override fun replaceText(text: String): HasText = Text(text)
 }
 
 data object HardLineBreak : HasText {
     override val text: String = "\n"
-    override fun replaceText(text: String): HardLineBreak = this
+    override fun replaceText(text: String): HasText = Text(text)
 }
 
 data object TextBase

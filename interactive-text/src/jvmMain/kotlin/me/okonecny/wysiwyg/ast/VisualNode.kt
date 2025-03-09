@@ -32,6 +32,8 @@ data class VisualNode<out T : Any, D : Any>(
             ?: this as VisualNode<D, D> // If this is root, then the data type must be the same as the document type.
     }
 
+    val asTextNode: VisualNode<HasText, D>? = if (data is HasText) this as VisualNode<HasText, D> else null
+
     val allSiblings: List<VisualNode<Any, D>> by lazy {
         parent?.children ?: listOf(this)
     }
@@ -223,8 +225,8 @@ data class VisualNode<out T : Any, D : Any>(
         var currentNode: VisualNode<*, D> = this
 
         while (textLengthSoFar <= charOffset) {
-            if (currentNode.data is HasText) {
-                val currentTextNode = currentNode as VisualNode<HasText, D>
+            val currentTextNode = currentNode.asTextNode
+            if (currentTextNode != null) {
                 val currentTextLength = currentTextNode.data.text.length
                 val totalTextLength = textLengthSoFar + currentTextLength
                 if (totalTextLength >= charOffset) return TextWithCharOffset(
@@ -269,6 +271,14 @@ data class VisualNode<out T : Any, D : Any>(
             data.text.length
         } else {
             children.sumOf(VisualNode<Any, D>::totalTextLength)
+        }
+    }
+
+    val totalTextIsEmpty: Boolean by lazy {
+        if (data is HasText) {
+            data.text.isEmpty()
+        } else {
+            children.all(VisualNode<Any, D>::totalTextIsEmpty)
         }
     }
 

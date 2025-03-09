@@ -9,6 +9,7 @@ import me.okonecny.lang.removeRange
 import me.okonecny.lang.wordRangeAfter
 import me.okonecny.lang.wordRangeBefore
 import me.okonecny.wysiwyg.WysiwygEditorState
+import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.data.HasText
 
 /**
@@ -19,12 +20,55 @@ class DeleteEditor : CommandEditor<Delete> {
     override fun <D : Any> edit(editorState: WysiwygEditorState<D>, command: Delete): WysiwygEditorState<D>? {
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
 // TODO: take selection into account.
-        val editedTextNode = editedTextNodeWithOffset.node.let {
+        val visibleNode = { node: VisualNode<Any, D> ->
+            editorState.interactiveScope.hasComponent(
+                node.interactiveId
+            )
+        }
+        val editedNode = editedTextNodeWithOffset.node.let {
             when (command.direction) {
-                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart) it.findPrev<HasText>() else it
-                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext<HasText>() else it
+                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart && !editedTextNodeWithOffset.node.totalTextIsEmpty) it.findPrev(visibleNode) else it
+                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext(visibleNode) else it
             }
         } ?: return null
+
+        return if (editedNode.totalTextIsEmpty) {
+            removeNode(editedNode, editorState)
+        } else {
+            if(editedNode.asTextNode == null) {
+                return null
+            } else {
+                editTextNode(editedNode.asTextNode, editedTextNodeWithOffset, command, editorState)
+            }
+        }
+    }
+
+    private fun <D : Any> removeNode(
+        editedNode: VisualNode<Any, D>,
+        editorState: WysiwygEditorState<D>
+    ): WysiwygEditorState<D>? {
+        val removedNode = editedNode.findParentWhile { it.totalTextIsEmpty } ?: editedNode
+        val newRootNode = removedNode.removeNode() ?: return null // Cannot remove the document itself.
+
+        val newTextNodeUnderCursor = newRootNode.findTextChildAtOffset(editedNode.textLengthBefore)
+        return editorState.copy(
+            visualDocument = newRootNode,
+            visualCursorRequest = SetCursor(
+                CursorPosition(
+                    newTextNodeUnderCursor.node.interactiveId,
+                    newTextNodeUnderCursor.charOffset
+                )
+            )
+        )
+    }
+
+    private fun <D : Any> editTextNode(
+        editedTextNode: VisualNode<HasText, D>,
+        editedTextNodeWithOffset: VisualNode.TextWithCharOffset<D>,
+        command: Delete,
+        editorState: WysiwygEditorState<D>
+    ): WysiwygEditorState<D>? {
+        if (editedTextNode.data.text.isEmpty()) return removeNode(editedTextNode, editorState)
 
         val editOffset = if (editedTextNode == editedTextNodeWithOffset.node) {
             editedTextNodeWithOffset.charOffset
@@ -52,31 +96,17 @@ class DeleteEditor : CommandEditor<Delete> {
         }
 
         val newText = editedTextNode.data.text.removeRange(deleteRange)
-        val removeNode = newText.isEmpty()
-        val removedNode = editedTextNode.findParentWhile { it.children.size == 1 } ?: editedTextNode
-        val newRootNode = if (removeNode) {
-            removedNode.removeNode() ?: return null // Cannot remove the document itself.
-        } else {
-            editedTextNode.replaceWith(
-                editedTextNode.copy(data = editedTextNode.data.replaceText(newText))
-            ).root
-        }
+
+        val newRootNode = editedTextNode.replaceWith(
+            editedTextNode.copy(data = editedTextNode.data.replaceText(newText))
+        ).root
+
 
         return editorState.copy(
             visualDocument = newRootNode,
-            visualCursorRequest = if (removeNode) {
-                val newTextNodeUnderCursor = newRootNode.findTextChildAtOffset(editedTextNode.textLengthBefore)
-                SetCursor(
-                    CursorPosition(
-                        newTextNodeUnderCursor.node.interactiveId,
-                        newTextNodeUnderCursor.charOffset
-                    )
-                )
-            } else {
-                when (command.direction) {
-                    Delete.Direction.BEFORE_CURSOR -> MoveCursorOnLine(-deleteRange.length)
-                    Delete.Direction.AFTER_CURSOR -> null
-                }
+            visualCursorRequest = when (command.direction) {
+                Delete.Direction.BEFORE_CURSOR -> MoveCursorOnLine(-deleteRange.length)
+                Delete.Direction.AFTER_CURSOR -> null
             }
         )
     }

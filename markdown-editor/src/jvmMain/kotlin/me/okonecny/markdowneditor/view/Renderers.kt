@@ -1,7 +1,7 @@
 package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.wysiwyg.ast.VisualNode
 import kotlin.reflect.KClass
 
@@ -62,7 +62,7 @@ data class Renderers<Document : Any>(
         private fun <T : Any, D : Any> noopInlineRenderer(): InlineRenderer<T, D> =
             object : InlineRenderer<T, D> {
                 @Composable
-                override fun RenderContext<D>.render(inlineNode: VisualNode<T, D>): MappedText = MappedText.empty
+                override fun RenderContext<D>.render(inlineNode: VisualNode<T, D>): TextWithInlines = TextWithInlines.empty
             }
     }
 }

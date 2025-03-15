@@ -2,7 +2,7 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.wysiwyg.ast.VisualNode
 
 interface RenderContext<Document : Any> {
@@ -12,13 +12,13 @@ interface RenderContext<Document : Any> {
     @Composable
     fun handleLinks(): (Int, List<AnnotatedString.Range<String>>) -> Unit
 
-    fun annotateLinkByHandler(linkText: MappedText, linkUrl: String?): MappedText
+    fun annotateLinkByHandler(linkText: TextWithInlines, linkUrl: String?): TextWithInlines
 
     @Composable
-    fun renderInlines(inlines: Iterable<VisualNode<Any, Document>>): MappedText
+    fun renderInlines(inlines: Iterable<VisualNode<Any, Document>>): TextWithInlines
 
     @Composable
-    fun renderInline(inline: VisualNode<Any, Document>): MappedText
+    fun renderInline(inline: VisualNode<Any, Document>): TextWithInlines
 
     @Composable
     fun renderBlocks(blocks: Iterable<VisualNode<Any, Document>>)

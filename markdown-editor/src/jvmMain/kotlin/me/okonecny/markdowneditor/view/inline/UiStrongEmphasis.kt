@@ -2,7 +2,7 @@ package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.markdowneditor.ast.data.StrongEmphasis
 import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -12,7 +12,7 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiStrongEmphasis : InlineRenderer<StrongEmphasis, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<StrongEmphasis, FlexmarkDocument>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<StrongEmphasis, FlexmarkDocument>): TextWithInlines =
         buildMappedString {
             val parsedText = renderInlines(inlineNode.children)
             appendStyled(parsedText, DocumentTheme.current.styles.strong.toSpanStyle())

@@ -9,17 +9,17 @@ import androidx.compose.ui.text.buildAnnotatedString
 /**
  * Text, which carries information about what part of source text it came from.
  */
-data class MappedText(
+data class TextWithInlines(
     val text: AnnotatedString,
     val inlineContent: Map<String, InlineTextContent> = emptyMap()
 ) {
     constructor(text: String) : this(AnnotatedString(text))
 
     companion object {
-        val empty: MappedText = MappedText("")
+        val empty: TextWithInlines = TextWithInlines("")
     }
 
-    fun annotatedWith(tag: String, annotation: String): MappedText = MappedText(
+    fun annotatedWith(tag: String, annotation: String): TextWithInlines = TextWithInlines(
         text = buildAnnotatedString {
             pushStringAnnotation(tag, annotation)
             append(text)
@@ -28,7 +28,7 @@ data class MappedText(
         inlineContent = inlineContent
     )
 
-    operator fun plus(other: MappedText): MappedText = when {
+    operator fun plus(other: TextWithInlines): TextWithInlines = when {
         this === empty -> other
         other === empty -> this
         else -> {
@@ -36,7 +36,7 @@ data class MappedText(
             if (conflictingInlines.isNotEmpty()) {
                 throw IllegalArgumentException("Definition for ${conflictingInlines.joinToString(", ")} is already present.")
             }
-            MappedText(
+            TextWithInlines(
                 text = text + other.text,
                 inlineContent = inlineContent + other.inlineContent
             )
@@ -44,36 +44,36 @@ data class MappedText(
     }
 
     internal class Builder(
-        text: MappedText = empty
+        text: TextWithInlines = empty
     ) {
-        var mappedText: MappedText = text
+        var textWithInlines: TextWithInlines = text
             private set
 
-        val visualLength get() = mappedText.text.length
+        val visualLength get() = textWithInlines.text.length
 
-        fun append(text: MappedText) {
-            mappedText += text
+        fun append(text: TextWithInlines) {
+            textWithInlines += text
         }
 
         fun appendInlineContent(
             inlineElementId: String,
             inlineContent: () -> InlineTextContent
         ) {
-            val inlines = MappedText(
+            val inlines = TextWithInlines(
                 text = buildAnnotatedString {
                     appendInlineContent(inlineElementId)
                 },
                 inlineContent = mapOf(inlineElementId to inlineContent())
             )
-            mappedText += inlines
+            textWithInlines += inlines
         }
 
-        fun appendStyled(mappedText: MappedText, style: SpanStyle) {
+        fun appendStyled(textWithInlines: TextWithInlines, style: SpanStyle) {
             append(
-                mappedText.copy(
+                textWithInlines.copy(
                     text = buildAnnotatedString {
                         pushStyle(style)
-                        append(mappedText.text)
+                        append(textWithInlines.text)
                         pop()
                     }
                 )
@@ -82,5 +82,5 @@ data class MappedText(
     }
 }
 
-internal inline fun buildMappedString(buildFn: MappedText.Builder.() -> Unit): MappedText =
-    MappedText.Builder().apply(buildFn).mappedText
+internal inline fun buildMappedString(buildFn: TextWithInlines.Builder.() -> Unit): TextWithInlines =
+    TextWithInlines.Builder().apply(buildFn).textWithInlines

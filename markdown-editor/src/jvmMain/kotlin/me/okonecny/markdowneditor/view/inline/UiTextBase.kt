@@ -1,7 +1,7 @@
 package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.markdowneditor.ast.data.TextBase
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.InlineRenderer
@@ -10,6 +10,6 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiTextBase : InlineRenderer<TextBase, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<TextBase, FlexmarkDocument>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<TextBase, FlexmarkDocument>): TextWithInlines =
         renderInlines(inlineNode.children)
 }

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.markdowneditor.ZERO_WIDTH_SPACE
 import me.okonecny.markdowneditor.ast.data.Image
 import me.okonecny.markdowneditor.buildMappedString
@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 internal class UiImage : InlineRenderer<Image, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Image, FlexmarkDocument>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Image, FlexmarkDocument>): TextWithInlines =
         buildMappedString {
             val basePath = document.basePath
             val imageData = inlineNode.data
@@ -142,14 +142,14 @@ private val Size.dp: DpSize get() = DpSize(width.dp, height.dp)
 
 
 @Composable
-private fun MappedText.Builder.appendImage(
+private fun TextWithInlines.Builder.appendImage(
     image: VisualNode<Image, FlexmarkDocument>,
     imageState: ImageState,
     onStateChange: (newState: ImageState) -> Unit
 ) {
     if (visualLength == 0) {
         append(
-            MappedText(
+            TextWithInlines(
                 text = ZERO_WIDTH_SPACE
             )
         ) // So we don't have an empty paragraph.

@@ -9,7 +9,7 @@ import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.ext.emoji.internal.EmojiResolvedShortcut
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.markdowneditor.ast.data.Emoji
 import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -20,18 +20,18 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiEmoji : InlineRenderer<Emoji, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Emoji, FlexmarkDocument>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<Emoji, FlexmarkDocument>): TextWithInlines =
         buildMappedString {
             appendEmoji(
                 inlineNode,
-                MappedText(
+                TextWithInlines(
                     text = inlineNode.data.shortcut,
                 )
             )
         }
 }
 
-private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji, FlexmarkDocument>, fallback: MappedText) {
+private fun TextWithInlines.Builder.appendEmoji(emojiNode: VisualNode<Emoji, FlexmarkDocument>, fallback: TextWithInlines) {
     val emojiShortcut = EmojiResolvedShortcut.getEmojiText(
         emojiNode.data.shortcut,
         EmojiShortcutType.GITHUB,
@@ -44,7 +44,7 @@ private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji, Flexmark
         return
     }
     append(
-        MappedText(
+        TextWithInlines(
             text = resolvedEmoji.annotatedString,
         )
     )

@@ -73,7 +73,7 @@ private fun <D : Any> UiMdDocument(
             }
         }
 
-        override fun annotateLinkByHandler(linkText: MappedText, linkUrl: String?): MappedText {
+        override fun annotateLinkByHandler(linkText: TextWithInlines, linkUrl: String?): TextWithInlines {
             if (linkUrl.isNullOrEmpty()) return linkText
             return linkHandlersMap.mapValues { (_, handler) ->
                 handler.parseLinkAnnotation(linkUrl)
@@ -87,11 +87,11 @@ private fun <D : Any> UiMdDocument(
         }
 
         @Composable
-        override fun renderInline(inline: VisualNode<Any, D>): MappedText =
+        override fun renderInline(inline: VisualNode<Any, D>): TextWithInlines =
             renderInlines(listOf(inline))
 
         @Composable
-        override fun renderInlines(inlines: Iterable<VisualNode<Any, D>>): MappedText {
+        override fun renderInlines(inlines: Iterable<VisualNode<Any, D>>): TextWithInlines {
             return buildMappedString {
                 inlines.forEach { inline ->
                     renderers.forInline(inline).run {

@@ -4,7 +4,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 
 val Node.range: TextRange get() = TextRange(startOffset, endOffset)
 
@@ -17,8 +17,8 @@ val Node.source: String get() = chars.toString()
 /**
  * Returns the unprocessed Markdown source code corresponding to the node.
  */
-internal fun Node.rawCode(): MappedText {
-    return MappedText(
+internal fun Node.rawCode(): TextWithInlines {
+    return TextWithInlines(
         text = chars.toString()
     )
 }
@@ -26,10 +26,10 @@ internal fun Node.rawCode(): MappedText {
 /**
  * Collects the node text, resolving all escapes.
  */
-internal fun Node.text(): MappedText {
+internal fun Node.text(): TextWithInlines {
     val builder = TextCollectingVisitor()
     builder.collect(this)
-    return MappedText(
+    return TextWithInlines(
         text = AnnotatedString(builder.text)
     )
 }

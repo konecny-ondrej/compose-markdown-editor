@@ -2,7 +2,7 @@ package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
 import me.okonecny.markdowneditor.DocumentTheme
-import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.TextWithInlines
 import me.okonecny.markdowneditor.ast.data.AutoLink
 import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -12,10 +12,10 @@ import me.okonecny.wysiwyg.ast.VisualNode
 
 internal class UiAutoLink : InlineRenderer<AutoLink, FlexmarkDocument> {
     @Composable
-    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<AutoLink, FlexmarkDocument>): MappedText =
+    override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<AutoLink, FlexmarkDocument>): TextWithInlines =
         buildMappedString {
             val url = inlineNode.data.target
-            val linkText = MappedText(
+            val linkText = TextWithInlines(
                 inlineNode.data.text
             )
             val annotatedLinkText = annotateLinkByHandler(linkText, url)

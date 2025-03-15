@@ -3,15 +3,21 @@ package me.okonecny.interactivetext
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.dp
 
 val LocalSelectionStyle = compositionLocalOf { SelectionStyle() }
 
-fun Modifier.paintSelection(
+fun Modifier.paintComponentSelection(
     interactiveScope: InteractiveScope,
     interactiveId: InteractiveId
 ) = composed {
@@ -93,3 +99,66 @@ private fun TextLayoutResult.getFilledPathForRange(start: Int, end: Int, growBy:
 
     return closedPath
 }
+
+internal fun Modifier.paintContainerSelection(
+    interactiveScope: InteractiveScope,
+    selectionStyle: SelectionStyle
+) = clip(RectangleShape)
+    .drawWithContent {
+        val selection = interactiveScope.selection
+        if (selection.isEmpty
+            || !interactiveScope.isPlaced
+            || !interactiveScope.hasComponent(selection.start.componentId)
+            || !interactiveScope.hasComponent(selection.end.componentId)
+        ) {
+            drawContent()
+            return@drawWithContent
+        }
+
+        var combinedSelectionPath = Path()
+        for (component in interactiveScope.componentsBetween(
+            interactiveScope.getComponent(selection.start.componentId),
+            interactiveScope.getComponent(selection.end.componentId)
+        )) {
+            val textLayout = component.textLayoutResult ?: continue
+            val componentCoordinates = component.attachedLayoutCoordinates ?: continue
+
+            val selectionStart = if (selection.start.componentId == component.id) {
+                selection.start.visualOffset
+            } else {
+                0
+            }
+            val text = textLayout.layoutInput.text
+            val selectionEnd = if (selection.end.componentId == component.id) {
+                selection.end.visualOffset.coerceAtMost(text.length)
+            } else {
+                text.length
+            }
+
+            val componentSelectionPath = textLayout.getFilledPathForRange(
+                selectionStart,
+                selectionEnd,
+                (selectionStyle.stroke.width + 1.dp).toPx()
+            )
+            val positionInContainer = interactiveScope
+                .containerCoordinates
+                .localPositionOf(componentCoordinates, Offset.Zero)
+            componentSelectionPath.translate(positionInContainer)
+            combinedSelectionPath = Path.combine(
+                PathOperation.Union,
+                combinedSelectionPath,
+                componentSelectionPath
+            )
+        }
+
+        drawContent()
+        drawPath(combinedSelectionPath, selectionStyle.fillColor)
+        drawPath(
+            combinedSelectionPath,
+            selectionStyle.stroke.color,
+            style = Stroke(
+                width = selectionStyle.stroke.width.toPx(),
+                join = StrokeJoin.Round
+            )
+        )
+    }

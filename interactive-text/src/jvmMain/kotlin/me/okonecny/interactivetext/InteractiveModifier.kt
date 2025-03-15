@@ -7,6 +7,16 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 
+fun Modifier.interactive(
+    interactiveId: InteractiveId,
+    userData: UserData = UserData.empty
+) = Modifier.interactiveText(
+    interactiveId = interactiveId,
+    textLayoutResult = null,
+    textMapping = ZeroTextMapping,
+    textLength = 0
+)
+
 fun Modifier.interactiveText(
     interactiveId: InteractiveId,
     textLayoutResult: TextLayoutResult?,

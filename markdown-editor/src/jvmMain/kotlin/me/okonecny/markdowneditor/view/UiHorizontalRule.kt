@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import me.okonecny.interactivetext.interactive
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.ast.data.HorizontalRule
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -16,7 +17,7 @@ internal class UiHorizontalRule : BlockRenderer<HorizontalRule, FlexmarkDocument
     override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HorizontalRule, FlexmarkDocument>) {
         val lineStyle = DocumentTheme.current.lineStyle
         Box(
-            modifier = Modifier.fillMaxWidth(1f)
+            modifier = Modifier.interactive(block.interactiveId).fillMaxWidth(1f)
                 .then(Modifier.height(lineStyle.width * 2))
                 .then(Modifier.border(lineStyle))
         )

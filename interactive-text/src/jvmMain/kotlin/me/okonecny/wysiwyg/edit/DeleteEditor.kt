@@ -36,7 +36,8 @@ class DeleteEditor : CommandEditor<Delete> {
             removeNode(editedNode, editorState)
         } else {
             if(editedNode.asTextNode == null) {
-                return null
+                // There is some text, but not in this node => We must edit the first text child node.
+                editTextNode(editedNode.findNext<HasText>() ?: return null, editedTextNodeWithOffset, command, editorState)
             } else {
                 editTextNode(editedNode.asTextNode, editedTextNodeWithOffset, command, editorState)
             }

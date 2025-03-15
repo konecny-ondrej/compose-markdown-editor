@@ -17,9 +17,6 @@ import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
-import me.okonecny.markdowneditor.flexmark.range
-import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
-import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 
@@ -80,32 +77,32 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     val source = editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
-    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
+//    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
 
     TextToolbarButton(
         text = text,
         tooltip = tooltip,
-        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) },
-        activeIf = { touchedDelimitedNodes.size == 1 },
+//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) },
+//        activeIf = { touchedDelimitedNodes.size == 1 },
         textStyle = textStyle,
         modifier = modifier,
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
         // Emphasis OFF.
-        if (touchedDelimitedNodes.size == 1) {
-            val delimitedNode = touchedDelimitedNodes.first()
-            handleInput(
-                ReplaceRange(
-                    delimitedNode.range,
-                    delimitedNode.baseSequence.substring(
-                        delimitedNode.openingMarker.endOffset,
-                        delimitedNode.closingMarker.startOffset,
-                    ),
-                    -delimiter.length
-                )
-            )
-            return@TextToolbarButton
-        }
+//        if (touchedDelimitedNodes.size == 1) {
+//            val delimitedNode = touchedDelimitedNodes.first()
+//            handleInput(
+//                ReplaceRange(
+//                    delimitedNode.range,
+//                    delimitedNode.baseSequence.substring(
+//                        delimitedNode.openingMarker.endOffset,
+//                        delimitedNode.closingMarker.startOffset,
+//                    ),
+//                    -delimiter.length
+//                )
+//            )
+//            return@TextToolbarButton
+//        }
 
         // Emphasis ON.
         val delimitedRange = if (sourceSelection.collapsed) {

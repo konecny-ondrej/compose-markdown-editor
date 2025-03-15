@@ -15,13 +15,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
-import me.okonecny.interactivetext.BoundedBlockTextMapping
-import me.okonecny.markdowneditor.*
+import me.okonecny.markdowneditor.DocumentTheme
+import me.okonecny.markdowneditor.MappedText
+import me.okonecny.markdowneditor.ZERO_WIDTH_SPACE
 import me.okonecny.markdowneditor.ast.data.Image
+import me.okonecny.markdowneditor.buildMappedString
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.internal.ImageLoader
 import me.okonecny.markdowneditor.view.InlineRenderer
@@ -149,11 +150,7 @@ private fun MappedText.Builder.appendImage(
     if (visualLength == 0) {
         append(
             MappedText(
-                text = ZERO_WIDTH_SPACE,
-                textMapping = BoundedBlockTextMapping(
-                    coveredSourceRange = image.sourceRange,
-                    visualTextRange = TextRange(0, 1)
-                )
+                text = ZERO_WIDTH_SPACE
             )
         ) // So we don't have an empty paragraph.
     }
@@ -171,10 +168,6 @@ private fun MappedText.Builder.appendImage(
 
     val imageId = remember { imageCount.getAndIncrement() }
     appendInlineContent(
-        BoundedBlockTextMapping(
-            coveredSourceRange = image.sourceRange,
-            visualTextRange = TextRange(visualLength, visualLength + 1)
-        ),
         IMAGE_INLINE_ELEMENT_TYPE + imageId
     ) {
         InlineTextContent(placeholder) {

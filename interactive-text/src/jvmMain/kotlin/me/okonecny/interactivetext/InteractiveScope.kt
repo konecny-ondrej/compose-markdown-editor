@@ -238,34 +238,6 @@ data class InteractiveScope(
         return componentsInLineOrder.subList(startIndex, endIndex + 1).toList()
     }
 
-    fun componentAtSource(sourcePos: Int): InteractiveComponent {
-        val directComponents = registeredComponents.values.filter { component ->
-            if (!component.isLaidOut) return@filter false
-            val sourceRange = component.textMapping.coveredSourceRange ?: return@filter false
-            sourceRange.contains(sourcePos) || sourceRange.end == sourcePos
-        }
-        // If multiple components are found, take the shortest.
-        if (directComponents.isNotEmpty()) return directComponents.minWith { cmp1, cmp2 ->
-            cmp1.visualTextRange.length.compareTo(cmp2.visualTextRange.length)
-        }
-
-        var closestComponent: InteractiveComponent = registeredComponents.values.firstOrNull()
-            ?: throw IllegalStateException("At least one interactive component must be registered.")
-        var closestDiff = Int.MAX_VALUE
-        for (component in registeredComponents.values) {
-            val sourceRange = component.textMapping.coveredSourceRange ?: continue
-            val startDiff = abs(sourceRange.start - sourcePos)
-            val endDiff = abs(sourceRange.end - sourcePos)
-            for (diff in listOf(startDiff, endDiff)) {
-                if (diff < closestDiff) {
-                    closestComponent = component
-                    closestDiff = diff
-                }
-            }
-        }
-        return closestComponent
-    }
-
     private fun textLineComparison(a: InteractiveComponent, b: InteractiveComponent): Int {
         // Assume that the ids are vaguely in line order for components, which are currently detached.
         // e.g. off the screen in LazyColumn

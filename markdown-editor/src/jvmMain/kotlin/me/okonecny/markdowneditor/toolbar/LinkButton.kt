@@ -1,21 +1,16 @@
 package me.okonecny.markdowneditor.toolbar
 
+//import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
+//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
-import com.vladsch.flexmark.ast.AutoLink
-import com.vladsch.flexmark.ast.Link
-import com.vladsch.flexmark.ast.LinkRef
-import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
-import me.okonecny.markdowneditor.flexmark.range
-import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
-import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
@@ -26,9 +21,9 @@ internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handl
     val source = editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
-    val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +
-            visualSelection.touchedNodesOfType<LinkRef>(scope, sourceCursor) +
-            visualSelection.touchedNodesOfType<AutoLink>(scope, sourceCursor)
+//    val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +
+//            visualSelection.touchedNodesOfType<LinkRef>(scope, sourceCursor) +
+//            visualSelection.touchedNodesOfType<AutoLink>(scope, sourceCursor)
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var linkUrl by remember { mutableStateOf("") }
@@ -45,24 +40,24 @@ internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handl
         text = "\uf44c",
         tooltip = "Link",
         modifier = Modifier.offset((-1).dp),
-        activeIf = { touchedLinks.size == 1 },
-        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedLinks.size > 1 }
+//        activeIf = { touchedLinks.size == 1 },
+//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedLinks.size > 1 }
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-        if (touchedLinks.size == 1) {
-            val linkElement = touchedLinks.first()
-            linkUrl = when (linkElement) {
-                is Link -> linkElement.url.toString()
-                // TODO: Support LinkRef sometime.
-                is AutoLink -> linkElement.text.toString()
-                else -> ""
-            }
-            linkText = when (linkElement) {
-                is Link -> linkElement.text.toString()
-                is AutoLink -> linkElement.text.toString()
-                else -> ""
-            }
-        }
+//        if (touchedLinks.size == 1) {
+//            val linkElement = touchedLinks.first()
+//            linkUrl = when (linkElement) {
+//                is Link -> linkElement.url.toString()
+//                // TODO: Support LinkRef sometime.
+//                is AutoLink -> linkElement.text.toString()
+//                else -> ""
+//            }
+//            linkText = when (linkElement) {
+//                is Link -> linkElement.text.toString()
+//                is AutoLink -> linkElement.text.toString()
+//                else -> ""
+//            }
+//        }
         showLinkDialog = true
     }
 
@@ -76,20 +71,20 @@ internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handl
         onConfirm = { newUrl, newText ->
             showLinkDialog = false
 
-            if (touchedLinks.size == 1) { // Edit existing link.
-                when (val linkElement = touchedLinks.first()) {
-                    is Link -> handleInput(
-                        ReplaceRange(
-                            linkElement.range,
-                            "[$newText]($newUrl)"
-                        )
-                    )
-                    // TODO: Support LinkRef sometime.
-                    is AutoLink -> handleInput(ReplaceRange(linkElement.range, "[$newText]($newUrl)"))
-                }
-            } else { // Create new link.
-                handleInput(ReplaceRange(linkTextRange, "[$newText]($newUrl)"))
-            }
+//            if (touchedLinks.size == 1) { // Edit existing link.
+//                when (val linkElement = touchedLinks.first()) {
+//                    is Link -> handleInput(
+//                        ReplaceRange(
+//                            linkElement.range,
+//                            "[$newText]($newUrl)"
+//                        )
+//                    )
+//                    // TODO: Support LinkRef sometime.
+//                    is AutoLink -> handleInput(ReplaceRange(linkElement.range, "[$newText]($newUrl)"))
+//                }
+//            } else { // Create new link.
+//                handleInput(ReplaceRange(linkTextRange, "[$newText]($newUrl)"))
+//            }
         }
     )
 }

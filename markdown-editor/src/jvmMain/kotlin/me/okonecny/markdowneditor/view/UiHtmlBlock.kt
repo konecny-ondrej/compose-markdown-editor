@@ -3,7 +3,6 @@ package me.okonecny.markdowneditor.view
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import me.okonecny.interactivetext.InteractiveText
-import me.okonecny.interactivetext.ZeroTextMapping
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.ast.data.HtmlBlock
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -18,7 +17,6 @@ internal class UiHtmlBlock : BlockRenderer<HtmlBlock, FlexmarkDocument> {
                 InteractiveText(
                     interactiveId = block.interactiveId,
                     text = line,
-                    textMapping = ZeroTextMapping,
                     style = styles.codeBlock.textStyle
                 )
             }

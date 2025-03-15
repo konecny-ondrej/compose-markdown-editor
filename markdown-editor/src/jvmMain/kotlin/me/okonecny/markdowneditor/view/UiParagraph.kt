@@ -15,7 +15,6 @@ internal class UiParagraph : BlockRenderer<Paragraph, FlexmarkDocument> {
         InteractiveText(
             interactiveId = block.interactiveId,
             text = inlines.text,
-            textMapping = inlines.textMapping,
             style = styles.paragraph,
             inlineContent = inlines.inlineContent,
             activeAnnotationTags = activeAnnotationTags,

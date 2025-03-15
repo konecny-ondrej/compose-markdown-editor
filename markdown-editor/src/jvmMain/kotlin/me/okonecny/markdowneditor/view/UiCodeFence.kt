@@ -2,8 +2,6 @@ package me.okonecny.markdowneditor.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.TextRange
-import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.DocumentTheme
@@ -28,10 +26,6 @@ internal class UiCodeFence(
                 InteractiveText(
                     interactiveId = block.interactiveId,
                     text = codeBlockData.code,
-                    textMapping = BoundedBlockTextMapping(
-                        block.sourceRange,
-                        TextRange(0, codeBlockData.code.length)
-                    ),
                     style = styles.codeBlock.textStyle,
                     modifier = styles.codeBlock.modifier
                 )

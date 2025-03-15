@@ -13,7 +13,6 @@ import me.okonecny.markdowneditor.ast.data.LinkTarget
 import me.okonecny.markdowneditor.inline.InternalAnchorLink
 import me.okonecny.markdowneditor.view.RenderContext
 import me.okonecny.markdowneditor.view.Renderers
-import me.okonecny.markdowneditor.view.visuallyOffset
 import me.okonecny.wysiwyg.ast.VisualNode
 
 /**
@@ -96,7 +95,7 @@ private fun <D : Any> UiMdDocument(
             return buildMappedString {
                 inlines.forEach { inline ->
                     renderers.forInline(inline).run {
-                        append(render(inline).visuallyOffset(visualLength))
+                        append(render(inline))
                     }
                 }
             }

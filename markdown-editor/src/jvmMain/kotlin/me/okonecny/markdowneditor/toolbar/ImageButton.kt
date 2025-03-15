@@ -6,15 +6,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
-import com.vladsch.flexmark.ast.Image
-import com.vladsch.flexmark.ast.ImageRef
-import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
-import me.okonecny.markdowneditor.flexmark.range
-import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
-import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
@@ -25,8 +19,8 @@ internal fun ImageButton(editorState: WysiwygEditorState<FlexmarkDocument>, hand
     val source = editorState.sourceText
     val sourceSelection = TextRange.Zero // TODO: editorState.sourceSelection
 
-    val touchedImages = visualSelection.touchedNodesOfType<Image>(scope, sourceCursor) +
-            visualSelection.touchedNodesOfType<ImageRef>(scope, sourceCursor)
+//    val touchedImages = visualSelection.touchedNodesOfType<Image>(scope, sourceCursor) +
+//            visualSelection.touchedNodesOfType<ImageRef>(scope, sourceCursor)
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var imageUrl by remember { mutableStateOf("") }
@@ -43,23 +37,23 @@ internal fun ImageButton(editorState: WysiwygEditorState<FlexmarkDocument>, hand
         text = "\uf4e5",
         tooltip = "Image",
         modifier = Modifier.offset((-2.5).dp),
-        activeIf = { touchedImages.size == 1 },
-        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedImages.size > 1 }
+//        activeIf = { touchedImages.size == 1 },
+//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedImages.size > 1 }
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-        if (touchedImages.size == 1) {
-            val imageElement = touchedImages.first()
-            imageUrl = when (imageElement) {
-                is Image -> imageElement.url.toString()
-                // TODO: Support ImageRef sometime.
-                else -> ""
-            }
-            imageTitle = when (imageElement) {
-                is Image -> imageElement.title.toString()
-                // TODO: Support ImageRef sometime.
-                else -> ""
-            }
-        }
+//        if (touchedImages.size == 1) {
+//            val imageElement = touchedImages.first()
+//            imageUrl = when (imageElement) {
+//                is Image -> imageElement.url.toString()
+//                // TODO: Support ImageRef sometime.
+//                else -> ""
+//            }
+//            imageTitle = when (imageElement) {
+//                is Image -> imageElement.title.toString()
+//                // TODO: Support ImageRef sometime.
+//                else -> ""
+//            }
+//        }
         showLinkDialog = true
     }
 
@@ -73,19 +67,19 @@ internal fun ImageButton(editorState: WysiwygEditorState<FlexmarkDocument>, hand
         onConfirm = { newUrl, newTitle ->
             showLinkDialog = false
 
-            if (touchedImages.size == 1) { // Edit existing image.
-                when (val imageElement = touchedImages.first()) {
-                    is Image -> handleInput(
-                        ReplaceRange(
-                            imageElement.range,
-                            "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"
-                        )
-                    )
-                    // TODO: Support ImageRef sometime.
-                }
-            } else { // Create new image.
-                handleInput(ReplaceRange(imageTitleRange, "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"))
-            }
+//            if (touchedImages.size == 1) { // Edit existing image.
+//                when (val imageElement = touchedImages.first()) {
+//                    is Image -> handleInput(
+//                        ReplaceRange(
+//                            imageElement.range,
+//                            "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"
+//                        )
+//                    )
+//                    // TODO: Support ImageRef sometime.
+//                }
+//            } else { // Create new image.
+//                handleInput(ReplaceRange(imageTitleRange, "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"))
+//            }
         }
     )
 }

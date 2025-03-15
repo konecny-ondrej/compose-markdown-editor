@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.ui.text.TextRange
-import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.interactivetext.InteractiveText
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.ast.data.TaskListItem
@@ -24,10 +22,6 @@ internal class UiTaskListItem : BlockRenderer<TaskListItem, FlexmarkDocument> {
             InteractiveText(
                 interactiveId = block.interactiveId,
                 text = LocalListItemBullet.current,
-                textMapping = BoundedBlockTextMapping(
-                    visualTextRange = TextRange(0, 1),
-                    coveredSourceRange = TextRange(0, LocalListItemBullet.current.length)
-                ),
                 style = styles.listNumber
             )
             Checkbox(

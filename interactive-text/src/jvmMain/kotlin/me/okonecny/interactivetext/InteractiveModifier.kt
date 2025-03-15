@@ -10,17 +10,15 @@ import androidx.compose.ui.text.TextRange
 fun Modifier.interactive(
     interactiveId: InteractiveId,
     userData: UserData = UserData.empty
-) = Modifier.interactiveText(
+) = interactiveText(
     interactiveId = interactiveId,
     textLayoutResult = null,
-    textMapping = ZeroTextMapping,
     textLength = 0
 )
 
 fun Modifier.interactiveText(
     interactiveId: InteractiveId,
     textLayoutResult: TextLayoutResult?,
-    textMapping: TextMapping,
     textLength: Int,
     userData: UserData = UserData.empty
 ) = composed {
@@ -45,7 +43,6 @@ fun Modifier.interactiveText(
                     scrollIndex = scrollIndex,
                     layoutCoordinates = layoutCoordinates,
                     visualTextRange = TextRange(0, textLength),
-                    textMapping = textMapping,
                     textLayoutResult = textLayoutResult,
                     userData = userData
                 )
@@ -63,7 +60,6 @@ fun Modifier.interactiveText(
                     scrollIndex = scrollIndex,
                     layoutCoordinates = null,
                     visualTextRange = TextRange(0, 0),
-                    textMapping = textMapping,
                     textLayoutResult = null,
                     userData = userData
                 )

@@ -3,14 +3,12 @@ package me.okonecny.markdowneditor.view.inline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import com.vladsch.flexmark.ext.emoji.EmojiImageType
 import com.vladsch.flexmark.ext.emoji.EmojiShortcutType
 import com.vladsch.flexmark.ext.emoji.internal.EmojiReference
 import com.vladsch.flexmark.ext.emoji.internal.EmojiResolvedShortcut
-import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.ast.data.Emoji
 import me.okonecny.markdowneditor.buildMappedString
@@ -28,10 +26,6 @@ internal class UiEmoji : InlineRenderer<Emoji, FlexmarkDocument> {
                 inlineNode,
                 MappedText(
                     text = inlineNode.data.shortcut,
-                    textMapping = BoundedBlockTextMapping(
-                        coveredSourceRange = inlineNode.sourceRange,
-                        visualTextRange = TextRange(0, inlineNode.data.shortcut.length)
-                    )
                 )
             )
         }
@@ -49,14 +43,9 @@ private fun MappedText.Builder.appendEmoji(emojiNode: VisualNode<Emoji, Flexmark
         append(fallback)
         return
     }
-    val emojiString = resolvedEmoji.unicodeString
     append(
         MappedText(
             text = resolvedEmoji.annotatedString,
-            textMapping = BoundedBlockTextMapping(
-                coveredSourceRange = emojiNode.sourceRange,
-                visualTextRange = TextRange(visualLength, visualLength + emojiString.length)
-            )
         )
     )
 }

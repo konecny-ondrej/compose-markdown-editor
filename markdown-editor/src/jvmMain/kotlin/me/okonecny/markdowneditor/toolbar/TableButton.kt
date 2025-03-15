@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor.toolbar
 
+//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +15,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vladsch.flexmark.ext.tables.TableCell
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
-import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
@@ -28,14 +27,14 @@ internal fun TableButton(editorState: WysiwygEditorState<FlexmarkDocument>, hand
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor
 
-    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
+//    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
     var menuVisible by remember { mutableStateOf(false) }
     Box {
         TextToolbarButton(
             text = "\uf525",
             tooltip = "Insert New Table",
             modifier = Modifier.offset((-2).dp),
-            disabledIf = { !visualSelection.isEmpty || touchedTables.isNotEmpty() }
+//            disabledIf = { !visualSelection.isEmpty || touchedTables.isNotEmpty() }
         ) {
             editorState.interactiveScope.focusRequester.requestFocus()
             menuVisible = true

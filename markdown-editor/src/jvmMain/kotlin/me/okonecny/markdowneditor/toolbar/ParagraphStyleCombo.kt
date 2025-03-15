@@ -22,7 +22,7 @@ import me.okonecny.markdowneditor.compose.Tooltip
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.flexmark.source
-import me.okonecny.markdowneditor.interactive.touchedNodesOfType
+//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 import kotlin.reflect.KClass
 
@@ -34,18 +34,18 @@ internal fun ParagraphStyleCombo(
     handleInput: (TextInputCommand) -> Unit
 ) {
 
-    val touchedBlocks = editorState.visualSelection
-        .touchedNodesOfType<Block>(editorState.interactiveScope, editorState.sourceCursor)
-        .filter { it::class in ParagraphStyle.allowedNodeTypes }
-    val currentBlock = touchedBlocks.firstOrNull() ?: return BasicText(
-        modifier = Modifier.toolbarElement(ToolbarButtonState.Disabled),
-        text = "${ParagraphStyle.PARAGRAPH.description()}$ARROW_DOWN"
-    )
-
-    val comboText = when (currentBlock) {
-        is Heading -> ParagraphStyle.HEADING.description(currentBlock.level)
-        else -> ParagraphStyle.forNode(currentBlock).description()
-    }
+//    val touchedBlocks = editorState.visualSelection
+//        .touchedNodesOfType<Block>(editorState.interactiveScope, editorState.sourceCursor)
+//        .filter { it::class in ParagraphStyle.allowedNodeTypes }
+//    val currentBlock = touchedBlocks.firstOrNull() ?: return BasicText(
+//        modifier = Modifier.toolbarElement(ToolbarButtonState.Disabled),
+//        text = "${ParagraphStyle.PARAGRAPH.description()}$ARROW_DOWN"
+//    )
+//
+//    val comboText = when (currentBlock) {
+//        is Heading -> ParagraphStyle.HEADING.description(currentBlock.level)
+//        else -> ParagraphStyle.forNode(currentBlock).description()
+//    }
 
     @OptIn(ExperimentalFoundationApi::class)
     (TooltipArea(
@@ -58,22 +58,22 @@ internal fun ParagraphStyleCombo(
                     menuVisible = true
                 }
             },
-            text = "$comboText$ARROW_DOWN"
+            text = "Style$ARROW_DOWN"
         )
         DropdownMenu(
             expanded = menuVisible,
             onDismissRequest = { menuVisible = false }
         ) {
             val styles = DocumentTheme.current.styles
-            ParagraphOption(currentBlock, handleInput)
-            HeadingOption(currentBlock, 1, styles.h1, handleInput)
-            HeadingOption(currentBlock, 2, styles.h2, handleInput)
-            HeadingOption(currentBlock, 3, styles.h3, handleInput)
-            HeadingOption(currentBlock, 4, styles.h4, handleInput)
-            HeadingOption(currentBlock, 5, styles.h5, handleInput)
-            HeadingOption(currentBlock, 6, styles.h6, handleInput)
-            FencedCodeBlockOption(currentBlock, handleInput)
-            BlockQuoteOption(currentBlock, handleInput)
+//            ParagraphOption(currentBlock, handleInput)
+//            HeadingOption(currentBlock, 1, styles.h1, handleInput)
+//            HeadingOption(currentBlock, 2, styles.h2, handleInput)
+//            HeadingOption(currentBlock, 3, styles.h3, handleInput)
+//            HeadingOption(currentBlock, 4, styles.h4, handleInput)
+//            HeadingOption(currentBlock, 5, styles.h5, handleInput)
+//            HeadingOption(currentBlock, 6, styles.h6, handleInput)
+//            FencedCodeBlockOption(currentBlock, handleInput)
+//            BlockQuoteOption(currentBlock, handleInput)
         }
     })
 }

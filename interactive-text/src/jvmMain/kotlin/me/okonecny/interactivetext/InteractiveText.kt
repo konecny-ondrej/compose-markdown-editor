@@ -13,7 +13,6 @@ import androidx.compose.ui.text.TextStyle
 fun InteractiveText(
     interactiveId: InteractiveId,
     text: AnnotatedString,
-    textMapping: TextMapping,
     style: TextStyle,
     modifier: Modifier = Modifier,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
@@ -30,7 +29,6 @@ fun InteractiveText(
         modifier = modifier.interactiveText(
             interactiveId,
             textLayoutResult,
-            textMapping,
             text.length,
             userData
         ).annotationClickDetector(
@@ -49,7 +47,6 @@ fun InteractiveText(
 fun InteractiveText(
     interactiveId: InteractiveId,
     text: String,
-    textMapping: TextMapping,
     style: TextStyle,
     modifier: Modifier = Modifier,
     userData: UserData = UserData.empty,
@@ -58,7 +55,6 @@ fun InteractiveText(
 ) = InteractiveText(
     interactiveId,
     AnnotatedString(text),
-    textMapping,
     style,
     modifier,
     mapOf(),

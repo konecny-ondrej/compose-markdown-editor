@@ -1,8 +1,6 @@
 package me.okonecny.markdowneditor.view.inline
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.TextRange
-import me.okonecny.interactivetext.BoundedBlockTextMapping
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.MappedText
 import me.okonecny.markdowneditor.ast.data.AutoLink
@@ -18,11 +16,7 @@ internal class UiAutoLink : InlineRenderer<AutoLink, FlexmarkDocument> {
         buildMappedString {
             val url = inlineNode.data.target
             val linkText = MappedText(
-                inlineNode.data.text,
-                BoundedBlockTextMapping(
-                    visualTextRange = TextRange(0, inlineNode.data.text.length),
-                    coveredSourceRange = inlineNode.sourceRange
-                )
+                inlineNode.data.text
             )
             val annotatedLinkText = annotateLinkByHandler(linkText, url)
             appendStyled(

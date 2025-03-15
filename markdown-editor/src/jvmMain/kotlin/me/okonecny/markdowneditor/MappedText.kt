@@ -5,22 +5,18 @@ import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import me.okonecny.interactivetext.TextMapping
-import me.okonecny.interactivetext.ZeroTextMapping
-import me.okonecny.interactivetext.plus
 
 /**
  * Text, which carries information about what part of source text it came from.
  */
 data class MappedText(
     val text: AnnotatedString,
-    val textMapping: TextMapping,
     val inlineContent: Map<String, InlineTextContent> = emptyMap()
 ) {
-    constructor(text: String, textMapping: TextMapping) : this(AnnotatedString(text), textMapping)
+    constructor(text: String) : this(AnnotatedString(text))
 
     companion object {
-        val empty: MappedText = MappedText("", ZeroTextMapping)
+        val empty: MappedText = MappedText("")
     }
 
     fun annotatedWith(tag: String, annotation: String): MappedText = MappedText(
@@ -29,7 +25,6 @@ data class MappedText(
             append(text)
             pop()
         },
-        textMapping = textMapping,
         inlineContent = inlineContent
     )
 
@@ -43,7 +38,6 @@ data class MappedText(
             }
             MappedText(
                 text = text + other.text,
-                textMapping = textMapping + other.textMapping,
                 inlineContent = inlineContent + other.inlineContent
             )
         }
@@ -62,7 +56,6 @@ data class MappedText(
         }
 
         fun appendInlineContent(
-            textMapping: TextMapping,
             inlineElementId: String,
             inlineContent: () -> InlineTextContent
         ) {
@@ -70,7 +63,6 @@ data class MappedText(
                 text = buildAnnotatedString {
                     appendInlineContent(inlineElementId)
                 },
-                textMapping = textMapping,
                 inlineContent = mapOf(inlineElementId to inlineContent())
             )
             mappedText += inlines

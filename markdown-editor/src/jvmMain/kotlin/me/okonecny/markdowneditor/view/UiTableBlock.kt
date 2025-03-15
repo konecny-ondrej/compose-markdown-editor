@@ -26,7 +26,6 @@ internal class UiTableBlock : BlockRenderer<Table, FlexmarkDocument> {
                                     InteractiveText(
                                         interactiveId = cell.interactiveId,
                                         text = inlines.text,
-                                        textMapping = inlines.textMapping,
                                         inlineContent = inlines.inlineContent,
                                         style = cellStyle.textStyle.copy(
                                             textAlign = when (cellData.alignment) {

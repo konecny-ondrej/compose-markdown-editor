@@ -15,7 +15,6 @@ internal class UiHeading : BlockRenderer<Heading, FlexmarkDocument> {
         InteractiveText(
             interactiveId = block.interactiveId,
             text = inlines.text,
-            textMapping = inlines.textMapping,
             inlineContent = inlines.inlineContent,
             style = when (block.data.level) {
                 Heading.Level.H1 -> styles.h1

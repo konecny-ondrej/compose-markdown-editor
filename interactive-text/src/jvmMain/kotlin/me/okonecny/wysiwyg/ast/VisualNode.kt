@@ -212,6 +212,7 @@ data class VisualNode<out T : Any, D : Any>(
         val node: VisualNode<HasText, D>,
         val charOffset: Int
     ) {
+        val text = node.text
         val isAtStart: Boolean = charOffset == 0
         val isAtEnd: Boolean = node.data.text.length == charOffset
     }
@@ -311,3 +312,4 @@ fun <D : Any> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Vi
     return commonParent
 }
 
+val VisualNode<HasText, *>.text: String get() = data.text

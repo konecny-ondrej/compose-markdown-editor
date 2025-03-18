@@ -12,7 +12,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
+import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.edit.CopyEditor
 import me.okonecny.wysiwyg.edit.DeleteEditor
 import me.okonecny.wysiwyg.edit.TypeEditor
 
@@ -157,9 +159,8 @@ fun <D : Any> WysiwygEditor(
         if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
         when (textInputCommand) {
-            Copy -> {
-                clipboardManager.setText(AnnotatedString("TODO"))
-                TODO()
+            is Copy -> {
+                onChange(CopyEditor(clipboardManager).edit(editorState, textInputCommand) ?: return@LaunchedEffect)
             }
 
             Cut -> {
@@ -232,7 +233,6 @@ data class WysiwygEditorState<D : Any>(
 ) {
     var visualCursor by interactiveScope::cursorPosition
     var visualSelection by interactiveScope::selection
-
     val nodeCursor: VisualNodeCursorPosition<D>?
         get() {
             val visualCursor = visualCursor ?: return null
@@ -251,6 +251,22 @@ data class WysiwygEditorState<D : Any>(
                 }
             }
             return null
+        }
+
+    val nodeSelection: VisualNodeSelection<D>?
+        get() {
+            val selection = visualSelection
+            if (selection.isEmpty) return null
+            return VisualNodeSelection(
+                VisualNodeCursorPosition(
+                    containerNode = visualDocument.findChildById(selection.start.componentId) ?: return null,
+                    visualOffset = selection.start.visualOffset
+                ),
+                VisualNodeCursorPosition(
+                    containerNode = visualDocument.findChildById(selection.end.componentId) ?: return null,
+                    visualOffset = selection.end.visualOffset
+                )
+            )
         }
 
     val visualCursorRect: Rect?

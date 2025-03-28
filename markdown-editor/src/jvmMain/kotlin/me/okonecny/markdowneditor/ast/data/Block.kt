@@ -10,6 +10,15 @@ data class Heading(
     enum class Level {
         H1, H2, H3, H4, H5, H6;
 
+        fun numericLevel() = when (this) {
+            H1 -> 1
+            H2 -> 2
+            H3 -> 3
+            H4 -> 4
+            H5 -> 5
+            H6 -> 6
+        }
+
         companion object {
             fun forNumericLevel(level: Int) = when (level) {
                 1 -> H1

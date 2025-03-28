@@ -4,8 +4,8 @@ import me.okonecny.interactivetext.MoveCursorOnLine
 import me.okonecny.interactivetext.Type
 import me.okonecny.wysiwyg.WysiwygEditorState
 
-class TypeEditor : CommandEditor<Type> {
-    override fun <D : Any> edit(editorState: WysiwygEditorState<D>, command: Type): WysiwygEditorState<D>? {
+class TypeEditor<D : Any> : CommandEditor<Type, D> {
+    override fun edit(editorState: WysiwygEditorState<D>, command: Type): WysiwygEditorState<D>? {
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
         val editedTextNode = editedTextNodeWithOffset.node
         val editedText = editedTextNode.data.text

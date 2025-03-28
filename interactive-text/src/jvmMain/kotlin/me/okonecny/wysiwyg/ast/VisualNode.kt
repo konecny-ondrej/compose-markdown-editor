@@ -4,7 +4,6 @@ import androidx.compose.ui.text.TextRange
 import me.okonecny.interactivetext.InteractiveId
 import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
 import me.okonecny.lang.only
-import me.okonecny.lang.onlyOrNull
 import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
 
@@ -100,20 +99,6 @@ data class VisualNode<out T : Any, D : Any>(
         } else {
             listOf(parent) + parent.allParents
         }
-    }
-
-    fun isBetweenIncluding(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Boolean {
-        val commonParent = commonParent(node1, node2)
-
-        val myNodeInCommonParent = commonParent.children
-            .intersect(allParents.toSet())
-            .onlyOrNull("The node graph must be a tree.")
-            ?: return false
-        val myIndexInParent = myNodeInCommonParent.parentIndex ?: return false // We have reached the root.
-        val n1f1 = commonParent.children.intersect(node1.allParents.toSet()).first().parentIndex ?: return false
-        val n2f1 = commonParent.children.intersect(node2.allParents.toSet()).first().parentIndex ?: return false
-
-        return myIndexInParent in n1f1..n2f1
     }
 
     /**

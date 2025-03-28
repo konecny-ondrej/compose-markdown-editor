@@ -16,8 +16,8 @@ import me.okonecny.wysiwyg.ast.data.HasText
  * Deletes a character or a word before or after cursor.
  * Assumes that a word is not spanning multiple nodes (if it does, it is considered as multiple words).
  */
-class DeleteEditor : CommandEditor<Delete> {
-    override fun <D : Any> edit(editorState: WysiwygEditorState<D>, command: Delete): WysiwygEditorState<D>? {
+class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
+    override fun edit(editorState: WysiwygEditorState<D>, command: Delete): WysiwygEditorState<D>? {
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
 // TODO: take selection into account.
         val visibleNode = { node: VisualNode<Any, D> ->
@@ -27,7 +27,10 @@ class DeleteEditor : CommandEditor<Delete> {
         }
         val editedNode = editedTextNodeWithOffset.node.let {
             when (command.direction) {
-                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart && !editedTextNodeWithOffset.node.totalTextIsEmpty) it.findPrev(visibleNode) else it
+                Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart && !editedTextNodeWithOffset.node.totalTextIsEmpty) it.findPrev(
+                    visibleNode
+                ) else it
+
                 Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext(visibleNode) else it
             }
         } ?: return null
@@ -35,9 +38,14 @@ class DeleteEditor : CommandEditor<Delete> {
         return if (editedNode.totalTextIsEmpty) {
             removeNode(editedNode, editorState)
         } else {
-            if(editedNode.asTextNode == null) {
+            if (editedNode.asTextNode == null) {
                 // There is some text, but not in this node => We must edit the first text child node.
-                editTextNode(editedNode.findNext<HasText>() ?: return null, editedTextNodeWithOffset, command, editorState)
+                editTextNode(
+                    editedNode.findNext<HasText>() ?: return null,
+                    editedTextNodeWithOffset,
+                    command,
+                    editorState
+                )
             } else {
                 editTextNode(editedNode.asTextNode, editedTextNodeWithOffset, command, editorState)
             }

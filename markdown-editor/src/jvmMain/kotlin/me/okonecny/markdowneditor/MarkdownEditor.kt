@@ -6,7 +6,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
+import me.okonecny.markdowneditor.ast.serializers.richtext.richText
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
@@ -15,21 +17,27 @@ import me.okonecny.markdowneditor.view.Renderers
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.WysiwygEditor
 import me.okonecny.wysiwyg.WysiwygEditorState
+import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializers
+import me.okonecny.wysiwyg.edit.CommandEditors
 import kotlin.io.path.Path
 
 @Composable
-fun <D : Any> MarkdownEditor(
+inline fun <reified D : Any> MarkdownEditor(
     editorState: WysiwygEditorState<D>,
     documentTheme: DocumentTheme,
     autocompletePlugins: List<AutocompletePlugin<D>> = listOf(),
     renderers: Renderers<D>,
-    onChange: (newEditorState: WysiwygEditorState<D>) -> Unit
+    noinline onChange: (newEditorState: WysiwygEditorState<D>) -> Unit
 ) {
     WysiwygEditor(
         editorState = editorState,
         selectionStyle = documentTheme.styles.selection,
         autocompletePlugins = autocompletePlugins,
-        onChange = onChange
+        onChange = onChange,
+        commandEditors = CommandEditors.basic(
+            LocalClipboardManager.current,
+            VisualNodeSerializers.richText<D>(documentTheme)
+        )
     ) {
         View {
             MarkdownView(

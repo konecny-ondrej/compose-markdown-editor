@@ -14,9 +14,9 @@ import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.data.HasText
-import me.okonecny.wysiwyg.edit.CopyEditor
-import me.okonecny.wysiwyg.edit.DeleteEditor
-import me.okonecny.wysiwyg.edit.TypeEditor
+import me.okonecny.wysiwyg.ast.serializers.NodeToEmptyAnnotatedString
+import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializers
+import me.okonecny.wysiwyg.edit.CommandEditors
 
 /**
  * Flexible Wysiwyg editor for editing plaintext-based document formats, like HTML or Markdown.
@@ -28,6 +28,11 @@ fun <D : Any> WysiwygEditor(
     selectionStyle: SelectionStyle,
     autocompletePlugins: List<AutocompletePlugin<D>>,
     onChange: (WysiwygEditorState<D>) -> Unit,
+    commandEditors: CommandEditors<D> = CommandEditors.basic(
+        LocalClipboardManager.current,
+        VisualNodeSerializers<D, AnnotatedString>()
+            .withUnknownNodeSerializer(NodeToEmptyAnnotatedString())
+    ),
     components: @Composable WysiwygEditorScope.() -> Unit
 ) {
     val interactiveScope = editorState.interactiveScope
@@ -159,29 +164,29 @@ fun <D : Any> WysiwygEditor(
         if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
         when (textInputCommand) {
-            is Copy -> {
-                onChange(CopyEditor(clipboardManager).edit(editorState, textInputCommand) ?: return@LaunchedEffect)
-            }
-
-            Cut -> {
-                clipboardManager.setText(AnnotatedString("TODO"))
-                TODO()
-            }
-
-            Paste -> TODO()
-            is Delete -> {
-                onChange(DeleteEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
-            }
-
-            NewLine -> TODO()
-            is Type -> {
-                onChange(TypeEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
-            }
-
-            is Undo -> TODO()
-
-            is Redo -> TODO()
-            is ReplaceRange -> TODO("remove this")
+//            is Copy -> {
+//                onChange(CopyEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
+//            }
+//
+//            Cut -> {
+//                clipboardManager.setText(AnnotatedString("TODO"))
+//                TODO()
+//            }
+//
+//            Paste -> TODO()
+//            is Delete -> {
+//                onChange(DeleteEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
+//            }
+//
+//            NewLine -> TODO()
+//            is Type -> {
+//                onChange(TypeEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
+//            }
+//
+//            is Undo -> TODO()
+//
+//            is Redo -> TODO()
+//            is ReplaceRange -> TODO("remove this")
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
@@ -189,6 +194,10 @@ fun <D : Any> WysiwygEditor(
             is SetCursor -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
+
+            else -> onChange(
+                commandEditors.forCommand(textInputCommand).edit(editorState, textInputCommand) ?: return@LaunchedEffect
+            )
         }
 
         // TODO: register undo action

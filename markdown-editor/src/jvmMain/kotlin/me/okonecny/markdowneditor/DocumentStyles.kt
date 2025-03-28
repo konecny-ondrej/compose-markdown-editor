@@ -97,7 +97,10 @@ data class DocumentStyles(
             .background(Color.LightGray, blockShape)
             .padding(10.dp, 5.dp)
     ),
-    val blockQuote: BoxStyle = BoxStyle(
+    val blockQuote: BlockStyle = BlockStyle(
+        textStyle = TextStyle(
+            background = Color.Black.copy(alpha = 0.2f),
+        ),
         modifier = Modifier
             .padding(15.dp)
             .border(Dp.Hairline, lerp(Color.LightGray, Color.Black, 0.1f), blockShape)

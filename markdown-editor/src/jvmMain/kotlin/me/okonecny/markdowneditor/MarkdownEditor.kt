@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
-import me.okonecny.markdowneditor.ast.serializers.richtext.richText
+import me.okonecny.markdowneditor.ast.serializers.markdown.markdown
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
@@ -36,7 +36,7 @@ inline fun <reified D : Any> MarkdownEditor(
         onChange = onChange,
         commandEditors = CommandEditors.basic(
             LocalClipboardManager.current,
-            VisualNodeSerializers.richText<D>(documentTheme)
+            VisualNodeSerializers.markdown<D>()
         )
     ) {
         View {

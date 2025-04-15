@@ -50,3 +50,9 @@ fun <T : Any> Iterable<T>.joinToAnnotatedString(
     filter,
     transform
 )
+
+fun AnnotatedString.trim(vararg chars: Char): AnnotatedString {
+    val startDiff = length - trimStart(*chars).length
+    val endDiff = length - trimEnd(*chars).length
+    return subSequence(startDiff, (length - endDiff).coerceAtLeast(startDiff))
+}

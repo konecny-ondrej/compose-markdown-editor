@@ -76,4 +76,7 @@ data class CodeBlock(
 data object HorizontalRule
 data class HtmlBlock(
     val lines: List<String>
-)
+) : HasText {
+    override val text: String get() = lines.joinToString(System.lineSeparator())
+    override fun replaceText(text: String): HtmlBlock = HtmlBlock(text.split(System.lineSeparator()))
+}

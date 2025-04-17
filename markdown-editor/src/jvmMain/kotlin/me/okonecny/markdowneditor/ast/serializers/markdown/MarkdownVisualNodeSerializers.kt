@@ -21,8 +21,7 @@ inline fun <reified D : Any> VisualNodeSerializers.Companion.markdown(): VisualN
         .withSerializer(BulletListToMarkdown())
         .withSerializer(BulletListItemToMarkdown())
         .withSerializer(TaskListItemToMarkdown())
-// TODO
-//    .withSerializer(UiTableBlock())
+        .withSerializer(TableToMarkdown())
         .withSerializer(CodeSpanToMarkdown())
         .withSerializer(EmphasisToMarkdown())
         .withSerializer(StrongEmphasisToMarkdown())

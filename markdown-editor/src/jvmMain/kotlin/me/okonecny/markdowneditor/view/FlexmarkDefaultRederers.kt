@@ -3,12 +3,14 @@ package me.okonecny.markdowneditor.view
 import me.okonecny.markdowneditor.CodeFenceRenderer
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.view.inline.*
+import me.okonecny.wysiwyg.ast.data.Ignored
 
 fun Renderers.Companion.flexmarkDefault(
     codeFenceRenderers: List<CodeFenceRenderer> = emptyList()
 ) = Renderers<FlexmarkDocument>()
     .withUnknownBlockTypeRenderer(UiUnparsedBlock())
     .withUnknownInlineTypeRenderer(UiUnparsedInline())
+    .withIgnoredNodeType<Ignored>()
     .withRenderer(UiHeading())
     .withRenderer(UiParagraph())
     .withRenderer(UiHorizontalRule())

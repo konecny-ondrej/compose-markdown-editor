@@ -31,6 +31,7 @@ import com.vladsch.flexmark.ext.tables.TableBody
 import com.vladsch.flexmark.ext.tables.TableCell
 import com.vladsch.flexmark.ext.tables.TableHead
 import com.vladsch.flexmark.ext.tables.TableRow
+import com.vladsch.flexmark.ext.tables.TableSeparator
 import com.vladsch.flexmark.html.renderer.HeaderIdGenerator
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.ast.TextCollectingVisitor
@@ -42,6 +43,7 @@ import me.okonecny.markdowneditor.internal.ImageLoader
 import me.okonecny.markdowneditor.view.inline.unicodeString
 import me.okonecny.wysiwyg.ast.Parser
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.data.Ignored
 import me.okonecny.wysiwyg.ast.data.Unparsed
 import me.tatarka.inject.annotations.Inject
 import java.nio.file.Path
@@ -114,6 +116,11 @@ class FlexmarkParser(
 
                 is TableBlock -> Table
                 is TableHead -> TableHeader
+                is TableSeparator -> Ignored(
+                    rawCode = node.rawCode().text.text,
+                    info = "%s".format(node::class.simpleName),
+                )
+
                 is TableBody -> TableBody
                 is TableRow -> TableRow(
                     node.rowNumber
@@ -215,6 +222,11 @@ class FlexmarkParser(
                         )
                     }
                 }
+                // References are parsed separately.
+                is Reference -> Ignored(
+                    rawCode = node.rawCode().text.text,
+                    info = "%s".format(node::class.simpleName),
+                )
 
                 else -> Unparsed(
                     rawCode = node.rawCode().text.text,

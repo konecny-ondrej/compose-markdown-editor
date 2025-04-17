@@ -29,6 +29,8 @@ fun <D : Any> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean 
     return false
 }
 
+fun <D : Any> VisualNode<*, D>.isSelected(selection: VisualNodeSelection<D>?): Boolean = selection == null || selection.hitsNode(this)
+
 fun <D : Any> VisualNode<HasText, D>.selectedText(selection: VisualNodeSelection<D>?): String {
     if (selection == null) return data.text
     return if (selection.hitsNode(this)) {

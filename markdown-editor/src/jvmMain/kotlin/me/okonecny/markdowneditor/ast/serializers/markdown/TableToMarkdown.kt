@@ -10,7 +10,8 @@ import me.okonecny.markdowneditor.ast.data.TableRow
 import me.okonecny.markdowneditor.joinToAnnotatedString
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
-import me.okonecny.wysiwyg.ast.hitsNode
+import me.okonecny.wysiwyg.ast.asA
+import me.okonecny.wysiwyg.ast.isSelected
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializationContext
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializer
 
@@ -21,7 +22,7 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
     ): AnnotatedString = buildAnnotatedString {
         // If selection is null, serialize the whole table with markdown syntax
         // If selection is not null, only include markdown syntax for selected cells
-        val includeTableSyntax = selection == null || selection.hitsNode(node)
+        val includeTableSyntax = node.isSelected(selection)
 
         var headerNode: VisualNode<*, D>? = null
         var bodyNode: VisualNode<*, D>? = null
@@ -52,10 +53,13 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
         // If no columns found, return empty string
         if (columnCount == 0) return@buildAnnotatedString
 
+        // Calculate column widths based on the widest cell in each column
+        val columnWidths = calculateColumnWidths(node, columnCount)
+
         // Process header rows
         headerNode?.let { header ->
-            val headerIncludeSyntax = includeTableSyntax && (selection == null || selection.hitsNode(header))
-            val headerRows = processTableSection(header, selection, columnCount, headerIncludeSyntax)
+            val headerIncludeSyntax = includeTableSyntax && header.isSelected(selection)
+            val headerRows = processTableSection(header, selection, columnCount, columnWidths, headerIncludeSyntax)
             append(headerRows)
 
             // Add separator row with alignment indicators only if table syntax should be included
@@ -64,13 +68,12 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
                     append("|")
                     for (i in 0 until columnCount) {
                         val alignment = getColumnAlignment(header, i)
-                        append(" ")
                         when (alignment) {
-                            TableCell.Alignment.LEFT -> append(":-")
-                            TableCell.Alignment.CENTER -> append(":-:")
-                            TableCell.Alignment.RIGHT -> append("-:")
+                            TableCell.Alignment.LEFT -> append(":" + "-".repeat(columnWidths[i] + 1))
+                            TableCell.Alignment.CENTER -> append(":" + "-".repeat(columnWidths[i]) + ":")
+                            TableCell.Alignment.RIGHT -> append("-".repeat(columnWidths[i] + 1) + ":")
                         }
-                        append(" |")
+                        append("|")
                     }
                 }
                 appendLine()
@@ -81,8 +84,8 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
 
         // Process body rows
         bodyNode?.let { body ->
-            val bodyIncludeSyntax = includeTableSyntax && (selection == null || selection.hitsNode(body))
-            val bodyRows = processTableSection(body, selection, columnCount, bodyIncludeSyntax)
+            val bodyIncludeSyntax = includeTableSyntax && body.isSelected(selection)
+            val bodyRows = processTableSection(body, selection, columnCount, columnWidths, bodyIncludeSyntax)
             append(bodyRows)
         }
     }
@@ -91,26 +94,27 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
         section: VisualNode<*, D>,
         selection: VisualNodeSelection<D>?,
         columnCount: Int,
+        columnWidths: IntArray,
         includeSyntax: Boolean = true
     ): AnnotatedString {
         return section.children.joinToAnnotatedString("\n", filter = AnnotatedString::isNotBlank) { rowNode ->
             if (rowNode.data is TableRow) {
                 buildAnnotatedString {
                     // Check if this row is selected
-                    val rowIncludeSyntax = includeSyntax && (selection == null || selection.hitsNode(rowNode))
+                    val rowIncludeSyntax = includeSyntax && rowNode.isSelected(selection)
 
-                    // Only add opening pipe if we're including syntax
+                    // Only add an opening pipe if we're including syntax
                     if (rowIncludeSyntax) {
                         append("|")
                     }
 
                     // Process each cell in the row
                     for (i in 0 until columnCount) {
-                        val cellNode = rowNode.children.getOrNull(i)
+                        val cellNode = rowNode.children.getOrNull(i).asA(TableCell::class)
 
-                        if (cellNode != null && cellNode.data is TableCell) {
+                        if (cellNode != null) {
                             // Check if this cell is selected
-                            val cellIncludeSyntax = rowIncludeSyntax && (selection == null || selection.hitsNode(cellNode))
+                            val cellIncludeSyntax = rowIncludeSyntax && cellNode.isSelected(selection)
 
                             // Only add spacing if we're including syntax
                             if (cellIncludeSyntax) {
@@ -122,7 +126,22 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
                                 serialize(childNode, selection)
                             }
                             // Replace newlines with spaces in cell content
-                            append(cellContent.text.replace('\n', ' '))
+                            val cellText = cellContent.text.replace('\n', ' ')
+
+                            // Pad cell content according to alignment
+                            val alignment = cellNode.data.alignment
+
+                            val paddedText = when (alignment) {
+                                TableCell.Alignment.LEFT -> cellText.padEnd(columnWidths[i])
+                                TableCell.Alignment.RIGHT -> cellText.padStart(columnWidths[i])
+                                TableCell.Alignment.CENTER -> {
+                                    val leftPadding = (columnWidths[i] - cellText.length) / 2
+                                    val rightPadding = columnWidths[i] - cellText.length - leftPadding
+                                    " ".repeat(leftPadding) + cellText + " ".repeat(rightPadding)
+                                }
+                            }
+
+                            append(paddedText)
 
                             // Only add spacing if we're including syntax
                             if (cellIncludeSyntax) {
@@ -131,7 +150,7 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
                         } else {
                             // Empty cell
                             if (rowIncludeSyntax) {
-                                append("   ")
+                                append(" ".repeat(columnWidths[i] + 2))
                             }
                         }
 
@@ -153,12 +172,46 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
         // Get alignment from the first row's cell at the given column index
         headerSection.children.firstOrNull()?.let { row ->
             row.children.getOrNull(columnIndex)?.let { cell ->
-                if (cell.data is TableCell) {
-                    return (cell.data as TableCell).alignment
+                val cellData = cell.data
+                if (cellData is TableCell) {
+                    return cellData.alignment
                 }
             }
         }
         // Default to left alignment
         return TableCell.Alignment.LEFT
+    }
+
+    /**
+     * Calculate the width of each column based on the widest cell in each column.
+     * Returns an array of column widths.
+     */
+    private fun VisualNodeSerializationContext<D, AnnotatedString>.calculateColumnWidths(
+        tableNode: VisualNode<Table, D>,
+        columnCount: Int
+    ): IntArray {
+        val columnWidths = IntArray(columnCount) { 0 }
+
+        // Process all rows in the table to find the widest cell in each column
+        tableNode.children.forEach { section ->
+            section.children.forEach { rowNode ->
+                if (rowNode.data is TableRow) {
+                    for (i in 0 until columnCount) {
+                        val cellNode = rowNode.children.getOrNull(i).asA(TableCell::class)
+                        if (cellNode != null) {
+                            // Get cell content
+                            val cellContent = cellNode.children.joinToAnnotatedString("") { childNode ->
+                                serialize(childNode, null)
+                            }
+                            // Update the column width if this cell is wider
+                            val cellWidth = cellContent.text.replace('\n', ' ').length
+                            columnWidths[i] = maxOf(columnWidths[i], cellWidth)
+                        }
+                    }
+                }
+            }
+        }
+
+        return columnWidths
     }
 }

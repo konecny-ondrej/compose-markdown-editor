@@ -6,6 +6,7 @@ import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstI
 import me.okonecny.lang.only
 import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
+import kotlin.reflect.KClass
 
 /**
  * Syntax tree for the editor to work with. The editor will add/remove/replace nodes based on the user actions.
@@ -298,3 +299,13 @@ fun <D : Any> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Vi
 }
 
 val VisualNode<HasText, *>.text: String get() = data.text
+
+fun <T : Any, D : Any> VisualNode<*, D>?.asA(dataClass: KClass<T>): VisualNode<T, D>? = if (this == null) {
+    null
+} else {
+    if (dataClass.isInstance(data)) {
+        this as VisualNode<T, D>
+    } else {
+        null
+    }
+}

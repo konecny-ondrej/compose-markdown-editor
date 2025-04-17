@@ -26,10 +26,8 @@ internal fun Node.rawCode(): TextWithInlines {
 /**
  * Collects the node text, resolving all escapes.
  */
-internal fun Node.text(): TextWithInlines {
+internal fun Node.text(): String {
     val builder = TextCollectingVisitor()
     builder.collect(this)
-    return TextWithInlines(
-        text = AnnotatedString(builder.text)
-    )
+    return builder.text
 }

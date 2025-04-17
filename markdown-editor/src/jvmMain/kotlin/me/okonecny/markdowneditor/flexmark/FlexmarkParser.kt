@@ -195,7 +195,7 @@ class FlexmarkParser(
                 is SoftLineBreak -> me.okonecny.markdowneditor.ast.data.SoftLineBreak
                 is HardLineBreak -> me.okonecny.markdowneditor.ast.data.HardLineBreak
                 is Text -> me.okonecny.wysiwyg.ast.data.Text(
-                    text = node.text().text.text
+                    text = node.text()
                 )
 
                 is TextBase -> me.okonecny.markdowneditor.ast.data.TextBase

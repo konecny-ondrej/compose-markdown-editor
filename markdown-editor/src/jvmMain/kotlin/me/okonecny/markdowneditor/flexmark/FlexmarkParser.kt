@@ -82,8 +82,7 @@ class FlexmarkParser(
             parent = null,
             parentIndex = null,
             proposedChildren = parseChildren(rootNode, document::resolveReference),
-            data = document,
-            sourceRange = rootNode.range
+            data = document
         )
     }
 
@@ -236,8 +235,7 @@ class FlexmarkParser(
             children.add(
                 VisualNode(
                     proposedChildren = if (wantChildren) parseChildren(node, resolveReference) else emptyList(),
-                    data = data,
-                    sourceRange = node.range
+                    data = data
                 )
             )
         }

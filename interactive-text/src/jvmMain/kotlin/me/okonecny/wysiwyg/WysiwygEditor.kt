@@ -164,10 +164,6 @@ fun <D : Any> WysiwygEditor(
         if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
         when (textInputCommand) {
-//            is Copy -> {
-//                onChange(CopyEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
-//            }
-//
 //            Cut -> {
 //                clipboardManager.setText(AnnotatedString("TODO"))
 //                TODO()
@@ -178,15 +174,9 @@ fun <D : Any> WysiwygEditor(
 //                onChange(DeleteEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
 //            }
 //
-//            NewLine -> TODO()
-//            is Type -> {
-//                onChange(TypeEditor().edit(editorState, textInputCommand) ?: return@LaunchedEffect)
-//            }
-//
 //            is Undo -> TODO()
 //
 //            is Redo -> TODO()
-//            is ReplaceRange -> TODO("remove this")
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }

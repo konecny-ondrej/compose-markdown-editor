@@ -2,18 +2,14 @@ package me.okonecny.markdowneditor.ast.serializers.markdown
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
-import me.okonecny.markdowneditor.ast.data.Table
-import me.okonecny.markdowneditor.ast.data.TableBody
-import me.okonecny.markdowneditor.ast.data.TableCell
-import me.okonecny.markdowneditor.ast.data.TableHeader
-import me.okonecny.markdowneditor.ast.data.TableRow
+import me.okonecny.markdowneditor.ast.data.*
 import me.okonecny.markdowneditor.joinToAnnotatedString
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
-import me.okonecny.wysiwyg.ast.asA
 import me.okonecny.wysiwyg.ast.isSelected
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializationContext
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializer
+import me.okonecny.wysiwyg.ast.typedAs
 
 class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString> {
     override fun VisualNodeSerializationContext<D, AnnotatedString>.serializeNode(
@@ -38,6 +34,7 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
                         columnCount = maxOf(columnCount, row.children.size)
                     }
                 }
+
                 is TableBody -> {
                     bodyNode = section
                     // Count columns from the first row of the body if header is empty
@@ -110,7 +107,7 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
 
                     // Process each cell in the row
                     for (i in 0 until columnCount) {
-                        val cellNode = rowNode.children.getOrNull(i).asA(TableCell::class)
+                        val cellNode = rowNode.children.getOrNull(i) typedAs TableCell::class
 
                         if (cellNode != null) {
                             // Check if this cell is selected
@@ -197,7 +194,7 @@ class TableToMarkdown<D : Any> : VisualNodeSerializer<Table, D, AnnotatedString>
             section.children.forEach { rowNode ->
                 if (rowNode.data is TableRow) {
                     for (i in 0 until columnCount) {
-                        val cellNode = rowNode.children.getOrNull(i).asA(TableCell::class)
+                        val cellNode = rowNode.children.getOrNull(i) typedAs TableCell::class
                         if (cellNode != null) {
                             // Get cell content
                             val cellContent = cellNode.children.joinToAnnotatedString("") { childNode ->

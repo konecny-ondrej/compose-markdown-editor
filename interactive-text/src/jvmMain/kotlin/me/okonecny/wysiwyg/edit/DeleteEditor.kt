@@ -10,7 +10,9 @@ import me.okonecny.lang.wordRangeAfter
 import me.okonecny.lang.wordRangeBefore
 import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.ast.typedAs
 
 /**
  * Deletes a character or a word before or after cursor.
@@ -18,20 +20,22 @@ import me.okonecny.wysiwyg.ast.data.HasText
  */
 class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
     override fun edit(editorState: WysiwygEditorState<D>, command: Delete): WysiwygEditorState<D>? {
+        val nodeSelection = editorState.nodeSelection
+        if (nodeSelection != null) return deleteSelection(editorState, nodeSelection)
+
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
-// TODO: take selection into account.
-        val visibleNode = { node: VisualNode<Any, D> ->
-            editorState.interactiveScope.hasComponent(
+        val visibleOrTextNode = { node: VisualNode<Any, D> ->
+            node.asTextNode != null || editorState.interactiveScope.hasComponent(
                 node.interactiveId
             )
         }
         val editedNode = editedTextNodeWithOffset.node.let {
             when (command.direction) {
                 Delete.Direction.BEFORE_CURSOR -> if (editedTextNodeWithOffset.isAtStart && !editedTextNodeWithOffset.node.totalTextIsEmpty) it.findPrev(
-                    visibleNode
+                    visibleOrTextNode
                 ) else it
 
-                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext(visibleNode) else it
+                Delete.Direction.AFTER_CURSOR -> if (editedTextNodeWithOffset.isAtEnd) it.findNext(visibleOrTextNode) else it
             }
         } ?: return null
 
@@ -50,6 +54,85 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
                 editTextNode(editedNode.asTextNode, editedTextNodeWithOffset, command, editorState)
             }
         }
+    }
+
+    private fun deleteSelection(
+        editorState: WysiwygEditorState<D>,
+        nodeSelection: VisualNodeSelection<D>
+    ): WysiwygEditorState<D>? {
+        val starTextNode = nodeSelection.start.textNodeUnderCursor.node
+        val endTextNode = nodeSelection.end.textNodeUnderCursor.node
+
+        if (starTextNode == endTextNode) {
+            val newText =
+                starTextNode.data.text.removeRange(nodeSelection.start.visualOffset, nodeSelection.end.visualOffset)
+            return if (newText.isEmpty()) {
+                removeNode(starTextNode, editorState)
+            } else {
+                editorState.copy(
+                    visualDocument = starTextNode.replaceWith(
+                        starTextNode.copy(data = starTextNode.data.replaceText(newText))
+                    ).root,
+                    visualCursorRequest = SetCursor(
+                        CursorPosition(
+                            starTextNode.interactiveId,
+                            nodeSelection.start.visualOffset
+                        )
+                    )
+                )
+            }
+        }
+
+        val newStartText = starTextNode.data.text.removeRange(
+            nodeSelection.start.textNodeUnderCursor.charOffset,
+            starTextNode.data.text.length
+        )
+        val newEndText = endTextNode.data.text.removeRange(0, nodeSelection.end.textNodeUnderCursor.charOffset)
+
+        val nodesToRemove = mutableSetOf<VisualNode<Any, D>>()
+        nodesToRemove.addAll(starTextNode.findAllSuccessorsWhile<Any>(VisualNode<Any, D>::nextNodeInReadingOrder) {
+            it != endTextNode
+        })
+        if (newStartText.isEmpty()) {
+            nodesToRemove.add(starTextNode)
+        } else {
+            nodesToRemove.removeAll(starTextNode.allParents)
+        }
+        if (newEndText.isEmpty()) {
+            nodesToRemove.add(endTextNode)
+        } else {
+            nodesToRemove.removeAll(endTextNode.allParents)
+        }
+        // FIXME: join start and end nodes. Use the type of the start node for the result.
+
+        val originalDocument = editorState.visualDocument
+        val newDocument = (originalDocument
+            .copyModified { node ->
+                when (node) {
+                    in nodesToRemove -> null
+                    starTextNode -> starTextNode.copy(data = starTextNode.data.replaceText(newStartText))
+                    endTextNode -> endTextNode.copy(data = endTextNode.data.replaceText(newEndText))
+                    else -> node
+                }
+            } typedAs originalDocument) ?: return null // Cannot remove the document itself
+
+        val oldCursorTextOffset = originalDocument.findOffsetByTextChild(
+            nodeSelection.start.textNodeUnderCursor.node,
+            nodeSelection.start.textNodeUnderCursor.charOffset
+        )
+        val newTextNodeUnderCursor = newDocument.findTextChildAtOffset(oldCursorTextOffset)
+
+        val newCursor = SetCursor(
+            CursorPosition(
+                newTextNodeUnderCursor.node.interactiveId,
+                newTextNodeUnderCursor.charOffset
+            )
+        )
+
+        return editorState.copy(
+            visualDocument = newDocument,
+            visualCursorRequest = newCursor
+        )
     }
 
     private fun <D : Any> removeNode(
@@ -91,7 +174,7 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
         val deleteRange: TextRange = when (command.direction) {
             Delete.Direction.BEFORE_CURSOR -> {
                 when (command.size) {
-                    Delete.Size.LETTER -> TextRange(editOffset - 1, editOffset)
+                    Delete.Size.LETTER -> TextRange((editOffset - 1).coerceAtLeast(0), editOffset)
                     Delete.Size.WORD -> editedTextNode.data.text.wordRangeBefore(editOffset)
                 }
             }

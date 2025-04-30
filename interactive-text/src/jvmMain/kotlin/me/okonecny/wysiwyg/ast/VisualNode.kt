@@ -1,6 +1,5 @@
 package me.okonecny.wysiwyg.ast
 
-import androidx.compose.ui.text.TextRange
 import me.okonecny.interactivetext.InteractiveId
 import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
 import me.okonecny.lang.only
@@ -17,7 +16,6 @@ data class VisualNode<out T : Any, D : Any>(
     val data: T,
     val parentIndex: Int? = null,
     val parent: VisualNode<*, D>? = null,
-    val sourceRange: TextRange, // TODO: remove. Won't be needed.
     private val proposedChildren: List<VisualNode<Any, D>> = emptyList()
 ) {
     val isRoot: Boolean = parent == null
@@ -103,6 +101,16 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     /**
+     * Finds the index of this node (or its parent) in the parent's children list.
+     * @return Index of this node in the parent's children list or null if this node is the root.
+     */
+    fun indexIn(parentNode: VisualNode<*, D>): Int? {
+        if (parent == null) return null
+        if (parent == parentNode) return parentIndex
+        return parent.indexIn(parentNode)
+    }
+
+    /**
      * Replaces the node with the new node specified.
      * More specifically this copies the entire tree and places the new node instead of this one.
      * @param newNode New node to use instead of this one.
@@ -110,7 +118,7 @@ data class VisualNode<out T : Any, D : Any>(
      */
     fun <T : Any> replaceWith(newNode: VisualNode<T, D>): VisualNode<T, D> {
         val parentNode =
-            parent ?: return newNode // When replacing the root node, just use the new node as the new root.
+            parent ?: return newNode // When replacing the root node, use the new node as the new root.
 
         val expectedParentIndex = siblingsBefore.size
         val replacedParent = parentNode.replaceWith(
@@ -123,7 +131,7 @@ data class VisualNode<out T : Any, D : Any>(
 
     /**
      * Removes this node.
-     * More specifically this copies the entire tree without the subtree to which this node is the root.
+     * More specifically, this copies the entire tree without the subtree to which this node is the root.
      * @return A copy of the entire tree without the subtree specified by this node. Null if you remove the root itself.
      */
     fun removeNode(): VisualNode<D, D>? {
@@ -135,6 +143,20 @@ data class VisualNode<out T : Any, D : Any>(
             )
         )
         return replacedParent.root
+    }
+
+    /**
+     * Copies the subtree specified by this node applying the modifications by the map function to each node.
+     * @param modify Function to modify each node before copying it. The node can change the data type. The function can return null to remove the node from the tree.
+     * @return A copy of the subtree specified by this node with the modifications applied. Null if the node itself is removed.
+     */
+    fun copyModified(
+        modify: (VisualNode<Any, D>) -> VisualNode<Any, D>?
+    ): VisualNode<Any, D>? {
+        val newChildren = children.mapNotNull { child ->
+            child.copyModified(modify)
+        }
+        return modify(this)?.copy(proposedChildren = newChildren)
     }
 
     fun findChildById(id: InteractiveId): VisualNode<*, D>? =
@@ -163,9 +185,29 @@ data class VisualNode<out T : Any, D : Any>(
         return currentNode
     }
 
+    inline fun <reified T : Any> findAllSuccessorsWhile(
+        successor: VisualNode<Any, D>.() -> VisualNode<Any, D>?,
+        predicate: (VisualNode<T, D>) -> Boolean = { true }
+    ): List<VisualNode<T, D>> {
+        val result = mutableListOf<VisualNode<T, D>>()
+        var currentNode: VisualNode<Any, D>? = this.successor()
+        while (currentNode != null) {
+            val wantedNode = currentNode typedAs T::class
+            if (wantedNode != null) {
+                if (predicate(wantedNode)) {
+                    result.add(wantedNode)
+                } else {
+                    break
+                }
+            }
+            currentNode = currentNode.successor()
+        }
+        return result
+    }
+
     /**
      * Walks the parent node chain while the predicate matches.
-     * @return Farthest parent node matching the predicate continuously.
+     * @return The farthest parent node matching the predicate continuously.
      */
     fun findParentWhile(predicate: (VisualNode<Any, D>) -> Boolean): VisualNode<Any, D>? {
         var currentNode: VisualNode<Any, D>? = this.parent
@@ -278,11 +320,14 @@ data class VisualNode<out T : Any, D : Any>(
         return "VisualNode(${parent?.data?.let { "parent=" + it::class.simpleName } ?: "<ROOT>"}, data=$data)"
     }
 
+    override fun equals(other: Any?): Boolean = this === other
+
+    override fun hashCode(): Int = System.identityHashCode(this)
+
     companion object {
         private fun <D : Any> nil(parent: VisualNode<*, D>) = VisualNode(
             parent = parent,
-            data = Text("\uFEFF"), // Zero-width space
-            sourceRange = TextRange.Zero
+            data = Text("\uFEFF") // Zero-width space
         )
     }
 }
@@ -298,9 +343,18 @@ fun <D : Any> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Vi
     return commonParent
 }
 
+fun <D : Any> commonParent(vararg nodes: VisualNode<*, D>): VisualNode<*, D> {
+    val firstNode = nodes.first()
+    return nodes
+        .drop(1)
+        .fold(firstNode) { commonParent, node ->
+            commonParent(commonParent, node)
+        }
+}
+
 val VisualNode<HasText, *>.text: String get() = data.text
 
-fun <T : Any, D : Any> VisualNode<*, D>?.asA(dataClass: KClass<T>): VisualNode<T, D>? = if (this == null) {
+infix fun <T : Any, D : Any> VisualNode<*, D>?.typedAs(dataClass: KClass<T>): VisualNode<T, D>? = if (this == null) {
     null
 } else {
     if (dataClass.isInstance(data)) {
@@ -309,3 +363,6 @@ fun <T : Any, D : Any> VisualNode<*, D>?.asA(dataClass: KClass<T>): VisualNode<T
         null
     }
 }
+
+infix fun <T : Any, D : Any> VisualNode<*, D>?.typedAs(otherNode: VisualNode<T, D>): VisualNode<T, D>? =
+    this typedAs otherNode.data::class

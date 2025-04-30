@@ -3,7 +3,6 @@ package me.okonecny.wysiwyg.edit
 import androidx.compose.ui.text.TextRange
 import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.interactivetext.Delete
-import me.okonecny.interactivetext.MoveCursorOnLine
 import me.okonecny.interactivetext.SetCursor
 import me.okonecny.lang.removeRange
 import me.okonecny.lang.wordRangeAfter
@@ -187,15 +186,20 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
 
         val newText = editedTextNode.data.text.removeRange(deleteRange)
 
-        val newRootNode = editedTextNode.replaceWith(
+        val nodeAfterEdit = editedTextNode.replaceWith(
             editedTextNode.copy(data = editedTextNode.data.replaceText(newText))
-        ).root
-
+        )
 
         return editorState.copy(
-            visualDocument = newRootNode,
+            visualDocument = nodeAfterEdit.root,
             visualCursorRequest = when (command.direction) {
-                Delete.Direction.BEFORE_CURSOR -> MoveCursorOnLine(-deleteRange.length)
+                Delete.Direction.BEFORE_CURSOR -> SetCursor(
+                    CursorPosition(
+                        nodeAfterEdit.interactiveId,
+                        deleteRange.start
+                    )
+                )
+
                 Delete.Direction.AFTER_CURSOR -> null
             }
         )

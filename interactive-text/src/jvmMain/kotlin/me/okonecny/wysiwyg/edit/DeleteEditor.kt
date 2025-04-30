@@ -25,9 +25,7 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
 
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
         val visibleOrTextNode = { node: VisualNode<Any, D> ->
-            node.asTextNode != null || editorState.interactiveScope.hasComponent(
-                node.interactiveId
-            )
+            node.asTextNode != null || (editorState.interactiveScope.hasComponent(node.interactiveId) && node !in editedTextNodeWithOffset.node.allParents)
         }
         val editedNode = editedTextNodeWithOffset.node.let {
             when (command.direction) {

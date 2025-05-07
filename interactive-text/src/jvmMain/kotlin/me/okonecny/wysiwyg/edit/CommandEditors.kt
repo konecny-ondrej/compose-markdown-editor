@@ -48,10 +48,14 @@ data class CommandEditors<D : Any>(
         fun <D : Any> basic(
             clipboardManager: ClipboardManager,
             clipboardSerializers: VisualNodeSerializers<D, AnnotatedString>,
-        ): CommandEditors<D> = CommandEditors<D>()
-            .withCommandEditor<Type>(TypeEditor())
-            .withCommandEditor<NewLine>(TypeNewLineEditor())
-            .withCommandEditor<Delete>(DeleteEditor())
-            .withCommandEditor<Copy>(CopyEditor(clipboardManager, VisualNodeSerializationContext(clipboardSerializers)))
+        ): CommandEditors<D> {
+            val copyEditor = CopyEditor(clipboardManager, VisualNodeSerializationContext(clipboardSerializers))
+            return CommandEditors<D>()
+                .withCommandEditor<Type>(TypeEditor())
+                .withCommandEditor<NewLine>(TypeNewLineEditor())
+                .withCommandEditor<Delete>(DeleteEditor())
+                .withCommandEditor<Copy>(copyEditor)
+                .withCommandEditor<Cut>(CutEditor(copyEditor))
+        }
     }
 }

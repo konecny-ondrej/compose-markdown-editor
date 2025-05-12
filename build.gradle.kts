@@ -86,7 +86,7 @@ sonatypePortalPublisher {
     }
 }
 
-val patchReadme: Task by tasks.creating {
+val patchReadme by tasks.registering {
     val readmeFile = File("README.md")
 
     inputs.files(readmeFile)

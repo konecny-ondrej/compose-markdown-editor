@@ -29,7 +29,6 @@ keyring {
 
 kotlin {
     jvm {
-        withJava()
     }
     jvmToolchain {
         languageVersion = JavaLanguageVersion.of(libs.versions.javaTargetVersion.get())

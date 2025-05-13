@@ -81,7 +81,7 @@ fun InteractiveContainer(
                         )
                     }
                 })
-                .paintContainerSelection(scope, LocalSelectionStyle.current)
+//                .paintContainerSelection(scope, LocalSelectionStyle.current)
         }
         Box(modifier = interactiveModifier.then(modifier)) {
             interactiveContent()

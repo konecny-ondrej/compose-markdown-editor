@@ -48,10 +48,10 @@ fun Modifier.interactiveText(
                 )
             )
         }
-//        .paintComponentSelection(
-//            interactiveScope,
-//            interactiveId
-//        )
+        .paintComponentSelection(
+            interactiveScope,
+            interactiveId
+        )
     DisposableEffect(interactiveScope) {
         onDispose {
             interactiveScope.register(

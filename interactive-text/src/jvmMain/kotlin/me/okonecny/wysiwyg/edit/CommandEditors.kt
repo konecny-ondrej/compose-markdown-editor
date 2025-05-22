@@ -51,11 +51,13 @@ data class CommandEditors<D : Any>(
         ): CommandEditors<D> {
             val copyEditor = CopyEditor(clipboardManager, VisualNodeSerializationContext(clipboardSerializers))
             return CommandEditors<D>()
-                .withCommandEditor<Type>(TypeEditor())
-                .withCommandEditor<NewLine>(TypeNewLineEditor())
-                .withCommandEditor<Delete>(DeleteEditor())
+                .withCommandEditor<Type>(TypeEditor<D>().withUndo())
+                .withCommandEditor<NewLine>(TypeNewLineEditor<D>().withUndo())
+                .withCommandEditor<Delete>(DeleteEditor<D>().withUndo())
                 .withCommandEditor<Copy>(copyEditor)
-                .withCommandEditor<Cut>(CutEditor(copyEditor))
+                .withCommandEditor<Cut>(CutEditor(copyEditor).withUndo())
+                .withCommandEditor<Undo>(UndoEditor())
+                .withCommandEditor<Redo>(RedoEditor())
         }
     }
 }

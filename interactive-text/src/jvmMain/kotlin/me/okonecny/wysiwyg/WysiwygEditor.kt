@@ -37,7 +37,6 @@ fun <D : Any> WysiwygEditor(
 ) {
     val interactiveScope = editorState.interactiveScope
 
-    val clipboardManager = LocalClipboardManager.current
     val inputQueue = remember { mutableStateListOf<TextInputCommand>() }
 
     val editorScope = WysiwygEditorScopeImpl()
@@ -166,10 +165,6 @@ fun <D : Any> WysiwygEditor(
         when (textInputCommand) {
 //
 //            Paste -> TODO()
-//
-//            is Undo -> TODO()
-//
-//            is Redo -> TODO()
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }
@@ -182,8 +177,6 @@ fun <D : Any> WysiwygEditor(
                 commandEditors.forCommand(textInputCommand).edit(editorState, textInputCommand) ?: return@LaunchedEffect
             )
         }
-
-        // TODO: register undo action
     }
 }
 
@@ -218,7 +211,7 @@ data class WysiwygEditorState<D : Any>(
     val sourceText: String,
     val visualDocument: VisualNode<D, D>,
     val interactiveScope: InteractiveScope = InteractiveScope(),
-    val undoManager: UndoManager = UndoManager(),
+    val undoManager: UndoManager<D> = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
     val sourceCursorRequest: Int? = null, // TODO: remove
     val visualCursorRequest: CursorMoveCommand? = null

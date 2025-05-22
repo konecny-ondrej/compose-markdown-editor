@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
@@ -29,7 +29,7 @@ fun <D : Any> WysiwygEditor(
     autocompletePlugins: List<AutocompletePlugin<D>>,
     onChange: (WysiwygEditorState<D>) -> Unit,
     commandEditors: CommandEditors<D> = CommandEditors.basic(
-        LocalClipboardManager.current,
+        LocalClipboard.current,
         VisualNodeSerializers<D, AnnotatedString>()
             .withUnknownNodeSerializer(NodeToEmptyAnnotatedString())
     ),

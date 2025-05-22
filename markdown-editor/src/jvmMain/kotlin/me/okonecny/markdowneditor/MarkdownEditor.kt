@@ -6,7 +6,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
 import me.okonecny.markdowneditor.ast.serializers.markdown.markdown
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
@@ -35,7 +35,7 @@ inline fun <reified D : Any> MarkdownEditor(
         autocompletePlugins = autocompletePlugins,
         onChange = onChange,
         commandEditors = CommandEditors.basic(
-            LocalClipboardManager.current,
+            LocalClipboard.current,
             VisualNodeSerializers.markdown<D>()
         )
     ) {

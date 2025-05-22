@@ -1,6 +1,6 @@
 package me.okonecny.wysiwyg.edit
 
-import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.text.AnnotatedString
 import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.WysiwygEditorState
@@ -46,10 +46,10 @@ data class CommandEditors<D : Any>(
             }
 
         fun <D : Any> basic(
-            clipboardManager: ClipboardManager,
+            clipboard: Clipboard,
             clipboardSerializers: VisualNodeSerializers<D, AnnotatedString>,
         ): CommandEditors<D> {
-            val copyEditor = CopyEditor(clipboardManager, VisualNodeSerializationContext(clipboardSerializers))
+            val copyEditor = CopyEditor(clipboard, VisualNodeSerializationContext(clipboardSerializers))
             return CommandEditors<D>()
                 .withCommandEditor<Type>(TypeEditor<D>().withUndo())
                 .withCommandEditor<NewLine>(TypeNewLineEditor<D>().withUndo())

@@ -10,14 +10,23 @@ class UndoEditor<D : Any> : CommandEditor<Undo, D> {
     override fun edit(
         editorState: WysiwygEditorState<D>,
         command: Undo
-    ): WysiwygEditorState<D>? = if (editorState.undoManager.hasHistory) {
-        val mostRecentHistory = editorState.undoManager.mostRecentHistory
-        editorState.copy(
+    ): WysiwygEditorState<D>? {
+        val originalUndoManager = editorState.undoManager
+        if (!originalUndoManager.hasHistory) return null
+        val undoManagerWithCompleteHistory = if (originalUndoManager.undoSteps == 0) {
+            originalUndoManager.add(UndoManager.HistoryEntry(
+                document = editorState.visualDocument,
+                visualCursor =  editorState.visualCursor
+            ))
+        } else originalUndoManager
+        val undoneManager = undoManagerWithCompleteHistory.undo()
+        val mostRecentHistory = undoneManager.mostRecentHistory
+        return editorState.copy(
             visualDocument = mostRecentHistory.document,
             visualCursorRequest = mostRecentHistory.visualCursor?.let { SetCursor(it) },
-            undoManager = editorState.undoManager.undo()
+            undoManager = undoneManager
         )
-    } else null
+    }
 }
 
 class UndoableEditor<C : TextInputCommand, D : Any>(

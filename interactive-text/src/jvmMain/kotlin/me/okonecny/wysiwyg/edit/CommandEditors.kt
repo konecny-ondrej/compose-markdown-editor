@@ -56,6 +56,7 @@ data class CommandEditors<D : Any>(
                 .withCommandEditor<Delete>(DeleteEditor<D>().withUndo())
                 .withCommandEditor<Copy>(copyEditor)
                 .withCommandEditor<Cut>(CutEditor(copyEditor).withUndo())
+                .withCommandEditor<Paste>(PasteEditor<D>(clipboard).withUndo())
                 .withCommandEditor<Undo>(UndoEditor())
                 .withCommandEditor<Redo>(RedoEditor())
         }

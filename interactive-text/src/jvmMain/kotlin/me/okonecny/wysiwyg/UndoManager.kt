@@ -22,7 +22,11 @@ data class UndoManager<Document : Any>(
             } else {
                 undoneStack
             }
-            copy(stack = trimmedStack + newHistory, undoSteps = 0)
+            if (trimmedStack.isNotEmpty() && trimmedStack.last() == newHistory) {
+                copy(stack = trimmedStack, undoSteps = 0)
+            } else {
+                copy(stack = trimmedStack + newHistory, undoSteps = 0)
+            }
         }
 
     fun undo(): UndoManager<Document> = if (undoSteps >= stack.lastIndex) {

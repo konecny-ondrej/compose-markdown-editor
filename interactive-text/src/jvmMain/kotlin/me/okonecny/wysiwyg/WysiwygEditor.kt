@@ -163,8 +163,6 @@ fun <D : Any> WysiwygEditor(
         if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
 
         when (textInputCommand) {
-//
-//            Paste -> TODO()
             is MoveCursorOnLine -> {
                 onChange(editorState.copy(visualCursorRequest = textInputCommand))
             }

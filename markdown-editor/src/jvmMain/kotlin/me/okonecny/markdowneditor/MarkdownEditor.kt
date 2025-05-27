@@ -62,7 +62,8 @@ fun rememberFlexmarkMarkdownEditorState(
 ): MutableState<WysiwygEditorState<FlexmarkDocument>> = remember(keys) {
     val basePath = Path("markdown-editor/src/jvmMain/resources")
     val markdown = MarkdownEditorComponent::class.create()
-    val visualDocument = markdown.markdownParser.parse(initialSourceText, basePath)
+    val parser = markdown.markdownParser
+    val visualDocument = parser.parse(initialSourceText, basePath)
     mutableStateOf(
         WysiwygEditorState(
             sourceText = initialSourceText,

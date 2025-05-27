@@ -47,7 +47,7 @@ data class CommandEditors<D : Any>(
 
         fun <D : Any> basic(
             clipboard: Clipboard,
-            clipboardSerializers: VisualNodeSerializers<D, AnnotatedString>,
+            clipboardSerializers: VisualNodeSerializers<D, AnnotatedString>
         ): CommandEditors<D> {
             val copyEditor = CopyEditor(clipboard, VisualNodeSerializationContext(clipboardSerializers))
             return CommandEditors<D>()
@@ -56,7 +56,7 @@ data class CommandEditors<D : Any>(
                 .withCommandEditor<Delete>(DeleteEditor<D>().withUndo())
                 .withCommandEditor<Copy>(copyEditor)
                 .withCommandEditor<Cut>(CutEditor(copyEditor).withUndo())
-                .withCommandEditor<Paste>(PasteEditor<D>(clipboard).withUndo())
+                .withCommandEditor<Paste>(PlaintextPasteEditor<D>(clipboard).withUndo())
                 .withCommandEditor<Undo>(UndoEditor())
                 .withCommandEditor<Redo>(RedoEditor())
         }

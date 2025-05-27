@@ -6,6 +6,8 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 class TypeEditor<D : Any> : CommandEditor<Type, D> {
     override fun edit(editorState: WysiwygEditorState<D>, command: Type): WysiwygEditorState<D>? {
+        // TODO: delete selection first
+
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
         val editedTextNode = editedTextNodeWithOffset.node
         val editedText = editedTextNode.data.text

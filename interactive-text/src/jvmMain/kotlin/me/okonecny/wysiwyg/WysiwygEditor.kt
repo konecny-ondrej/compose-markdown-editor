@@ -29,8 +29,8 @@ fun <D : Any> WysiwygEditor(
     autocompletePlugins: List<AutocompletePlugin<D>>,
     onChange: (WysiwygEditorState<D>) -> Unit,
     commandEditors: CommandEditors<D> = CommandEditors.basic(
-        LocalClipboard.current,
-        VisualNodeSerializers<D, AnnotatedString>()
+        clipboard = LocalClipboard.current,
+        clipboardSerializers = VisualNodeSerializers<D, AnnotatedString>()
             .withUnknownNodeSerializer(NodeToEmptyAnnotatedString())
     ),
     components: @Composable WysiwygEditorScope.() -> Unit
@@ -206,7 +206,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
 // endregion dsl
 
 data class WysiwygEditorState<D : Any>(
-    val sourceText: String,
+    val sourceText: String, // TODO: remove
     val visualDocument: VisualNode<D, D>,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager<D> = UndoManager(),

@@ -1,14 +1,13 @@
 package me.okonecny.wysiwyg.edit
 
 import androidx.compose.ui.text.TextRange
-import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.interactivetext.Delete
-import me.okonecny.interactivetext.SetCursor
 import me.okonecny.lang.removeRange
 import me.okonecny.lang.wordRangeAfter
 import me.okonecny.lang.wordRangeBefore
 import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.data.HasText
 
 /**
@@ -92,15 +91,14 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
 
         return editorState.copy(
             visualDocument = nodeAfterEdit.root,
-            visualCursorRequest = when (command.direction) {
-                Delete.Direction.BEFORE_CURSOR -> SetCursor(
-                    CursorPosition(
-                        nodeAfterEdit.interactiveId,
+            nodeCursor = when (command.direction) {
+                Delete.Direction.BEFORE_CURSOR ->
+                    VisualNodeCursorPosition(
+                        nodeAfterEdit,
                         deleteRange.start
                     )
-                )
 
-                Delete.Direction.AFTER_CURSOR -> null
+                Delete.Direction.AFTER_CURSOR -> editorState.nodeCursor
             }
         )
     }

@@ -67,7 +67,9 @@ fun rememberFlexmarkMarkdownEditorState(
     mutableStateOf(
         WysiwygEditorState(
             sourceText = initialSourceText,
-            visualDocument = visualDocument
+            visualDocument = visualDocument,
+            nodeCursor = null,
+            nodeSelection = null
         )
     )
 }

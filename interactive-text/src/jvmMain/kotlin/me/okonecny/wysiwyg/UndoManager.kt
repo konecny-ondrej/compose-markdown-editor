@@ -1,7 +1,7 @@
 package me.okonecny.wysiwyg
 
-import me.okonecny.interactivetext.CursorPosition
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 
 data class UndoManager<Document : Any>(
     val stack: List<HistoryEntry<Document>> = emptyList(),
@@ -43,6 +43,6 @@ data class UndoManager<Document : Any>(
 
     data class HistoryEntry<Document : Any>(
         val document: VisualNode<Document, Document>,
-        val visualCursor: CursorPosition?
+        val cursor: VisualNodeCursorPosition<Document>?
     )
 }

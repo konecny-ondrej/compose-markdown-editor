@@ -1,9 +1,8 @@
 package me.okonecny.wysiwyg.edit
 
-import me.okonecny.interactivetext.CursorPosition
-import me.okonecny.interactivetext.SetCursor
 import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.typedAs
 
@@ -20,16 +19,16 @@ internal fun <D : Any> deleteSelection(
         return if (newText.isEmpty()) {
             removeNode(starTextNode, editorState)
         } else {
+            val nodeAfterEdit = starTextNode.replaceWith(
+                starTextNode.copy(data = starTextNode.data.replaceText(newText))
+            )
             editorState.copy(
-                visualDocument = starTextNode.replaceWith(
-                    starTextNode.copy(data = starTextNode.data.replaceText(newText))
-                ).root,
-                visualCursorRequest = SetCursor(
-                    CursorPosition(
-                        starTextNode.interactiveId,
-                        nodeSelection.start.visualOffset
-                    )
-                )
+                visualDocument = nodeAfterEdit.root,
+                nodeCursor = VisualNodeCursorPosition(
+                    nodeAfterEdit,
+                    nodeSelection.start.visualOffset
+                ),
+                nodeSelection = null
             )
         }
     }
@@ -73,15 +72,17 @@ internal fun <D : Any> deleteSelection(
     )
     val newTextNodeUnderCursor = newDocument.findTextChildAtOffset(oldCursorTextOffset)
 
-    val newCursor = SetCursor(
-        CursorPosition(
-            newTextNodeUnderCursor.node.interactiveId,
-            newTextNodeUnderCursor.charOffset
-        )
-    )
-
     return editorState.copy(
         visualDocument = newDocument,
-        visualCursorRequest = newCursor
+        nodeCursor = VisualNodeCursorPosition(
+            newTextNodeUnderCursor.node,
+            newTextNodeUnderCursor.charOffset
+        ),
+        nodeSelection = null
     )
 }
+
+val <D : Any> WysiwygEditorState<D>.withSelectionDeleted: WysiwygEditorState<D>
+    get() {
+        return deleteSelection(this, nodeSelection ?: return this) ?: this
+    }

@@ -1,6 +1,5 @@
 package me.okonecny.wysiwyg.edit
 
-import me.okonecny.interactivetext.SetCursor
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.Undo
 import me.okonecny.wysiwyg.UndoManager
@@ -14,16 +13,18 @@ class UndoEditor<D : Any> : CommandEditor<Undo, D> {
         val originalUndoManager = editorState.undoManager
         if (!originalUndoManager.hasHistory) return null
         val undoManagerWithCompleteHistory = if (originalUndoManager.undoSteps == 0) {
-            originalUndoManager.add(UndoManager.HistoryEntry(
-                document = editorState.visualDocument,
-                visualCursor =  editorState.visualCursor
-            ))
+            originalUndoManager.add(
+                UndoManager.HistoryEntry(
+                    document = editorState.visualDocument,
+                    cursor = editorState.nodeCursor
+                )
+            )
         } else originalUndoManager
         val undoneManager = undoManagerWithCompleteHistory.undo()
         val mostRecentHistory = undoneManager.mostRecentHistory
         return editorState.copy(
             visualDocument = mostRecentHistory.document,
-            visualCursorRequest = mostRecentHistory.visualCursor?.let { SetCursor(it) },
+            nodeCursor = mostRecentHistory.cursor,
             undoManager = undoneManager
         )
     }
@@ -41,7 +42,7 @@ class UndoableEditor<C : TextInputCommand, D : Any>(
                 undoManager = editorState.undoManager.add(
                     UndoManager.HistoryEntry(
                         document = editorState.visualDocument,
-                        visualCursor = editorState.visualCursor
+                        cursor = editorState.nodeCursor
                     )
                 )
             ),

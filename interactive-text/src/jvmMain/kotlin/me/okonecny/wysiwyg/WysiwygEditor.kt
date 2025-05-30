@@ -13,7 +13,6 @@ import me.okonecny.interactivetext.*
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
-import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.serializers.NodeToEmptyAnnotatedString
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializers
 import me.okonecny.wysiwyg.edit.CommandEditors
@@ -47,8 +46,33 @@ fun <D : Any> WysiwygEditor(
             scope = interactiveScope,
             selectionStyle = selectionStyle,
             modifier = modifier,
-            onCursorMovement = { newVisualCursor ->
-                editorState.visualCursor = newVisualCursor
+            onCursorMovement = { newVisualCursor, newSelection ->
+                interactiveScope.cursorPosition = newVisualCursor
+                interactiveScope.selection = newSelection
+                val newNode =
+                    editorState.visualDocument.findChildById(newVisualCursor.componentId) ?: return@InteractiveContainer
+                val newNodeSelection = if (newSelection.isEmpty) null else {
+                    val startNode = editorState.visualDocument.findChildById(newSelection.start.componentId)
+                    val endNode = editorState.visualDocument.findChildById(newSelection.end.componentId)
+                    if (startNode == null || endNode == null) null else {
+                        VisualNodeSelection(
+                            VisualNodeCursorPosition(
+                                containerNode = startNode,
+                                visualOffset = newSelection.start.visualOffset
+                            ),
+                            VisualNodeCursorPosition(
+                                containerNode = endNode,
+                                visualOffset = newSelection.end.visualOffset
+                            )
+                        )
+                    }
+                }
+                onChange(
+                    editorState.copy(
+                        nodeCursor = VisualNodeCursorPosition(newNode, newVisualCursor.visualOffset),
+                        nodeSelection = newNodeSelection
+                    )
+                )
             },
             onInput = inputQueue::add
         ) {
@@ -94,87 +118,39 @@ fun <D : Any> WysiwygEditor(
     }
 
     fun moveCursor() {
-        val request = editorState.visualCursorRequest ?: return
-        if (request is SetCursor) {
-            val requestedCursor = request.newPosition
-            if (interactiveScope.hasComponent(requestedCursor.componentId)) {
-                editorState.visualCursor = request.newPosition
-            } else {
-                val requestedNode = editorState.visualDocument
-                    .findChildById(requestedCursor.componentId)
-                val renderedNode = requestedNode
-                    ?.findClosestParentMatching { interactiveScope.hasComponent(it.interactiveId) }
-                    ?: return
-
-                editorState.visualCursor = CursorPosition(
-                    renderedNode.interactiveId,
-                    renderedNode.findOffsetByTextChild(requestedNode, requestedCursor.visualOffset)
-                )
-            }
-
-            editorState.visualSelection = Selection.empty
-            onChange(editorState.copy(visualCursorRequest = null))
+        val request = if (editorState.nodeCursor?.matchesVisualCursor(interactiveScope) == true) {
+            return
+        } else {
+            val newCursor = editorState.nodeCursor?.textNodeUnderCursor ?: return
+            SetCursor(CursorPosition(newCursor.node.interactiveId, newCursor.charOffset))
         }
-        if (request !is MoveCursorOnLine) return
-        val oldCursorPosition = editorState.nodeCursor ?: return
+        val requestedCursor = request.newPosition
+        if (interactiveScope.hasComponent(requestedCursor.componentId)) {
+            interactiveScope.cursorPosition = request.newPosition
+        } else {
+            val requestedNode = editorState.visualDocument
+                .findChildById(requestedCursor.componentId)
+            val renderedNode = requestedNode
+                ?.findClosestParentMatching { interactiveScope.hasComponent(it.interactiveId) }
+                ?: return
 
-        var currentNode = oldCursorPosition.textNodeUnderCursor.node
-        var currentCharOffset = oldCursorPosition.textNodeUnderCursor.charOffset
-        var renderedContainerNode: VisualNode<*, *> = oldCursorPosition.containerNode
-        var currentVisualOffset = oldCursorPosition.visualOffset
-        if (request.steps > 0) {
-            for (i in 1..request.steps) {
-                if (currentCharOffset == currentNode.data.text.length) {
-                    currentNode = currentNode.findNext<HasText>() ?: return
-                    currentCharOffset = 0
-                }
-                currentCharOffset++
-                currentVisualOffset++
-            }
-        } else if (request.steps < 0) {
-            for (i in 1..-request.steps) {
-                if (currentCharOffset == 0) {
-                    currentNode = currentNode.findPrev<HasText>() ?: return
-                    currentCharOffset = currentNode.data.text.length
-                    renderedContainerNode = currentNode
-                    while (!interactiveScope.hasComponent(renderedContainerNode.interactiveId)) {
-                        renderedContainerNode = renderedContainerNode.parent ?: return
-                    }
-                    currentVisualOffset = renderedContainerNode.totalTextLength
-                } else {
-                    currentCharOffset--
-                    currentVisualOffset--
-                }
-            }
+            interactiveScope.cursorPosition = CursorPosition(
+                renderedNode.interactiveId,
+                renderedNode.findOffsetByTextChild(requestedNode, requestedCursor.visualOffset)
+            )
         }
 
-        editorState.visualCursor = CursorPosition(
-            renderedContainerNode.interactiveId,
-            currentVisualOffset
-        )
         editorState.visualSelection = Selection.empty
-        onChange(editorState.copy(visualCursorRequest = null))
     }
     moveCursor()
 
-    LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size, editorState.visualCursorRequest) {
-        if (editorState.visualCursorRequest != null) return@LaunchedEffect
-        val textInputCommand = inputQueue.removeFirstOrNull() ?: return@LaunchedEffect
-        if (editorState.visualCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
-
-        when (textInputCommand) {
-            is MoveCursorOnLine -> {
-                onChange(editorState.copy(visualCursorRequest = textInputCommand))
-            }
-
-            is SetCursor -> {
-                onChange(editorState.copy(visualCursorRequest = textInputCommand))
-            }
-
-            else -> onChange(
-                commandEditors.forCommand(textInputCommand).edit(editorState, textInputCommand) ?: return@LaunchedEffect
-            )
-        }
+    LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size, editorState.nodeCursor) {
+        val textInputCommand = inputQueue.firstOrNull() ?: return@LaunchedEffect
+        if (editorState.nodeCursor == null && textInputCommand.needsValidCursor) return@LaunchedEffect
+        inputQueue.removeFirst()
+        onChange(
+            commandEditors.forCommand(textInputCommand).edit(editorState, textInputCommand) ?: return@LaunchedEffect
+        )
     }
 }
 
@@ -211,46 +187,12 @@ data class WysiwygEditorState<D : Any>(
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager<D> = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
-    val sourceCursorRequest: Int? = null, // TODO: remove
-    val visualCursorRequest: CursorMoveCommand? = null
-) {
-    var visualCursor by interactiveScope::cursorPosition
-    var visualSelection by interactiveScope::selection
-    val nodeCursor: VisualNodeCursorPosition<D>?
-        get() {
-            val visualCursor = visualCursor ?: return null
-            val interactiveId = visualCursor.componentId
-
-            val nodes = mutableListOf<VisualNode<Any, D>>(visualDocument)
-            while (nodes.isNotEmpty()) { // TODO: this is probably unnecessarily slow.
-                val firstNode = nodes.removeFirst()
-                if (firstNode.interactiveId == interactiveId) {
-                    return VisualNodeCursorPosition(
-                        firstNode,
-                        visualCursor.visualOffset
-                    )
-                } else {
-                    nodes.addAll(firstNode.children)
-                }
-            }
-            return null
-        }
-
+    val sourceCursorRequest: Int? = null, // TODO: remove,
+    val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
-        get() {
-            val selection = visualSelection
-            if (selection.isEmpty) return null
-            return VisualNodeSelection(
-                VisualNodeCursorPosition(
-                    containerNode = visualDocument.findChildById(selection.start.componentId) ?: return null,
-                    visualOffset = selection.start.visualOffset
-                ),
-                VisualNodeCursorPosition(
-                    containerNode = visualDocument.findChildById(selection.end.componentId) ?: return null,
-                    visualOffset = selection.end.visualOffset
-                )
-            )
-        }
+) {
+    var visualCursor by interactiveScope::cursorPosition // TODO: remove
+    var visualSelection by interactiveScope::selection // TODO: remove
 
     val visualCursorRect: Rect?
         get() {
@@ -269,7 +211,21 @@ fun <D : Any> rememberWysiwygEditorState(
     mutableStateOf(
         WysiwygEditorState(
             sourceText = initialSourceText,
-            visualDocument = visualDocument
+            visualDocument = visualDocument,
+            nodeCursor = null,
+            nodeSelection = null
         )
+    )
+}
+
+fun <D : Any> VisualNodeCursorPosition<D>.matchesVisualCursor(interactiveScope: InteractiveScope): Boolean {
+    val visualCursor = interactiveScope.cursorPosition ?: return false
+    val renderedNode = textNodeUnderCursor.node.findClosestParentMatching {
+        visualCursor.componentId == it.interactiveId
+    } ?: return false
+
+    return visualCursor.visualOffset == renderedNode.findOffsetByTextChild(
+        textNodeUnderCursor.node,
+        textNodeUnderCursor.charOffset
     )
 }

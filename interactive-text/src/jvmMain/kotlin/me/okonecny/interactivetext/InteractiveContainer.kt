@@ -30,7 +30,10 @@ fun InteractiveContainer(
     selectionStyle: SelectionStyle = SelectionStyle(),
     modifier: Modifier = Modifier,
     onInput: (TextInputCommand) -> Unit = {},
-    onCursorMovement: (CursorPosition) -> Unit = { scope?.cursorPosition = it },
+    onCursorMovement: (CursorPosition, Selection) -> Unit = { cursorPosition, selection ->
+        scope?.cursorPosition = cursorPosition
+        scope?.selection = selection
+    },
     interactiveContent: @Composable () -> Unit
 ) {
     val navigation = remember(scope) { ScrollableNavigation() }
@@ -51,10 +54,9 @@ fun InteractiveContainer(
                     scope.place(layoutCoordinates)
                 }
                 .keyboardCursorMovement(scope, navigation) { newCursorPosition, newSelection ->
-                    scope.selection = newSelection
                     val newComponentUnderCursor = scope.getComponent(newCursorPosition.componentId)
                     if (newComponentUnderCursor.isLaidOut) {
-                        onCursorMovement(newCursorPosition)
+                        onCursorMovement(newCursorPosition, newSelection)
                     } else {
                         navigation.requestScroll(ScrollToComponent(newComponentUnderCursor))
                     }
@@ -62,12 +64,11 @@ fun InteractiveContainer(
                 .keyboardPageMovement(navigation)
                 .pointerCursorMovement(scope) { newCursorPosition, newSelection ->
                     requester.requestFocus()
-                    scope.selection = newSelection
-                    onCursorMovement(newCursorPosition)
+                    onCursorMovement(newCursorPosition, newSelection)
                 }
                 .onKeyEvent { keyEvent: KeyEvent ->
                     if (keyEvent.key == Key.Escape) {
-                        scope.selection = Selection.empty
+                        onCursorMovement(scope.cursorPosition ?: return@onKeyEvent false, Selection.empty)
                     }
                     false
                 }

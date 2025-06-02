@@ -13,7 +13,6 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 internal fun ImageButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
-    val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
     val source = editorState.sourceText

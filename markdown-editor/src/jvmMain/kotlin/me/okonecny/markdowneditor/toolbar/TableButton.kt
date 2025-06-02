@@ -23,7 +23,6 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 internal fun TableButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
-    val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor = editorState.sourceCursor
 

@@ -70,7 +70,6 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     crossinline handleInput: (TextInputCommand) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val visualSelection = editorState.visualSelection
     val scope = editorState.interactiveScope
     val sourceCursor =
         editorState.sourceCursor ?: throw IllegalStateException("DelimitedNodeButton needs a source cursor.")

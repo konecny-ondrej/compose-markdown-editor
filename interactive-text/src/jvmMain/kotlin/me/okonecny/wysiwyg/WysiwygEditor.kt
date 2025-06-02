@@ -138,8 +138,6 @@ fun <D : Any> WysiwygEditor(
                 renderedNode.findOffsetByTextChild(requestedNode, requestedCursor.visualOffset)
             )
         }
-
-        editorState.visualSelection = Selection.empty
     }
     moveCursor()
 
@@ -188,9 +186,7 @@ data class WysiwygEditorState<D : Any>(
     val sourceCursor: Int? = null, // TODO: remove
     val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
-) {
-    var visualSelection by interactiveScope::selection // TODO: remove
-}
+)
 
 @Composable
 fun <D : Any> rememberWysiwygEditorState(

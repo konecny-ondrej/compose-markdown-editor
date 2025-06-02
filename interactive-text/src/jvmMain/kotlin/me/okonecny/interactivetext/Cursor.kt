@@ -118,10 +118,17 @@ fun InteractiveScope.cursorVisualRect(cursorPosition: CursorPosition): Rect? {
     }
 
     val componentCursorRect = componentTextLayout.getCursorRect(
-            cursorPosition.visualOffset.coerceAtMost(componentTextLayout.layoutInput.text.length)
+        cursorPosition.visualOffset.coerceAtMost(componentTextLayout.layoutInput.text.length)
     )
     return Rect(
         containerCoordinates.localPositionOf(componentLayoutCoordinates, componentCursorRect.topLeft),
         containerCoordinates.localPositionOf(componentLayoutCoordinates, componentCursorRect.bottomRight)
     )
 }
+
+val InteractiveScope.cursorVisualRect: Rect?
+    get() {
+        if (!isPlaced) return null
+        val cursor = cursorPosition ?: return null
+        return cursorVisualRect(cursor)
+    }

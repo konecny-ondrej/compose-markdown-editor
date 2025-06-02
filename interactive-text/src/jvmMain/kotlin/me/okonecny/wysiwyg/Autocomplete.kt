@@ -16,6 +16,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
+import me.okonecny.interactivetext.cursorVisualRect
 import me.okonecny.interactivetext.textInput
 
 @Composable
@@ -28,7 +29,7 @@ internal fun <D : Any> AutocompletePopup(
     if (dismissed) return
 
     val editorFocusRequester = editorState.interactiveScope.focusRequester
-    val visualCursorRect = remember(editorState) { editorState.visualCursorRect }
+    val visualCursorRect = remember(editorState) { editorState.interactiveScope.cursorVisualRect }
     if (visualCursorRect == null) {
         LaunchedEffect(Unit) {
             editorFocusRequester.requestFocus()
@@ -73,36 +74,37 @@ private fun <D : Any> AutocompleteMenu(
     }
     var selectedSuggestionIndex by remember(sourceText) { mutableStateOf(0) }
     val allSuggestions = suggestionsByPlugin.values.flatten()
-    Column(Modifier
-        .shadow(
-            elevation = 8.dp,
-            shape = MaterialTheme.shapes.small
-        )
-        .clip(MaterialTheme.shapes.small)
-        .background(
-            color = MaterialTheme.colors.background
-        )
-        .padding(8.dp)
-        .focusRequester(menuFocusRequester)
-        .focusable()
-        .width(IntrinsicSize.Max)
-        .textInput(handleInput)
-        .onKeyEvent { keyEvent ->
-            if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-            when (keyEvent.key) {
-                Key.Escape -> onDismissRequest()
-                Key.Enter -> {
-                    allSuggestions[selectedSuggestionIndex].onClick(handleInput)
-                    return@onKeyEvent true
+    Column(
+        Modifier
+            .shadow(
+                elevation = 8.dp,
+                shape = MaterialTheme.shapes.small
+            )
+            .clip(MaterialTheme.shapes.small)
+            .background(
+                color = MaterialTheme.colors.background
+            )
+            .padding(8.dp)
+            .focusRequester(menuFocusRequester)
+            .focusable()
+            .width(IntrinsicSize.Max)
+            .textInput(handleInput)
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
+                when (keyEvent.key) {
+                    Key.Escape -> onDismissRequest()
+                    Key.Enter -> {
+                        allSuggestions[selectedSuggestionIndex].onClick(handleInput)
+                        return@onKeyEvent true
+                    }
+
+                    Key.DirectionUp -> selectedSuggestionIndex =
+                        if (selectedSuggestionIndex == 0) allSuggestions.size - 1 else selectedSuggestionIndex - 1
+
+                    Key.DirectionDown -> selectedSuggestionIndex = (selectedSuggestionIndex + 1) % allSuggestions.size
                 }
-
-                Key.DirectionUp -> selectedSuggestionIndex =
-                    if (selectedSuggestionIndex == 0) allSuggestions.size - 1 else selectedSuggestionIndex - 1
-
-                Key.DirectionDown -> selectedSuggestionIndex = (selectedSuggestionIndex + 1) % allSuggestions.size
+                false
             }
-            false
-        }
     ) {
         var globalSuggestionIndex = 0
         suggestionsByPlugin.entries.forEach { (plugin, suggestions) ->

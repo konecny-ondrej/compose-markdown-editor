@@ -3,7 +3,6 @@ package me.okonecny.wysiwyg
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
@@ -79,7 +78,7 @@ fun <D : Any> WysiwygEditor(
             editorScope.view()
         }
 
-        val visualCursorRect = editorState.visualCursorRect
+        val visualCursorRect = interactiveScope.cursorVisualRect
         if (visualCursorRect != null) {
             ConstraintLayout {
                 val (toolbar, autocompletePopup) = createRefs()
@@ -191,15 +190,7 @@ data class WysiwygEditorState<D : Any>(
     val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
 ) {
-    var visualCursor by interactiveScope::cursorPosition // TODO: remove
     var visualSelection by interactiveScope::selection // TODO: remove
-
-    val visualCursorRect: Rect?
-        get() {
-            if (!interactiveScope.isPlaced) return null
-            val cursor = visualCursor ?: return null
-            return interactiveScope.cursorVisualRect(cursor)
-        }
 }
 
 @Composable

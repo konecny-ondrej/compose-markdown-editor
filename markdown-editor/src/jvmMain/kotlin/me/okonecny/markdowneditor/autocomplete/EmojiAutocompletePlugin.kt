@@ -47,7 +47,7 @@ class EmojiAutocompletePlugin : AutocompletePlugin<FlexmarkDocument> {
 }
 
 val WysiwygEditorState<FlexmarkDocument>.autocompleteContextWord: String
-    get() = (sourceCursor ?: sourceCursorRequest)?.let { cursor ->
+    get() = sourceCursor?.let { cursor ->
         sourceText.wordBefore(cursor)
     } ?: ""
 

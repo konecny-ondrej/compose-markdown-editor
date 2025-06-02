@@ -186,7 +186,6 @@ data class WysiwygEditorState<D : Any>(
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager<D> = UndoManager(),
     val sourceCursor: Int? = null, // TODO: remove
-    val sourceCursorRequest: Int? = null, // TODO: remove,
     val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
 ) {

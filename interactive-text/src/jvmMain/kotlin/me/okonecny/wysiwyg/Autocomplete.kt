@@ -37,7 +37,7 @@ internal fun <D : Any> AutocompletePopup(
         return
     }
 
-    val suggestionsByPlugin = remember(editorState.sourceText) {
+    val suggestionsByPlugin = remember(editorState.visualDocument) {
         plugins.associateWith { plugin ->
             plugin.generateSuggestions(editorState)
         }
@@ -50,15 +50,15 @@ internal fun <D : Any> AutocompletePopup(
         return
     }
 
-    AutocompleteMenu(
-        editorState.sourceText,
-        suggestionsByPlugin = suggestionsByPlugin,
-        handleInput = handleInput,
-        onDismissRequest = {
-            dismissed = true
-            editorFocusRequester.requestFocus()
-        }
-    )
+//    AutocompleteMenu(
+//        editorState.sourceText,
+//        suggestionsByPlugin = suggestionsByPlugin,
+//        handleInput = handleInput,
+//        onDismissRequest = {
+//            dismissed = true
+//            editorFocusRequester.requestFocus()
+//        }
+//    )
 }
 
 @Composable

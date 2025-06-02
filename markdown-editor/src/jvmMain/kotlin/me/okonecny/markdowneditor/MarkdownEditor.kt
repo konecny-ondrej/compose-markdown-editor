@@ -66,7 +66,6 @@ fun rememberFlexmarkMarkdownEditorState(
     val visualDocument = parser.parse(initialSourceText, basePath)
     mutableStateOf(
         WysiwygEditorState(
-            sourceText = initialSourceText,
             visualDocument = visualDocument,
             nodeCursor = null,
             nodeSelection = null

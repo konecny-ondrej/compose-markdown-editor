@@ -179,7 +179,6 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
 // endregion dsl
 
 data class WysiwygEditorState<D : Any>(
-    val sourceText: String, // TODO: remove
     val visualDocument: VisualNode<D, D>,
     val interactiveScope: InteractiveScope = InteractiveScope(),
     val undoManager: UndoManager<D> = UndoManager(),
@@ -189,13 +188,11 @@ data class WysiwygEditorState<D : Any>(
 
 @Composable
 fun <D : Any> rememberWysiwygEditorState(
-    initialSourceText: String,
     visualDocument: VisualNode<D, D>,
     vararg keys: Any?
 ) = remember(keys) {
     mutableStateOf(
         WysiwygEditorState(
-            sourceText = initialSourceText,
             visualDocument = visualDocument,
             nodeCursor = null,
             nodeSelection = null

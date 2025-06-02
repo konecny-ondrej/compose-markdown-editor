@@ -16,7 +16,7 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
     val scope = editorState.interactiveScope
     val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
-    val source = editorState.sourceText
+    val source = "" //editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
 //    val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +

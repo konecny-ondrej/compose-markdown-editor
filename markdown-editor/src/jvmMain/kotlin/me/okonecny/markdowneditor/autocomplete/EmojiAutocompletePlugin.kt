@@ -47,7 +47,7 @@ class EmojiAutocompletePlugin : AutocompletePlugin<FlexmarkDocument> {
 }
 
 val WysiwygEditorState<FlexmarkDocument>.autocompleteContextWord: String
-    get() = sourceText.wordBefore(0) ?: ""
+    get() = "sourceText".wordBefore(0) ?: ""
 
 fun String.remainingText(prefix: String): String {
     if (startsWith(prefix)) return substring(prefix.length)

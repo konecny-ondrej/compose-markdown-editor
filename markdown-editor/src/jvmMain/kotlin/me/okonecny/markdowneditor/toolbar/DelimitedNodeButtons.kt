@@ -72,7 +72,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
 ) {
     val scope = editorState.interactiveScope
     val sourceCursor = 0
-    val source = editorState.sourceText
+    val source = "" //editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
 //    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)

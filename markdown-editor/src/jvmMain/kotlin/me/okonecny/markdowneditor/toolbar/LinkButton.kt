@@ -9,14 +9,13 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
-import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
 internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
     val scope = editorState.interactiveScope
-    val sourceCursor = editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
+    val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
     val source = editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 
@@ -26,11 +25,12 @@ internal fun LinkButton(editorState: WysiwygEditorState<FlexmarkDocument>, handl
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var linkUrl by remember { mutableStateOf("") }
-    val linkTextRange = if (sourceSelection.collapsed) {
-        source.wordRangeAt(sourceCursor).textRange
-    } else {
-        sourceSelection
-    }
+//    val linkTextRange = if (sourceSelection.collapsed) {
+//        source.wordRangeAt(sourceCursor).textRange
+//    } else {
+//        sourceSelection
+//    }
+    val linkTextRange = TextRange.Zero
     var linkText by remember(linkTextRange) {
         mutableStateOf(source.substring(linkTextRange))
     }

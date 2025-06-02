@@ -71,8 +71,7 @@ private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
     modifier: Modifier = Modifier
 ) {
     val scope = editorState.interactiveScope
-    val sourceCursor =
-        editorState.sourceCursor ?: throw IllegalStateException("DelimitedNodeButton needs a source cursor.")
+    val sourceCursor = 0
     val source = editorState.sourceText
     val sourceSelection = TextRange.Zero //editorState.sourceSelection
 

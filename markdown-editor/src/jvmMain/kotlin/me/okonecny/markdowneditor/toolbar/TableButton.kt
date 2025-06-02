@@ -24,7 +24,6 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 @Composable
 internal fun TableButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
     val scope = editorState.interactiveScope
-    val sourceCursor = editorState.sourceCursor
 
 //    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
     var menuVisible by remember { mutableStateOf(false) }

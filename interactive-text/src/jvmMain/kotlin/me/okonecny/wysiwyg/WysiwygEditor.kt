@@ -94,7 +94,7 @@ fun <D : Any> WysiwygEditor(
                     translationX = toolbarOffset.x
                     translationY = toolbarOffset.y
                 }) {
-//                    editorScope.toolbar(inputQueue::add)
+                    editorScope.toolbar(inputQueue::add)
                 }
 
                 Box(Modifier.constrainAs(autocompletePopup) {

@@ -8,11 +8,10 @@ import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
-import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun ImageButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
+internal fun <D : Any> ImageButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) {
     val scope = editorState.interactiveScope
     val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
     val source = "" //editorState.sourceText

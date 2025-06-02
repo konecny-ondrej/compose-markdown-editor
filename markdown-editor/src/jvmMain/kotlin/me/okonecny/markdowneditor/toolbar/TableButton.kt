@@ -18,11 +18,10 @@ import androidx.compose.ui.unit.dp
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
-import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun TableButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) {
+internal fun <D : Any> TableButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) {
     val scope = editorState.interactiveScope
 
 //    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)

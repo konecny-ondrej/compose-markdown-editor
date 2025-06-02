@@ -1,5 +1,6 @@
 package me.okonecny.markdowneditor.toolbar
 
+//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.clickable
@@ -19,18 +20,16 @@ import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.DocumentTheme
 import me.okonecny.markdowneditor.compose.Tooltip
-import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.flexmark.range
 import me.okonecny.markdowneditor.flexmark.source
-//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import me.okonecny.wysiwyg.WysiwygEditorState
 import kotlin.reflect.KClass
 
 private const val ARROW_DOWN = " \ueab4 "
 
 @Composable
-internal fun ParagraphStyleCombo(
-    editorState: WysiwygEditorState<FlexmarkDocument>,
+internal fun <D : Any> ParagraphStyleCombo(
+    editorState: WysiwygEditorState<D>,
     handleInput: (TextInputCommand) -> Unit
 ) {
 

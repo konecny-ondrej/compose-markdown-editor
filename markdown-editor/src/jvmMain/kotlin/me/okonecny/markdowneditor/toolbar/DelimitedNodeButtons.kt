@@ -16,16 +16,15 @@ import com.vladsch.flexmark.ast.StrongEmphasis
 import me.okonecny.interactivetext.ReplaceRange
 import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
-import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 
 @Composable
-internal fun EmphasisButton(
-    editorState: WysiwygEditorState<FlexmarkDocument>,
+internal fun <D : Any> EmphasisButton(
+    editorState: WysiwygEditorState<D>,
     handleInput: (TextInputCommand) -> Unit
 ) =
-    DelimitedNodeButton<Emphasis>(
+    DelimitedNodeButton<Emphasis, D>(
         "I",
         "Emphasis",
         TextStyle(fontStyle = FontStyle.Italic),
@@ -35,11 +34,11 @@ internal fun EmphasisButton(
     )
 
 @Composable
-internal fun StrongEmphasisButton(
-    editorState: WysiwygEditorState<FlexmarkDocument>,
+internal fun <D : Any> StrongEmphasisButton(
+    editorState: WysiwygEditorState<D>,
     handleInput: (TextInputCommand) -> Unit
 ) =
-    DelimitedNodeButton<StrongEmphasis>(
+    DelimitedNodeButton<StrongEmphasis, D>(
         "B",
         "Strong Emphasis",
         TextStyle(fontWeight = FontWeight.Bold),
@@ -49,8 +48,8 @@ internal fun StrongEmphasisButton(
     )
 
 @Composable
-internal fun CodeButton(editorState: WysiwygEditorState<FlexmarkDocument>, handleInput: (TextInputCommand) -> Unit) =
-    DelimitedNodeButton<Code>(
+internal fun <D : Any> CodeButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) =
+    DelimitedNodeButton<Code, D>(
         "\uf44f",
         "Inline Code",
         TextStyle.Default,
@@ -61,12 +60,12 @@ internal fun CodeButton(editorState: WysiwygEditorState<FlexmarkDocument>, handl
     )
 
 @Composable
-private inline fun <reified T : DelimitedNodeImpl> DelimitedNodeButton(
+private inline fun <reified T : DelimitedNodeImpl, D : Any> DelimitedNodeButton(
     text: String,
     tooltip: String,
     textStyle: TextStyle,
     delimiter: String,
-    editorState: WysiwygEditorState<FlexmarkDocument>,
+    editorState: WysiwygEditorState<D>,
     crossinline handleInput: (TextInputCommand) -> Unit,
     modifier: Modifier = Modifier
 ) {

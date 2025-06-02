@@ -13,6 +13,7 @@ import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
 import me.okonecny.markdowneditor.internal.create
+import me.okonecny.markdowneditor.toolbar.MarkdownToolbar
 import me.okonecny.markdowneditor.view.Renderers
 import me.okonecny.wysiwyg.AutocompletePlugin
 import me.okonecny.wysiwyg.WysiwygEditor
@@ -50,7 +51,7 @@ inline fun <reified D : Any> MarkdownEditor(
             )
         }
         Toolbar { handleInput ->
-            //MarkdownToolbar(editorState, handleInput)
+            MarkdownToolbar(editorState, handleInput)
         }
     }
 }

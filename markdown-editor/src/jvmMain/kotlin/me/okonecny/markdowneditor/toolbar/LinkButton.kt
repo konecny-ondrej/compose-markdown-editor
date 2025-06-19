@@ -8,11 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
-import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) {
+internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
     val scope = editorState.interactiveScope
     val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
     val source = "" //editorState.sourceText

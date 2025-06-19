@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
+import me.okonecny.markdowneditor.ast.Document
 import me.okonecny.markdowneditor.ast.serializers.markdown.markdown
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
@@ -23,7 +24,7 @@ import me.okonecny.wysiwyg.edit.CommandEditors
 import kotlin.io.path.Path
 
 @Composable
-inline fun <reified D : Any> MarkdownEditor(
+inline fun <reified D : Document> MarkdownEditor(
     editorState: WysiwygEditorState<D>,
     documentTheme: DocumentTheme,
     autocompletePlugins: List<AutocompletePlugin<D>> = listOf(),
@@ -50,8 +51,8 @@ inline fun <reified D : Any> MarkdownEditor(
                 renderers = renderers
             )
         }
-        Toolbar { handleInput ->
-            MarkdownToolbar(editorState, handleInput)
+        Toolbar {
+            MarkdownToolbar(editorState, onChange)
         }
     }
 }

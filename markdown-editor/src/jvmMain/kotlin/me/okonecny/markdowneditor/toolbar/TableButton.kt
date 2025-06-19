@@ -15,13 +15,11 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import me.okonecny.interactivetext.TextInputCommand
-import me.okonecny.interactivetext.Type
 import me.okonecny.markdowneditor.LocalDocumentTheme
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-internal fun <D : Any> TableButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) {
+internal fun <D : Any> TableButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
     val scope = editorState.interactiveScope
 
 //    val touchedTables = visualSelection.touchedNodesOfType<TableCell>(scope, sourceCursor)
@@ -66,13 +64,13 @@ internal fun <D : Any> TableButton(editorState: WysiwygEditorState<D>, handleInp
                                     }
                                     .clickable {
                                         menuVisible = false
-                                        handleInput(
-                                            Type(
-                                                System.lineSeparator().repeat(2) +
-                                                        generateTable(i, j)
-                                                        + System.lineSeparator().repeat(2)
-                                            )
-                                        )
+//                                        onChange(
+//                                            Type(
+//                                                System.lineSeparator().repeat(2) +
+//                                                        generateTable(i, j)
+//                                                        + System.lineSeparator().repeat(2)
+//                                            )
+//                                        )
                                     }
                                     .then(rowStyle.modifier)
                             )

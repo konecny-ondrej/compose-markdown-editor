@@ -311,6 +311,17 @@ data class VisualNode<out T : Any, D : Any>(
         }
     }
 
+    val totalText: String by lazy {
+        if (data is HasText) {
+            data.text
+        } else {
+            children
+                .map(VisualNode<Any, D>::totalText)
+                .filter(String::isNotBlank)
+                .joinToString(" ");
+        }
+    }
+
     val textLengthBefore: Int by lazy {
         val prevTextNode = findPrev<HasText>() ?: return@lazy 0
         prevTextNode.data.text.length + prevTextNode.textLengthBefore

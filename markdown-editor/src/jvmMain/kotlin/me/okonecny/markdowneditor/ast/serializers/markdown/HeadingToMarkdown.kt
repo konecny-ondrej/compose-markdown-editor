@@ -16,12 +16,15 @@ class HeadingToMarkdown<D : Any> : VisualNodeSerializer<Heading, D, AnnotatedStr
         selection: VisualNodeSelection<D>?
     ): AnnotatedString = buildAnnotatedString {
         val separator = ' '
-        val headingText = node.children.joinToAnnotatedString(separator.toString(), filter = AnnotatedString::isNotBlank) { childNode ->
+        val headingText = node.children.joinToAnnotatedString(
+            separator.toString(),
+            filter = AnnotatedString::isNotBlank
+        ) { childNode ->
             serialize(childNode, selection).trim(separator)
         }
         if (headingText.isBlank()) return@buildAnnotatedString
 
-        append("#".repeat(node.data.level.numericLevel()))
+        append("#".repeat(node.data.level.numericLevel))
         append(" ")
         append(headingText)
     }

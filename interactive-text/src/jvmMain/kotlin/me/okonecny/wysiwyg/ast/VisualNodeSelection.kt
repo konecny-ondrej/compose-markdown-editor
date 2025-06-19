@@ -29,24 +29,40 @@ fun <D : Any> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean 
     return false
 }
 
-fun <D : Any> VisualNode<*, D>.isSelected(selection: VisualNodeSelection<D>?): Boolean = selection == null || selection.hitsNode(this)
+inline fun <reified T : Any, D : Any> VisualNodeSelection<D>?.touchedNodesOfType(): List<VisualNode<T, D>> {
+    if (this == null) return emptyList()
+    val foundNodes = mutableListOf<VisualNode<T, D>>()
+
+    var currentNode: VisualNode<*, D>? = start.textNodeUnderCursor.node
+    val endNode = end.textNodeUnderCursor.node
+    while (currentNode != null && currentNode != endNode) {
+        val typedNode = currentNode typedAs T::class
+        if (typedNode != null) foundNodes.add(typedNode)
+        currentNode = currentNode.nextNodeInReadingOrder
+    }
+
+    return foundNodes
+}
+
+fun <D : Any> VisualNode<*, D>.isSelected(selection: VisualNodeSelection<D>?): Boolean =
+    selection == null || selection.hitsNode(this)
 
 fun <D : Any> VisualNode<HasText, D>.selectedText(selection: VisualNodeSelection<D>?): String {
     if (selection == null) return data.text
     return if (selection.hitsNode(this)) {
-            val textStart = selection.start.textNodeUnderCursor
-            val textEnd = selection.end.textNodeUnderCursor
+        val textStart = selection.start.textNodeUnderCursor
+        val textEnd = selection.end.textNodeUnderCursor
 
-            if (textStart.node == this && textEnd.node == this) {
-                data.text.substring(textStart.charOffset, textEnd.charOffset)
-            } else if (textStart.node == this) {
-                data.text.substring(textStart.charOffset)
-            } else if (textEnd.node == this) {
-                data.text.substring(0, textEnd.charOffset)
-            } else {
-                data.text
-            }
+        if (textStart.node == this && textEnd.node == this) {
+            data.text.substring(textStart.charOffset, textEnd.charOffset)
+        } else if (textStart.node == this) {
+            data.text.substring(textStart.charOffset)
+        } else if (textEnd.node == this) {
+            data.text.substring(0, textEnd.charOffset)
         } else {
-            ""
+            data.text
         }
+    } else {
+        ""
+    }
 }

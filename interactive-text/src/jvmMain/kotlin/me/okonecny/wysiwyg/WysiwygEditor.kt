@@ -14,6 +14,7 @@ import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.serializers.NodeToEmptyAnnotatedString
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializers
+import me.okonecny.wysiwyg.ast.touchedNodesOfType
 import me.okonecny.wysiwyg.edit.CommandEditors
 
 /**
@@ -94,7 +95,7 @@ fun <D : Any> WysiwygEditor(
                     translationX = toolbarOffset.x
                     translationY = toolbarOffset.y
                 }) {
-                    editorScope.toolbar(inputQueue::add)
+                    editorScope.toolbar()
                 }
 
                 Box(Modifier.constrainAs(autocompletePopup) {
@@ -158,12 +159,12 @@ interface WysiwygEditorScope {
     fun View(view: @Composable () -> Unit)
 
     @Composable
-    fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit)
+    fun Toolbar(toolbar: @Composable () -> Unit)
 }
 
 private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     lateinit var view: @Composable (() -> Unit)
-    var toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit = {}
+    var toolbar: @Composable () -> Unit = {}
 
     @Composable
     override fun View(view: @Composable () -> Unit) {
@@ -171,7 +172,7 @@ private class WysiwygEditorScopeImpl : WysiwygEditorScope {
     }
 
     @Composable
-    override fun Toolbar(toolbar: @Composable (handleInput: (TextInputCommand) -> Unit) -> Unit) {
+    override fun Toolbar(toolbar: @Composable () -> Unit) {
         this.toolbar = toolbar
     }
 }
@@ -184,7 +185,10 @@ data class WysiwygEditorState<D : Any>(
     val undoManager: UndoManager<D> = UndoManager(),
     val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
-)
+) {
+    inline fun <reified T : Any> touchedNodesOfType(): List<VisualNode<T, D>> =
+        nodeSelection.touchedNodesOfType<T, D>() + nodeCursor.touchedNodesOfType<T, D>()
+}
 
 @Composable
 fun <D : Any> rememberWysiwygEditorState(

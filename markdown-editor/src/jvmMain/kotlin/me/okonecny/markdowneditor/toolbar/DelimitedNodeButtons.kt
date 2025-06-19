@@ -7,14 +7,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import com.vladsch.flexmark.ast.Code
 import com.vladsch.flexmark.ast.DelimitedNodeImpl
 import com.vladsch.flexmark.ast.Emphasis
 import com.vladsch.flexmark.ast.StrongEmphasis
-import me.okonecny.interactivetext.ReplaceRange
-import me.okonecny.interactivetext.TextInputCommand
 import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.wysiwyg.WysiwygEditorState
 
@@ -22,7 +19,7 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 @Composable
 internal fun <D : Any> EmphasisButton(
     editorState: WysiwygEditorState<D>,
-    handleInput: (TextInputCommand) -> Unit
+    onChange: (WysiwygEditorState<D>) -> Unit
 ) =
     DelimitedNodeButton<Emphasis, D>(
         "I",
@@ -30,13 +27,13 @@ internal fun <D : Any> EmphasisButton(
         TextStyle(fontStyle = FontStyle.Italic),
         "_",
         editorState,
-        handleInput
+        onChange
     )
 
 @Composable
 internal fun <D : Any> StrongEmphasisButton(
     editorState: WysiwygEditorState<D>,
-    handleInput: (TextInputCommand) -> Unit
+    onChange: (WysiwygEditorState<D>) -> Unit
 ) =
     DelimitedNodeButton<StrongEmphasis, D>(
         "B",
@@ -44,18 +41,18 @@ internal fun <D : Any> StrongEmphasisButton(
         TextStyle(fontWeight = FontWeight.Bold),
         "**",
         editorState,
-        handleInput
+        onChange
     )
 
 @Composable
-internal fun <D : Any> CodeButton(editorState: WysiwygEditorState<D>, handleInput: (TextInputCommand) -> Unit) =
+internal fun <D : Any> CodeButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) =
     DelimitedNodeButton<Code, D>(
         "\uf44f",
         "Inline Code",
         TextStyle.Default,
         "`",
         editorState,
-        handleInput,
+        onChange,
         Modifier.offset((-2.5).dp)
     )
 
@@ -66,7 +63,7 @@ private inline fun <reified T : DelimitedNodeImpl, D : Any> DelimitedNodeButton(
     textStyle: TextStyle,
     delimiter: String,
     editorState: WysiwygEditorState<D>,
-    crossinline handleInput: (TextInputCommand) -> Unit,
+    crossinline onChange: (WysiwygEditorState<D>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scope = editorState.interactiveScope
@@ -107,13 +104,13 @@ private inline fun <reified T : DelimitedNodeImpl, D : Any> DelimitedNodeButton(
         } else {
             sourceSelection
         }
-        handleInput(
-            ReplaceRange(
-                delimitedRange,
-                delimiter + source.substring(delimitedRange) + delimiter,
-                delimiter.length
-            )
-        )
+//        handleInput(
+//            ReplaceRange(
+//                delimitedRange,
+//                delimiter + source.substring(delimitedRange) + delimiter,
+//                delimiter.length
+//            )
+//        )
 
     }
 }

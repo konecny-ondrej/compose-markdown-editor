@@ -5,9 +5,7 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,13 +16,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import me.okonecny.interactivetext.TextInputCommand
+import me.okonecny.markdowneditor.ast.Document
 import me.okonecny.wysiwyg.WysiwygEditorState
 
 @Composable
-fun <D : Any> MarkdownToolbar(
+fun <D : Document> MarkdownToolbar(
     editorState: WysiwygEditorState<D>,
-    handleInput: (TextInputCommand) -> Unit
+    onChange: (WysiwygEditorState<D>) -> Unit
 ) {
     val toolbarInteractionSource = remember { MutableInteractionSource() }
     val isHovered by toolbarInteractionSource.collectIsHoveredAsState()
@@ -38,19 +36,19 @@ fun <D : Any> MarkdownToolbar(
             .background(MaterialTheme.colors.surface)
             .padding(8.dp)
     ) {
-        ParagraphStyleCombo(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        StrongEmphasisButton(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        EmphasisButton(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        CodeButton(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        LinkButton(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        ImageButton(editorState, handleInput)
-        Spacer(Modifier.width(3.dp))
-        TableButton(editorState, handleInput)
+        ParagraphStyleCombo(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        StrongEmphasisButton(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        EmphasisButton(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        CodeButton(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        LinkButton(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        ImageButton(editorState, onChange)
+//        Spacer(Modifier.width(3.dp))
+//        TableButton(editorState, onChange)
     }
 }
 

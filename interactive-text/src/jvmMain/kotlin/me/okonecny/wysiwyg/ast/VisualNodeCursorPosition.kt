@@ -17,3 +17,11 @@ data class VisualNodeCursorPosition<D : Any>(
         containerNode.findTextChildAtOffset(visualOffset)
     }
 }
+
+inline fun <reified T : Any, D : Any> VisualNodeCursorPosition<D>?.touchedNodesOfType(): List<VisualNode<T, D>> = (
+        this
+            ?.textNodeUnderCursor
+            ?.node
+            ?.allParents
+            ?: emptyList()
+        ).mapNotNull { it typedAs T::class }

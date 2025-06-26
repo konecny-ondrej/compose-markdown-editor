@@ -18,10 +18,8 @@ data class VisualNodeCursorPosition<D : Any>(
     }
 }
 
-inline fun <reified T : Any, D : Any> VisualNodeCursorPosition<D>?.touchedNodesOfType(): List<VisualNode<T, D>> = (
-        this
-            ?.textNodeUnderCursor
-            ?.node
-            ?.allParents
-            ?: emptyList()
-        ).mapNotNull { it typedAs T::class }
+inline fun <reified T : Any, D : Any> VisualNodeCursorPosition<D>?.touchedNodesOfType(): List<VisualNode<T, D>> {
+    val leafNode = this?.textNodeUnderCursor?.node ?: return emptyList()
+    return (leafNode.allParents + leafNode)
+        .mapNotNull { it typedAs T::class }
+}

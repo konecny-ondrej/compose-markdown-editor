@@ -33,13 +33,15 @@ inline fun <reified T : Any, D : Any> VisualNodeSelection<D>?.touchedNodesOfType
     if (this == null) return emptyList()
     val foundNodes = mutableListOf<VisualNode<T, D>>()
 
-    var currentNode: VisualNode<*, D>? = start.textNodeUnderCursor.node
+    var currentNode: VisualNode<*, D> = start.textNodeUnderCursor.node
     val endNode = end.textNodeUnderCursor.node
-    while (currentNode != null && currentNode != endNode) {
+    do {
         val typedNode = currentNode typedAs T::class
         if (typedNode != null) foundNodes.add(typedNode)
-        currentNode = currentNode.nextNodeInReadingOrder
-    }
+        if (currentNode == endNode) break
+        val nextNode = currentNode.nextNodeInReadingOrder
+        currentNode = nextNode ?: break
+    } while (currentNode != endNode)
 
     return foundNodes
 }

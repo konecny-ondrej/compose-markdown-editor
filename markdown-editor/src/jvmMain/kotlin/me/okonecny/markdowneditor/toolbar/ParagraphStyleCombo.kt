@@ -164,18 +164,22 @@ private fun <D : Any> BlockQuoteOption(
 ) {
     val styles = DocumentTheme.current.styles
 
-    DropdownMenuItem({
-        onChange(
-            editorState.copy(
-                visualDocument = currentBlock.replaceWith(
-                    VisualNode(
-                        BlockQuote,
-                        proposedChildren = listOf(currentBlock)
-                    )
-                ).root,
+    DropdownMenuItem(
+        enabled = currentBlock typedAs BlockQuote::class == null,
+        onClick = {
+            onChange(
+                editorState.copy(
+                    visualDocument = currentBlock.replaceWith(
+                        VisualNode(
+                            BlockQuote,
+                            proposedChildren = listOf(currentBlock)
+                        )
+                    ).root,
+                )
             )
-        )
-    }) {
+        }
+    )
+    {
         Text(ParagraphStyle.BLOCK_QUOTE.description(), modifier = styles.blockQuote.modifier)
     }
 }

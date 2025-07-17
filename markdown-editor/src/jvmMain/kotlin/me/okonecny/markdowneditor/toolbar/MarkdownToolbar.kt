@@ -5,7 +5,9 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,8 +39,8 @@ fun <D : Document> MarkdownToolbar(
             .padding(8.dp)
     ) {
         ParagraphStyleCombo(editorState, onChange)
-//        Spacer(Modifier.width(3.dp))
-//        StrongEmphasisButton(editorState, onChange)
+        Spacer(Modifier.width(3.dp))
+        StrongEmphasisButton(editorState, onChange)
 //        Spacer(Modifier.width(3.dp))
 //        EmphasisButton(editorState, onChange)
 //        Spacer(Modifier.width(3.dp))

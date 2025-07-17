@@ -3,17 +3,17 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.vladsch.flexmark.ast.Code
-import com.vladsch.flexmark.ast.DelimitedNodeImpl
-import com.vladsch.flexmark.ast.Emphasis
-import com.vladsch.flexmark.ast.StrongEmphasis
-import me.okonecny.markdowneditor.compose.textRange
+import me.okonecny.markdowneditor.ast.data.CodeSpan
+import me.okonecny.markdowneditor.ast.data.Emphasis
+import me.okonecny.markdowneditor.ast.data.StrongEmphasis
 import me.okonecny.wysiwyg.WysiwygEditorState
+import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.data.Text
+import me.okonecny.wysiwyg.ast.typedAs
 
 
 @Composable
@@ -21,11 +21,11 @@ internal fun <D : Any> EmphasisButton(
     editorState: WysiwygEditorState<D>,
     onChange: (WysiwygEditorState<D>) -> Unit
 ) =
-    DelimitedNodeButton<Emphasis, D>(
+    DelimitedNodeButton(
         "I",
         "Emphasis",
         TextStyle(fontStyle = FontStyle.Italic),
-        "_",
+        Emphasis,
         editorState,
         onChange
     )
@@ -34,84 +34,76 @@ internal fun <D : Any> EmphasisButton(
 internal fun <D : Any> StrongEmphasisButton(
     editorState: WysiwygEditorState<D>,
     onChange: (WysiwygEditorState<D>) -> Unit
-) =
-    DelimitedNodeButton<StrongEmphasis, D>(
-        "B",
-        "Strong Emphasis",
-        TextStyle(fontWeight = FontWeight.Bold),
-        "**",
-        editorState,
-        onChange
-    )
+) = DelimitedNodeButton(
+    "B",
+    "Strong Emphasis",
+    TextStyle(fontWeight = FontWeight.Bold),
+    StrongEmphasis,
+    editorState,
+    onChange
+)
 
 @Composable
 internal fun <D : Any> CodeButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) =
-    DelimitedNodeButton<Code, D>(
+    DelimitedNodeButton(
         "\uf44f",
         "Inline Code",
         TextStyle.Default,
-        "`",
+        CodeSpan,
         editorState,
         onChange,
         Modifier.offset((-2.5).dp)
     )
 
 @Composable
-private inline fun <reified T : DelimitedNodeImpl, D : Any> DelimitedNodeButton(
+private inline fun <reified T : Any, D : Any> DelimitedNodeButton(
     text: String,
     tooltip: String,
     textStyle: TextStyle,
-    delimiter: String,
+    formattingParentData: T,
     editorState: WysiwygEditorState<D>,
     crossinline onChange: (WysiwygEditorState<D>) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scope = editorState.interactiveScope
-    val sourceCursor = 0
-    val source = "" //editorState.sourceText
-    val sourceSelection = TextRange.Zero //editorState.sourceSelection
-
-//    val touchedDelimitedNodes = visualSelection.touchedNodesOfType<T>(scope, sourceCursor)
+    val touchedTextNodes = editorState.touchedNodesOfType<Text>()
+    val formattingParentNodes = touchedTextNodes
+        .flatMap { it.allParents }
+        .mapNotNull { it typedAs T::class }
+        .toSet()
+    val formattingIsActive = formattingParentNodes.isNotEmpty()
 
     TextToolbarButton(
         text = text,
         tooltip = tooltip,
-//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) },
-//        activeIf = { touchedDelimitedNodes.size == 1 },
+        disabledIf = { touchedTextNodes.isEmpty() || formattingParentNodes.size > 1 },
+        activeIf = { formattingIsActive },
         textStyle = textStyle,
         modifier = modifier,
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-        // Emphasis OFF.
-//        if (touchedDelimitedNodes.size == 1) {
-//            val delimitedNode = touchedDelimitedNodes.first()
-//            handleInput(
-//                ReplaceRange(
-//                    delimitedNode.range,
-//                    delimitedNode.baseSequence.substring(
-//                        delimitedNode.openingMarker.endOffset,
-//                        delimitedNode.closingMarker.startOffset,
-//                    ),
-//                    -delimiter.length
-//                )
-//            )
-//            return@TextToolbarButton
-//        }
 
-        // Emphasis ON.
-        val delimitedRange = if (sourceSelection.collapsed) {
-            source.wordRangeAt(sourceCursor).textRange
+        if (formattingIsActive) {
+            onChange(
+                editorState.copy(
+                    visualDocument = formattingParentNodes.singleOrNull()?.replaceByChildren() ?: return@TextToolbarButton
+                )
+            )
         } else {
-            sourceSelection
+            //TODO()
+            onChange(
+                editorState.copy(
+                    visualDocument = editorState.visualDocument.copyModified { node, proposedChildren ->
+                        if (node !in touchedTextNodes) return@copyModified node.copy(proposedChildren = proposedChildren)
+                        // Fixme: Split the nodes based on selection.
+//                        if (node.children.all { it !in touchedTextNodes}) return@copyModified node.copy(proposedChildren = proposedChildren)
+                        VisualNode(
+                            formattingParentData,
+                            proposedChildren = listOf(node)
+                        )
+                    }?.root ?: editorState.visualDocument,
+                )
+            )
         }
-//        handleInput(
-//            ReplaceRange(
-//                delimitedRange,
-//                delimiter + source.substring(delimitedRange) + delimiter,
-//                delimiter.length
-//            )
-//        )
-
     }
 }
 

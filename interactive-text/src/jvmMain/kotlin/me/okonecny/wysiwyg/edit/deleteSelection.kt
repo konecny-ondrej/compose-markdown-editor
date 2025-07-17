@@ -57,12 +57,12 @@ internal fun <D : Any> deleteSelection(
 
     val originalDocument = editorState.visualDocument
     val newDocument = (originalDocument
-        .copyModified { node ->
+        .copyModified { node, proposedChildren ->
             when (node) {
                 in nodesToRemove -> null
-                starTextNode -> starTextNode.copy(data = starTextNode.data.replaceText(newStartText))
-                endTextNode -> endTextNode.copy(data = endTextNode.data.replaceText(newEndText))
-                else -> node
+                starTextNode -> starTextNode.copy(data = starTextNode.data.replaceText(newStartText), proposedChildren = proposedChildren)
+                endTextNode -> endTextNode.copy(data = endTextNode.data.replaceText(newEndText), proposedChildren = proposedChildren)
+                else -> node.copy(proposedChildren = proposedChildren)
             }
         } typedAs originalDocument) ?: return null // Cannot remove the document itself
 

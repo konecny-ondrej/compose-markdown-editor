@@ -30,7 +30,7 @@ data class VisualNode<out T : Any, D : Any>(
             ?: this as VisualNode<D, D> // If this is root, then the data type must be the same as the document type.
     }
 
-    val asTextNode: VisualNode<HasText, D>? = if (data is HasText) this as VisualNode<HasText, D> else null
+    val asTextNode: VisualNode<HasText, D>? = this typedAs HasText::class
 
     val allSiblings: List<VisualNode<Any, D>> by lazy {
         parent?.children ?: listOf(this)
@@ -146,17 +146,33 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     /**
+     * Replaces this node with its children.
+     * More specifically, this copies the entire tree without the node, but appending the node's children to the node's parent.
+     * @return A copy of the entire tree without the specified node. Null if you try to replace the root itself.
+     */
+    fun replaceByChildren(): VisualNode<D, D>? {
+        val parentNode =
+            parent ?: return null // When removing the root node, just return null as there is nothing to append children to.
+        val replacedParent = parentNode.replaceWith(
+            parentNode.copy(
+                proposedChildren = siblingsBefore + children + siblingsAfter
+            )
+        )
+        return replacedParent.root
+    }
+
+    /**
      * Copies the subtree specified by this node applying the modifications by the map function to each node.
      * @param modify Function to modify each node before copying it. The node can change the data type. The function can return null to remove the node from the tree.
      * @return A copy of the subtree specified by this node with the modifications applied. Null if the node itself is removed.
      */
     fun copyModified(
-        modify: (VisualNode<Any, D>) -> VisualNode<Any, D>?
+        modify: (VisualNode<Any, D>, List<VisualNode<Any, D>>) -> VisualNode<Any, D>?
     ): VisualNode<Any, D>? {
         val newChildren = children.mapNotNull { child ->
             child.copyModified(modify)
         }
-        return modify(this)?.copy(proposedChildren = newChildren)
+        return modify(this, newChildren)
     }
 
     fun findChildById(id: InteractiveId): VisualNode<*, D>? =

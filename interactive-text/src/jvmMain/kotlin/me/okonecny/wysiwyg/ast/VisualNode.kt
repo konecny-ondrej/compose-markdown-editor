@@ -163,13 +163,13 @@ data class VisualNode<out T : Any, D : Any>(
 
     /**
      * Copies the subtree specified by this node applying the modifications by the map function to each node.
-     * @param modify Function to modify each node before copying it. The node can change the data type. The function can return null to remove the node from the tree.
-     * @return A copy of the subtree specified by this node with the modifications applied. Null if the node itself is removed.
+     * @param modify Function to modify each node before copying it. The node can change the data type. The function can return zero, one, or more nodes to be used instead of the current node.
+     * @return A copy of the subtree specified by this node with the modifications applied. Empty list if the node itself is removed.
      */
     fun copyModified(
-        modify: (VisualNode<Any, D>, List<VisualNode<Any, D>>) -> VisualNode<Any, D>?
-    ): VisualNode<Any, D>? {
-        val newChildren = children.mapNotNull { child ->
+        modify: (VisualNode<Any, D>, List<VisualNode<Any, D>>) -> List<VisualNode<Any, D>>
+    ): List<VisualNode<Any, D>> {
+        val newChildren = children.flatMap { child ->
             child.copyModified(modify)
         }
         return modify(this, newChildren)
@@ -334,7 +334,7 @@ data class VisualNode<out T : Any, D : Any>(
             children
                 .map(VisualNode<Any, D>::totalText)
                 .filter(String::isNotBlank)
-                .joinToString(" ");
+                .joinToString(" ")
         }
     }
 

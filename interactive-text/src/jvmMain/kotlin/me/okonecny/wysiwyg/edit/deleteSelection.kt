@@ -59,12 +59,12 @@ internal fun <D : Any> deleteSelection(
     val newDocument = (originalDocument
         .copyModified { node, proposedChildren ->
             when (node) {
-                in nodesToRemove -> null
-                starTextNode -> starTextNode.copy(data = starTextNode.data.replaceText(newStartText), proposedChildren = proposedChildren)
-                endTextNode -> endTextNode.copy(data = endTextNode.data.replaceText(newEndText), proposedChildren = proposedChildren)
-                else -> node.copy(proposedChildren = proposedChildren)
+                in nodesToRemove -> emptyList()
+                starTextNode -> listOf(starTextNode.copy(data = starTextNode.data.replaceText(newStartText), proposedChildren = proposedChildren))
+                endTextNode -> listOf(endTextNode.copy(data = endTextNode.data.replaceText(newEndText), proposedChildren = proposedChildren))
+                else -> listOf(node.copy(proposedChildren = proposedChildren))
             }
-        } typedAs originalDocument) ?: return null // Cannot remove the document itself
+        }.singleOrNull() typedAs originalDocument) ?: return null // Cannot remove the document itself
 
     val oldCursorTextOffset = originalDocument.findOffsetByTextChild(
         nodeSelection.start.textNodeUnderCursor.node,

@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import me.okonecny.markdowneditor.ast.data.CodeSpan
 import me.okonecny.markdowneditor.ast.data.Emphasis
 import me.okonecny.markdowneditor.ast.data.StrongEmphasis
+import me.okonecny.markdowneditor.compose.textRange
 import me.okonecny.wysiwyg.WysiwygEditorState
-import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.*
 import me.okonecny.wysiwyg.ast.data.Text
-import me.okonecny.wysiwyg.ast.typedAs
 
 
 @Composable
@@ -85,26 +85,153 @@ private inline fun <reified T : Any, D : Any> DelimitedNodeButton(
         if (formattingIsActive) {
             onChange(
                 editorState.copy(
-                    visualDocument = formattingParentNodes.singleOrNull()?.replaceByChildren() ?: return@TextToolbarButton
+                    visualDocument = formattingParentNodes.singleOrNull()?.replaceByChildren()?.compactTextNodes()
+                        ?: return@TextToolbarButton
                 )
             )
         } else {
-            //TODO()
+            val selection = editorState.nodeSelectionOrWordUnderCursor ?: return@TextToolbarButton
             onChange(
                 editorState.copy(
                     visualDocument = editorState.visualDocument.copyModified { node, proposedChildren ->
-                        if (node !in touchedTextNodes) return@copyModified node.copy(proposedChildren = proposedChildren)
-                        // Fixme: Split the nodes based on selection.
-//                        if (node.children.all { it !in touchedTextNodes}) return@copyModified node.copy(proposedChildren = proposedChildren)
-                        VisualNode(
-                            formattingParentData,
-                            proposedChildren = listOf(node)
-                        )
-                    }?.root ?: editorState.visualDocument,
+                        if (node !in touchedTextNodes) return@copyModified listOf(node.copy(proposedChildren = proposedChildren))
+                        val (selectionStart, selectionEnd) = selection
+                        val formattedChildren = mutableListOf<VisualNode<Any, D>>()
+                        val unformattedChildrenBefore = mutableListOf<VisualNode<Any, D>>()
+                        val unformattedChildrenAfter = mutableListOf<VisualNode<Any, D>>()
+
+                        val nodeText = node.totalText
+
+                        if (node == selectionStart.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
+                            formattedChildren.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            0,
+                                            selectionStart.textNodeUnderCursor.charOffset
+                                        )
+                                    )
+                                )
+                            )
+                            unformattedChildrenAfter.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            selectionStart.textNodeUnderCursor.charOffset,
+                                            nodeText.length
+                                        )
+                                    )
+                                )
+                            )
+                        }
+                        if (node != selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
+                            unformattedChildrenBefore.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            0,
+                                            selectionEnd.textNodeUnderCursor.charOffset
+                                        )
+                                    )
+                                )
+                            )
+                            formattedChildren.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            selectionEnd.textNodeUnderCursor.charOffset,
+                                            nodeText.length
+                                        )
+                                    )
+                                )
+                            )
+
+                        }
+                        if (node != selectionEnd.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
+                            formattedChildren.add(node)
+                        }
+                        if (node == selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
+                            unformattedChildrenBefore.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            0,
+                                            selectionStart.textNodeUnderCursor.charOffset
+                                        )
+                                    )
+                                )
+                            )
+                            formattedChildren.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            selectionStart.textNodeUnderCursor.charOffset,
+                                            selectionEnd.textNodeUnderCursor.charOffset
+                                        )
+                                    )
+                                )
+                            )
+                            unformattedChildrenAfter.add(
+                                VisualNode(
+                                    Text(
+                                        nodeText.substring(
+                                            selectionEnd.textNodeUnderCursor.charOffset,
+                                            nodeText.length
+                                        )
+                                    )
+                                )
+                            )
+                        }
+
+                        unformattedChildrenBefore + listOf(
+                            VisualNode(
+                                formattingParentData,
+                                proposedChildren = formattedChildren
+                            )
+                        ) + unformattedChildrenAfter
+                    }.singleOrNull()?.root ?: editorState.visualDocument,
                 )
             )
         }
     }
+}
+
+val <D : Any> WysiwygEditorState<D>.nodeSelectionOrWordUnderCursor: VisualNodeSelection<D>?
+    get() {
+        val nodeUnderCursor = nodeCursor?.textNodeUnderCursor
+        return nodeSelection ?: if (nodeUnderCursor == null) {
+            null
+        } else {
+            val cursorNode = nodeUnderCursor.node
+            val textRange = nodeUnderCursor.text.wordRangeAt(nodeUnderCursor.charOffset).textRange
+            VisualNodeSelection(
+                VisualNodeCursorPosition(cursorNode, textRange.start),
+                VisualNodeCursorPosition(cursorNode, textRange.end),
+            )
+        }
+    }
+
+fun <T: Any, D: Any> VisualNode<T, D>.compactTextNodes(): VisualNode<T, D> {
+    val compactedChildren = mutableListOf<VisualNode<Any, D>>()
+
+    var compactedText = ""
+    for (child in children) {
+        val textChild = child typedAs Text::class
+        if (textChild == null) {
+            if (compactedText.isNotEmpty()) {
+                compactedChildren.add(VisualNode(Text(compactedText)))
+                compactedText = ""
+            }
+            compactedChildren.add(child.compactTextNodes())
+        } else {
+            compactedText += textChild.text
+        }
+    }
+    if (compactedText.isNotEmpty()) {
+        compactedChildren.add(VisualNode(Text(compactedText)))
+    }
+
+    return copy(proposedChildren = compactedChildren)
 }
 
 fun String.wordRangeAt(pos: Int): IntRange {

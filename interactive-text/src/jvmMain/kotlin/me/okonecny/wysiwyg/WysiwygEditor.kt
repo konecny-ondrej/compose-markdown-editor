@@ -186,6 +186,15 @@ data class WysiwygEditorState<D : Any>(
     val nodeCursor: VisualNodeCursorPosition<D>?,
     val nodeSelection: VisualNodeSelection<D>?
 ) {
+    init {
+        require(nodeCursor == null || nodeCursor.containerNode.root == visualDocument) {
+            "Node cursor must point to the current visualDocument."
+        }
+        require(nodeSelection == null || nodeSelection.containingNode.root == visualDocument) {
+            "Node selection must point to the current visualDocument."
+        }
+    }
+
     inline fun <reified T : Any> touchedNodesOfType(): List<VisualNode<T, D>> =
         nodeSelection.touchedNodesOfType<T, D>() + nodeCursor.touchedNodesOfType<T, D>()
 }

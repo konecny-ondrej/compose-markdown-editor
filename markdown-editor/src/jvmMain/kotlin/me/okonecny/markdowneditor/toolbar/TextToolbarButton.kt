@@ -19,8 +19,8 @@ internal fun TextToolbarButton(
     text: String,
     tooltip: String,
     modifier: Modifier = Modifier,
-    disabledIf: () -> Boolean = { false },
-    activeIf: () -> Boolean = { false },
+    disabledIf: Boolean = false,
+    activeIf: Boolean = false,
     textStyle: TextStyle = TextStyle.Default,
     onClick: () -> Unit
 ) {
@@ -29,8 +29,8 @@ internal fun TextToolbarButton(
         tooltip = { Tooltip(tooltip) }
     ) {
         val state = when (true) {
-            disabledIf() -> ToolbarButtonState.Disabled
-            activeIf() -> ToolbarButtonState.Active
+            disabledIf -> ToolbarButtonState.Disabled
+            activeIf -> ToolbarButtonState.Active
             else -> ToolbarButtonState.Normal
         }
 

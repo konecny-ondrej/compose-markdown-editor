@@ -2,7 +2,6 @@ package me.okonecny.wysiwyg.ast
 
 import me.okonecny.interactivetext.InteractiveId
 import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
-import me.okonecny.lang.only
 import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
 import kotlin.reflect.KClass
@@ -152,7 +151,8 @@ data class VisualNode<out T : Any, D : Any>(
      */
     fun replaceByChildren(): VisualNode<D, D>? {
         val parentNode =
-            parent ?: return null // When removing the root node, just return null as there is nothing to append children to.
+            parent
+                ?: return null // When removing the root node, just return null as there is nothing to append children to.
         val replacedParent = parentNode.replaceWith(
             parentNode.copy(
                 proposedChildren = siblingsBefore + children + siblingsAfter
@@ -364,9 +364,9 @@ fun <D : Any> commonParent(node1: VisualNode<*, D>, node2: VisualNode<*, D>): Vi
     val startParents = node1.allParents
     val endParents = node2.allParents
 
-    val commonParent = endParents.intersect(startParents.toSet()).only(
-        "Both nodes in must be a part of the same tree => there must be one common parent for every pair of nodes."
-    )
+    val commonParent = endParents
+        .intersect(startParents.toSet())
+        .reduce { a, b -> if (a in b.allParents) a else b }
     return commonParent
 }
 

@@ -16,6 +16,22 @@ data class VisualNodeCursorPosition<D : Any>(
     val textNodeUnderCursor: VisualNode.TextWithCharOffset<D> by lazy {
         containerNode.findTextChildAtOffset(visualOffset)
     }
+
+    fun refresh(newDocument: VisualNode<D, D>): VisualNodeCursorPosition<D> {
+        val oldDocument = containerNode.root
+        val globalOffset = oldDocument.findOffsetByTextChild(containerNode, visualOffset)
+
+        val newTextNodeUnderCursor = newDocument.findTextChildAtOffset(globalOffset)
+        return VisualNodeCursorPosition(
+            newTextNodeUnderCursor.node,
+            newTextNodeUnderCursor.charOffset
+        )
+    }
+}
+
+fun <D : Any> VisualNodeCursorPosition<D>?.refresh(newDocument: VisualNode<D, D>): VisualNodeCursorPosition<D>? {
+    if (this == null) return null
+    return refresh(newDocument)
 }
 
 inline fun <reified T : Any, D : Any> VisualNodeCursorPosition<D>?.touchedNodesOfType(): List<VisualNode<T, D>> {

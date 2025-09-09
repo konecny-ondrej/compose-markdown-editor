@@ -12,6 +12,18 @@ data class VisualNodeSelection<D : Any>(
     val containingNode: VisualNode<*, D> by lazy {
         commonParent(start.containerNode, end.containerNode)
     }
+
+    fun refresh(newDocument: VisualNode<D, D>): VisualNodeSelection<D> {
+        return VisualNodeSelection(
+            start.refresh(newDocument),
+            end.refresh(newDocument)
+        )
+    }
+}
+
+fun <D : Any> VisualNodeSelection<D>?.refresh(newDocument: VisualNode<D, D>): VisualNodeSelection<D>? {
+    if (this == null) return null
+    return refresh(newDocument)
 }
 
 fun <D : Any> VisualNodeSelection<D>?.hitsNode(node: VisualNode<*, D>): Boolean {

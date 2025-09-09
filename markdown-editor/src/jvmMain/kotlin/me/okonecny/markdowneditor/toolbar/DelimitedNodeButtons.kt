@@ -75,121 +75,127 @@ private inline fun <reified T : Any, D : Any> DelimitedNodeButton(
     TextToolbarButton(
         text = text,
         tooltip = tooltip,
-        disabledIf = { touchedTextNodes.isEmpty() || formattingParentNodes.size > 1 },
-        activeIf = { formattingIsActive },
+        disabledIf = touchedTextNodes.isEmpty() || formattingParentNodes.size > 1,
+        activeIf = formattingIsActive,
         textStyle = textStyle,
         modifier = modifier,
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
 
         if (formattingIsActive) {
+            val newDocument = formattingParentNodes.singleOrNull()?.replaceByChildren()?.compactTextNodes()
+                ?: return@TextToolbarButton
             onChange(
                 editorState.copy(
-                    visualDocument = formattingParentNodes.singleOrNull()?.replaceByChildren()?.compactTextNodes()
-                        ?: return@TextToolbarButton
+                    visualDocument = newDocument,
+                    nodeCursor = editorState.nodeCursor.refresh(newDocument),
+                    nodeSelection = editorState.nodeSelection.refresh(newDocument)
                 )
             )
         } else {
             val selection = editorState.nodeSelectionOrWordUnderCursor ?: return@TextToolbarButton
+            val newDocument = editorState.visualDocument.copyModified { node, proposedChildren ->
+                if (node !in touchedTextNodes) return@copyModified listOf(node.copy(proposedChildren = proposedChildren))
+                val (selectionStart, selectionEnd) = selection
+                val formattedChildren = mutableListOf<VisualNode<Any, D>>()
+                val unformattedChildrenBefore = mutableListOf<VisualNode<Any, D>>()
+                val unformattedChildrenAfter = mutableListOf<VisualNode<Any, D>>()
+
+                val nodeText = node.totalText
+
+                if (node == selectionStart.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
+                    formattedChildren.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    0,
+                                    selectionStart.textNodeUnderCursor.charOffset
+                                )
+                            )
+                        )
+                    )
+                    unformattedChildrenAfter.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    selectionStart.textNodeUnderCursor.charOffset,
+                                    nodeText.length
+                                )
+                            )
+                        )
+                    )
+                }
+                if (node != selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
+                    unformattedChildrenBefore.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    0,
+                                    selectionEnd.textNodeUnderCursor.charOffset
+                                )
+                            )
+                        )
+                    )
+                    formattedChildren.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    selectionEnd.textNodeUnderCursor.charOffset,
+                                    nodeText.length
+                                )
+                            )
+                        )
+                    )
+
+                }
+                if (node != selectionEnd.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
+                    formattedChildren.add(node)
+                }
+                if (node == selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
+                    unformattedChildrenBefore.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    0,
+                                    selectionStart.textNodeUnderCursor.charOffset
+                                )
+                            )
+                        )
+                    )
+                    formattedChildren.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    selectionStart.textNodeUnderCursor.charOffset,
+                                    selectionEnd.textNodeUnderCursor.charOffset
+                                )
+                            )
+                        )
+                    )
+                    unformattedChildrenAfter.add(
+                        VisualNode(
+                            Text(
+                                nodeText.substring(
+                                    selectionEnd.textNodeUnderCursor.charOffset,
+                                    nodeText.length
+                                )
+                            )
+                        )
+                    )
+                }
+
+                unformattedChildrenBefore + listOf(
+                    VisualNode(
+                        formattingParentData,
+                        proposedChildren = formattedChildren
+                    )
+                ) + unformattedChildrenAfter
+            }.singleOrNull()?.root ?: editorState.visualDocument
             onChange(
                 editorState.copy(
-                    visualDocument = editorState.visualDocument.copyModified { node, proposedChildren ->
-                        if (node !in touchedTextNodes) return@copyModified listOf(node.copy(proposedChildren = proposedChildren))
-                        val (selectionStart, selectionEnd) = selection
-                        val formattedChildren = mutableListOf<VisualNode<Any, D>>()
-                        val unformattedChildrenBefore = mutableListOf<VisualNode<Any, D>>()
-                        val unformattedChildrenAfter = mutableListOf<VisualNode<Any, D>>()
-
-                        val nodeText = node.totalText
-
-                        if (node == selectionStart.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
-                            formattedChildren.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            0,
-                                            selectionStart.textNodeUnderCursor.charOffset
-                                        )
-                                    )
-                                )
-                            )
-                            unformattedChildrenAfter.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            selectionStart.textNodeUnderCursor.charOffset,
-                                            nodeText.length
-                                        )
-                                    )
-                                )
-                            )
-                        }
-                        if (node != selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
-                            unformattedChildrenBefore.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            0,
-                                            selectionEnd.textNodeUnderCursor.charOffset
-                                        )
-                                    )
-                                )
-                            )
-                            formattedChildren.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            selectionEnd.textNodeUnderCursor.charOffset,
-                                            nodeText.length
-                                        )
-                                    )
-                                )
-                            )
-
-                        }
-                        if (node != selectionEnd.textNodeUnderCursor.node && node != selectionEnd.textNodeUnderCursor.node) {
-                            formattedChildren.add(node)
-                        }
-                        if (node == selectionStart.textNodeUnderCursor.node && node == selectionEnd.textNodeUnderCursor.node) {
-                            unformattedChildrenBefore.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            0,
-                                            selectionStart.textNodeUnderCursor.charOffset
-                                        )
-                                    )
-                                )
-                            )
-                            formattedChildren.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            selectionStart.textNodeUnderCursor.charOffset,
-                                            selectionEnd.textNodeUnderCursor.charOffset
-                                        )
-                                    )
-                                )
-                            )
-                            unformattedChildrenAfter.add(
-                                VisualNode(
-                                    Text(
-                                        nodeText.substring(
-                                            selectionEnd.textNodeUnderCursor.charOffset,
-                                            nodeText.length
-                                        )
-                                    )
-                                )
-                            )
-                        }
-
-                        unformattedChildrenBefore + listOf(
-                            VisualNode(
-                                formattingParentData,
-                                proposedChildren = formattedChildren
-                            )
-                        ) + unformattedChildrenAfter
-                    }.singleOrNull()?.root ?: editorState.visualDocument,
+                    visualDocument = newDocument,
+                    nodeCursor = editorState.nodeCursor.refresh(newDocument),
+                    nodeSelection = editorState.nodeSelection.refresh(newDocument)
                 )
             )
         }
@@ -211,7 +217,7 @@ val <D : Any> WysiwygEditorState<D>.nodeSelectionOrWordUnderCursor: VisualNodeSe
         }
     }
 
-fun <T: Any, D: Any> VisualNode<T, D>.compactTextNodes(): VisualNode<T, D> {
+fun <T : Any, D : Any> VisualNode<T, D>.compactTextNodes(): VisualNode<T, D> {
     val compactedChildren = mutableListOf<VisualNode<Any, D>>()
 
     var compactedText = ""

@@ -3,54 +3,28 @@ package me.okonecny.markdowneditor.toolbar
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
-import me.okonecny.markdowneditor.compose.textRange
+import me.okonecny.markdowneditor.ast.data.Image
 import me.okonecny.wysiwyg.WysiwygEditorState
+import me.okonecny.wysiwyg.ast.VisualNode
 
 @Composable
 internal fun <D : Any> ImageButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
-    val scope = editorState.interactiveScope
-    val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
-    val source = "" //editorState.sourceText
-    val sourceSelection = TextRange.Zero // TODO: editorState.sourceSelection
-
-//    val touchedImages = visualSelection.touchedNodesOfType<Image>(scope, sourceCursor) +
-//            visualSelection.touchedNodesOfType<ImageRef>(scope, sourceCursor)
+    val touchedImages = editorState.touchedNodesOfType<Image>()
+    val oldImageNode = touchedImages.singleOrNull()
 
     var showLinkDialog by remember { mutableStateOf(false) }
-    var imageUrl by remember { mutableStateOf("") }
-    val imageTitleRange = if (sourceSelection.collapsed) {
-        source.wordRangeAt(sourceCursor).textRange
-    } else {
-        sourceSelection
-    }
-    var imageTitle by remember(imageTitleRange) {
-        mutableStateOf(source.substring(imageTitleRange))
-    }
+    var imageUrl by remember(oldImageNode) { mutableStateOf(oldImageNode?.data?.url ?: "") }
+    var imageTitle by remember(oldImageNode) { mutableStateOf(oldImageNode?.data?.title ?: "") }
 
     TextToolbarButton(
         text = "\uf4e5",
         tooltip = "Image",
         modifier = Modifier.offset((-2.5).dp),
-//        activeIf = { touchedImages.size == 1 },
-//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedImages.size > 1 }
+        activeIf = touchedImages.size == 1,
+        disabledIf = touchedImages.size > 1
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-//        if (touchedImages.size == 1) {
-//            val imageElement = touchedImages.first()
-//            imageUrl = when (imageElement) {
-//                is Image -> imageElement.url.toString()
-//                // TODO: Support ImageRef sometime.
-//                else -> ""
-//            }
-//            imageTitle = when (imageElement) {
-//                is Image -> imageElement.title.toString()
-//                // TODO: Support ImageRef sometime.
-//                else -> ""
-//            }
-//        }
         showLinkDialog = true
     }
     if (!showLinkDialog) return
@@ -63,19 +37,21 @@ internal fun <D : Any> ImageButton(editorState: WysiwygEditorState<D>, onChange:
         onConfirm = { newUrl, newTitle ->
             showLinkDialog = false
 
-//            if (touchedImages.size == 1) { // Edit existing image.
-//                when (val imageElement = touchedImages.first()) {
-//                    is Image -> handleInput(
-//                        ReplaceRange(
-//                            imageElement.range,
-//                            "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"
-//                        )
-//                    )
-//                    // TODO: Support ImageRef sometime.
-//                }
-//            } else { // Create new image.
-//                handleInput(ReplaceRange(imageTitleRange, "![${newTitle.ifBlank { "image" }}]($newUrl \"$newTitle\")"))
-//            }
+            val newImageNode = VisualNode<Image, D>(Image(url = newUrl, title = newTitle))
+            if (oldImageNode == null) {
+                val cursor = editorState.nodeCursor ?: return@LinkDialog
+                onChange(
+                    editorState.edit(
+                        cursor.textNodeUnderCursor.insertNode(newImageNode).root
+                    )
+                )
+            } else {
+                onChange(
+                    editorState.edit(
+                        oldImageNode.replaceWith(newImageNode).root
+                    )
+                )
+            }
         }
     )
 }

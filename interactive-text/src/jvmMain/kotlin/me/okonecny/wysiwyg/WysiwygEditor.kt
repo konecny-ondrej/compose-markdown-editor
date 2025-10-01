@@ -197,6 +197,30 @@ data class WysiwygEditorState<D : Any>(
 
     inline fun <reified T : Any> touchedNodesOfType(): List<VisualNode<T, D>> =
         nodeSelection.touchedNodesOfType<T, D>() + nodeCursor.touchedNodesOfType<T, D>()
+
+    fun edit(
+        newVisualDocument: VisualNode<D, D>
+    ) = edit(
+        newVisualDocument = newVisualDocument,
+        newCursor = nodeCursor?.refresh(newVisualDocument),
+        newSelection = nodeSelection?.refresh(newVisualDocument)
+    )
+
+    fun edit(
+        newVisualDocument: VisualNode<D, D>,
+        newCursor: VisualNodeCursorPosition<D>?,
+        newSelection: VisualNodeSelection<D>?
+    ) = copy(
+        visualDocument = newVisualDocument,
+        nodeCursor = newCursor,
+        nodeSelection = newSelection,
+        undoManager = undoManager.add(
+            UndoManager.HistoryEntry(
+                document = visualDocument,
+                cursor = nodeCursor
+            )
+        )
+    )
 }
 
 @Composable

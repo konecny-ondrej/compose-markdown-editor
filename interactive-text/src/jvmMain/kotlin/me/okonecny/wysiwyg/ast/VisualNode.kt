@@ -259,6 +259,30 @@ data class VisualNode<out T : Any, D : Any>(
         val text = node.text
         val isAtStart: Boolean = charOffset == 0
         val isAtEnd: Boolean = node.data.text.length == charOffset
+
+        fun <T : Any> insertNode(insertedNode: VisualNode<T, D>): VisualNode<T, D> {
+            val parentNode = node.parent ?: throw IllegalStateException("The target node must have a parent.")
+            val textBefore = text.take(charOffset)
+            val textAfter = text.drop(charOffset)
+            val children = mutableListOf<VisualNode<*, D>>()
+
+            var insertedNodeIndex = node.siblingsBefore.size
+            children.addAll(node.siblingsBefore)
+            if (textBefore.isNotEmpty()) {
+                children.add(VisualNode(Text(textBefore)))
+                insertedNodeIndex++
+            }
+            children.add(insertedNode)
+            if (textAfter.isNotEmpty()) children.add(VisualNode(Text(textAfter)))
+            children.addAll(node.siblingsAfter)
+            val newParent = parentNode.replaceWith(
+                parentNode.copy(
+                    proposedChildren = children
+                )
+            )
+
+            return newParent.children[insertedNodeIndex].typedAs(insertedNode)!!
+        }
     }
 
     /**

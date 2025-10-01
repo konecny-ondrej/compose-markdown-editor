@@ -9,16 +9,26 @@ import me.okonecny.markdowneditor.ast.data.Link
 import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.data.Text
-import me.okonecny.wysiwyg.ast.refresh
 
 @Composable
 internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
     val touchedLinks = editorState.touchedNodesOfType<Link>() + editorState.touchedNodesOfType<AutoLink>()
-    val link = touchedLinks.firstOrNull()
+    val link = touchedLinks.singleOrNull()
 
     var showLinkDialog by remember { mutableStateOf(false) }
-    var linkUrl by remember(touchedLinks) { mutableStateOf("") }
-    var linkText by remember(touchedLinks) { mutableStateOf("") }
+    var linkUrl by remember(link) {
+        val linkData = link?.data
+        mutableStateOf(
+            when (linkData) {
+                is Link -> linkData.target
+                is AutoLink -> linkData.target
+                else -> ""
+            }
+        )
+    }
+    var linkText by remember(link) {
+        mutableStateOf(link?.totalText ?: "")
+    }
 
     TextToolbarButton(
         text = "\uf44c",
@@ -28,15 +38,6 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
         disabledIf = touchedLinks.size > 1
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-        if (link != null) {
-            val linkData = link.data
-            linkUrl = when (linkData) {
-                is Link -> linkData.target
-                is AutoLink -> linkData.target
-                else -> ""
-            }
-            linkText = link.totalText
-        }
         showLinkDialog = true
     }
     if (!showLinkDialog) return
@@ -51,22 +52,22 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
             showLinkDialog = false
 
             if (link == null) { // Create new link.
-
+                // TODO: cut out the current selection/word under cursor and make it a link.
+                // See HasText.split()
             } else { // Edit existing link
                 val linkData = link.data
                 val newDocument = when (linkData) {
-                    is Link -> link.replaceWith(VisualNode(
-                        data = Link(target = newUrl, title = null),
-                        proposedChildren = listOf(VisualNode(Text(newText))) // TODO: allow formatted text.
-                    ))
+                    is Link -> link.replaceWith(
+                        VisualNode(
+                            data = Link(target = newUrl, title = null),
+                            proposedChildren = listOf(VisualNode(Text(newText))) // TODO: allow formatted text.
+                        )
+                    )
+
                     is AutoLink -> link.replaceWith(VisualNode(AutoLink(target = newUrl)))
                     else -> editorState.visualDocument
                 }.root
-                onChange(editorState.copy(
-                    visualDocument = newDocument,
-                    nodeSelection = editorState.nodeSelection.refresh(newDocument),
-                    nodeCursor = editorState.nodeCursor.refresh(newDocument)
-                ))
+                onChange(editorState.edit(newDocument))
             }
         }
     )

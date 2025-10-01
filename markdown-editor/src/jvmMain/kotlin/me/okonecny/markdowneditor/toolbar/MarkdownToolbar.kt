@@ -47,8 +47,8 @@ fun <D : Document> MarkdownToolbar(
         CodeButton(editorState, onChange)
         Spacer(Modifier.width(3.dp))
         LinkButton(editorState, onChange)
-//        Spacer(Modifier.width(3.dp))
-//        ImageButton(editorState, onChange)
+        Spacer(Modifier.width(3.dp))
+        ImageButton(editorState, onChange)
 //        Spacer(Modifier.width(3.dp))
 //        TableButton(editorState, onChange)
     }

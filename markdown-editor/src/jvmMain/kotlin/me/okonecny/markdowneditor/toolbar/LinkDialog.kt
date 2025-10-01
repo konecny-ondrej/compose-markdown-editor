@@ -29,7 +29,6 @@ private fun Collection<LinkType>.forUrl(url: String): LinkType = filter { url.st
 
 @Composable
 internal fun LinkDialog(
-    show: Boolean,
     title: String,
     initialUrl: String,
     initialText: String,
@@ -38,8 +37,6 @@ internal fun LinkDialog(
     onDismiss: () -> Unit,
     onConfirm: (url: String, text: String) -> Unit
 ) {
-    if (!show) return
-
     var linkType: LinkType by remember(initialUrl) {
         mutableStateOf(if (linkTypes.isKnown(initialUrl)) {
             linkTypes.forUrl(initialUrl)

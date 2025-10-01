@@ -53,9 +53,8 @@ internal fun <D : Any> ImageButton(editorState: WysiwygEditorState<D>, onChange:
 //        }
         showLinkDialog = true
     }
-
+    if (!showLinkDialog) return
     LinkDialog(
-        show = showLinkDialog,
         title = "Edit Image",
         initialUrl = imageUrl,
         initialText = imageTitle,

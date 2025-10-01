@@ -1,65 +1,47 @@
 package me.okonecny.markdowneditor.toolbar
 
-//import me.okonecny.markdowneditor.interactive.spansMultipleLeafNodes
-//import me.okonecny.markdowneditor.interactive.touchedNodesOfType
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
+import me.okonecny.markdowneditor.ast.data.AutoLink
+import me.okonecny.markdowneditor.ast.data.Link
 import me.okonecny.wysiwyg.WysiwygEditorState
+import me.okonecny.wysiwyg.ast.VisualNode
+import me.okonecny.wysiwyg.ast.data.Text
+import me.okonecny.wysiwyg.ast.refresh
 
 @Composable
 internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
-    val scope = editorState.interactiveScope
-    val sourceCursor = 0 //editorState.sourceCursor ?: throw IllegalStateException("LinkButton needs a source cursor.")
-    val source = "" //editorState.sourceText
-    val sourceSelection = TextRange.Zero //editorState.sourceSelection
-
-//    val touchedLinks = visualSelection.touchedNodesOfType<Link>(scope, sourceCursor) +
-//            visualSelection.touchedNodesOfType<LinkRef>(scope, sourceCursor) +
-//            visualSelection.touchedNodesOfType<AutoLink>(scope, sourceCursor)
+    val touchedLinks = editorState.touchedNodesOfType<Link>() + editorState.touchedNodesOfType<AutoLink>()
+    val link = touchedLinks.firstOrNull()
 
     var showLinkDialog by remember { mutableStateOf(false) }
-    var linkUrl by remember { mutableStateOf("") }
-//    val linkTextRange = if (sourceSelection.collapsed) {
-//        source.wordRangeAt(sourceCursor).textRange
-//    } else {
-//        sourceSelection
-//    }
-    val linkTextRange = TextRange.Zero
-    var linkText by remember(linkTextRange) {
-        mutableStateOf(source.substring(linkTextRange))
-    }
+    var linkUrl by remember(touchedLinks) { mutableStateOf("") }
+    var linkText by remember(touchedLinks) { mutableStateOf("") }
 
     TextToolbarButton(
         text = "\uf44c",
         tooltip = "Link",
         modifier = Modifier.offset((-1).dp),
-//        activeIf = { touchedLinks.size == 1 },
-//        disabledIf = { visualSelection.spansMultipleLeafNodes(scope) || touchedLinks.size > 1 }
+        activeIf = touchedLinks.size == 1,
+        disabledIf = touchedLinks.size > 1
     ) {
         editorState.interactiveScope.focusRequester.requestFocus()
-//        if (touchedLinks.size == 1) {
-//            val linkElement = touchedLinks.first()
-//            linkUrl = when (linkElement) {
-//                is Link -> linkElement.url.toString()
-//                // TODO: Support LinkRef sometime.
-//                is AutoLink -> linkElement.text.toString()
-//                else -> ""
-//            }
-//            linkText = when (linkElement) {
-//                is Link -> linkElement.text.toString()
-//                is AutoLink -> linkElement.text.toString()
-//                else -> ""
-//            }
-//        }
+        if (link != null) {
+            val linkData = link.data
+            linkUrl = when (linkData) {
+                is Link -> linkData.target
+                is AutoLink -> linkData.target
+                else -> ""
+            }
+            linkText = link.totalText
+        }
         showLinkDialog = true
     }
+    if (!showLinkDialog) return
 
     LinkDialog(
-        show = showLinkDialog,
         title = "Edit Link",
         initialUrl = linkUrl,
         initialText = linkText,
@@ -68,20 +50,24 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
         onConfirm = { newUrl, newText ->
             showLinkDialog = false
 
-//            if (touchedLinks.size == 1) { // Edit existing link.
-//                when (val linkElement = touchedLinks.first()) {
-//                    is Link -> handleInput(
-//                        ReplaceRange(
-//                            linkElement.range,
-//                            "[$newText]($newUrl)"
-//                        )
-//                    )
-//                    // TODO: Support LinkRef sometime.
-//                    is AutoLink -> handleInput(ReplaceRange(linkElement.range, "[$newText]($newUrl)"))
-//                }
-//            } else { // Create new link.
-//                handleInput(ReplaceRange(linkTextRange, "[$newText]($newUrl)"))
-//            }
+            if (link == null) { // Create new link.
+
+            } else { // Edit existing link
+                val linkData = link.data
+                val newDocument = when (linkData) {
+                    is Link -> link.replaceWith(VisualNode(
+                        data = Link(target = newUrl, title = null),
+                        proposedChildren = listOf(VisualNode(Text(newText))) // TODO: allow formatted text.
+                    ))
+                    is AutoLink -> link.replaceWith(VisualNode(AutoLink(target = newUrl)))
+                    else -> editorState.visualDocument
+                }.root
+                onChange(editorState.copy(
+                    visualDocument = newDocument,
+                    nodeSelection = editorState.nodeSelection.refresh(newDocument),
+                    nodeCursor = editorState.nodeCursor.refresh(newDocument)
+                ))
+            }
         }
     )
 }

@@ -51,22 +51,28 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
         onConfirm = { newUrl, newText ->
             showLinkDialog = false
 
-            if (link == null) { // Create new link.
-                // TODO: cut out the current selection/word under cursor and make it a link.
-                // See HasText.split()
+            val newLink = VisualNode<Link, D>(
+                data = Link(target = newUrl, title = null),
+                proposedChildren = listOf(VisualNode(Text(newText)))
+            )
+            val newDocument = if (link == null) { // Create new link.
+                val selection = editorState.nodeSelection
+                if (selection == null) {
+                    val cursor = editorState.nodeCursor ?: return@LinkDialog
+                    cursor.textNodeUnderCursor.insertNode(newLink).root
+                } else {
+                    // TODO: use the selected text as a link text. See HasText.split()
+                    editorState.visualDocument
+                }
             } else { // Edit existing link
                 val linkData = link.data
-                val newDocument = when (linkData) {
-                    is Link -> link.replaceWith(
-                        VisualNode(
-                            data = Link(target = newUrl, title = null),
-                            proposedChildren = listOf(VisualNode(Text(newText))) // TODO: allow formatted text.
-                        )
-                    )
-
+                when (linkData) {
+                    is Link -> link.replaceWith(newLink)
                     is AutoLink -> link.replaceWith(VisualNode(AutoLink(target = newUrl)))
                     else -> editorState.visualDocument
                 }.root
+            }
+            if (newDocument != editorState.visualDocument) {
                 onChange(editorState.edit(newDocument))
             }
         }

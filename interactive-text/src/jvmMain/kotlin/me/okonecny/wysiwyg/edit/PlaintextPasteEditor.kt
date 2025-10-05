@@ -31,18 +31,19 @@ class PlaintextPasteEditor<D : Any>(
         val nodeAfterEdit = editedTextNode.replaceWith(
             editedTextNode.copy(
                 data = editedTextNode.data.replaceText(
-                    editedText.substring(0, editedTextNodeWithOffset.charOffset)
+                    editedText.take(editedTextNodeWithOffset.charOffset)
                             + clipboardStringContents
                             + editedText.substring(editedTextNodeWithOffset.charOffset, editedText.length)
                 )
             )
         )
-        return editorStateWithoutSelection.copy(
-            visualDocument = nodeAfterEdit.root,
-            nodeCursor = VisualNodeCursorPosition(
+        return editorStateWithoutSelection.edit(
+            newVisualDocument = nodeAfterEdit.root,
+            newCursor = VisualNodeCursorPosition(
                 nodeAfterEdit,
                 editedTextNodeWithOffset.charOffset + clipboardStringContents.length
-            )
+            ),
+            newSelection = null
         )
     }
 }

@@ -17,7 +17,14 @@ import me.okonecny.wysiwyg.ast.data.HasText
 class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
     override fun edit(editorState: WysiwygEditorState<D>, command: Delete): WysiwygEditorState<D>? {
         val nodeSelection = editorState.nodeSelection
-        if (nodeSelection != null) return deleteSelection(editorState, nodeSelection)
+        if (nodeSelection != null) {
+            val newState = deleteSelection(editorState, nodeSelection) ?: return null
+            return editorState.edit(
+                newVisualDocument = newState.visualDocument,
+                newCursor = newState.nodeCursor,
+                newSelection = newState.nodeSelection
+            )
+        }
 
         val editedTextNodeWithOffset = (editorState.nodeCursor ?: return null).textNodeUnderCursor
         val visibleOrTextNode = { node: VisualNode<Any, D> ->
@@ -89,9 +96,9 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
             editedTextNode.copy(data = editedTextNode.data.replaceText(newText))
         )
 
-        return editorState.copy(
-            visualDocument = nodeAfterEdit.root,
-            nodeCursor = when (command.direction) {
+        return editorState.edit(
+            newVisualDocument = nodeAfterEdit.root,
+            newCursor = when (command.direction) {
                 Delete.Direction.BEFORE_CURSOR ->
                     VisualNodeCursorPosition(
                         nodeAfterEdit,
@@ -99,7 +106,8 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
                     )
 
                 Delete.Direction.AFTER_CURSOR -> editorState.nodeCursor
-            }
+            },
+            newSelection = null
         )
     }
 }

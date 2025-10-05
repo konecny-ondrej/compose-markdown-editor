@@ -15,18 +15,19 @@ class TypeEditor<D : Any> : CommandEditor<Type, D> {
         val nodeAfterEdit = editedTextNode.replaceWith(
             editedTextNode.copy(
                 data = editedTextNode.data.replaceText(
-                    editedText.substring(0, editedTextNodeWithOffset.charOffset)
+                    editedText.take(editedTextNodeWithOffset.charOffset)
                             + command.text
                             + editedText.substring(editedTextNodeWithOffset.charOffset, editedText.length)
                 )
             )
         )
-        return editorStateWithoutSelection.copy(
-            visualDocument = nodeAfterEdit.root,
-            nodeCursor = VisualNodeCursorPosition(
+        return editorStateWithoutSelection.edit(
+            newVisualDocument = nodeAfterEdit.root,
+            newCursor = VisualNodeCursorPosition(
                 nodeAfterEdit,
                 editedTextNodeWithOffset.charOffset + command.text.length
-            )
+            ),
+            newSelection = null
         )
     }
 }

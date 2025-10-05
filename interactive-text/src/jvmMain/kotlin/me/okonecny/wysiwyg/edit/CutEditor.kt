@@ -12,6 +12,14 @@ class CutEditor<D : Any>(
         command: Cut
     ): WysiwygEditorState<D>? {
         copyEditor.edit(editorState, Copy)
-        return deleteSelection(editorState, editorState.nodeSelection ?: return null)
+        val newState = deleteSelection(
+            editorState,
+            editorState.nodeSelection ?: return null
+        ) ?: return null
+        return editorState.edit(
+            newVisualDocument = newState.visualDocument,
+            newCursor = newState.nodeCursor,
+            newSelection = newState.nodeSelection
+        )
     }
 }

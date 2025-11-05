@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
 import me.okonecny.markdowneditor.ast.Document
 import me.okonecny.markdowneditor.ast.serializers.markdown.markdown
+import me.okonecny.markdowneditor.edit.MarkdownNewLineEditor
 import me.okonecny.markdowneditor.flexmark.FlexmarkDocument
 import me.okonecny.markdowneditor.inline.WebLink
 import me.okonecny.markdowneditor.internal.MarkdownEditorComponent
@@ -39,7 +40,7 @@ inline fun <reified D : Document> MarkdownEditor(
         commandEditors = CommandEditors.basic(
             LocalClipboard.current,
             VisualNodeSerializers.markdown<D>()
-        )
+        ).withCommandEditor(MarkdownNewLineEditor())
     ) {
         View {
             MarkdownView(

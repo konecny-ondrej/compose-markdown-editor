@@ -9,6 +9,7 @@ import me.okonecny.wysiwyg.WysiwygEditorState
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeCursorPosition
 import me.okonecny.wysiwyg.ast.data.HasText
+import me.okonecny.wysiwyg.ast.refresh
 
 /**
  * Deletes a character or a word before or after cursor.
@@ -105,7 +106,7 @@ class DeleteEditor<D : Any> : CommandEditor<Delete, D> {
                         deleteRange.start
                     )
 
-                Delete.Direction.AFTER_CURSOR -> editorState.nodeCursor
+                Delete.Direction.AFTER_CURSOR -> editorState.nodeCursor.refresh(nodeAfterEdit.root)
             },
             newSelection = null
         )

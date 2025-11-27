@@ -54,16 +54,7 @@ fun Modifier.interactiveText(
         )
     DisposableEffect(interactiveScope) {
         onDispose {
-            interactiveScope.register(
-                InteractiveComponent(
-                    id = interactiveId,
-                    scrollIndex = scrollIndex,
-                    layoutCoordinates = null,
-                    visualTextRange = TextRange(0, 0),
-                    textLayoutResult = null,
-                    userData = userData
-                )
-            )
+            interactiveScope.unregister(interactiveId)
         }
     }
     return@composed interactiveModifier

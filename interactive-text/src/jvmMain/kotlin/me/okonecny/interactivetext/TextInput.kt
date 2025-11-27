@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalTextInputService
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.*
 import co.touchlab.kermit.Logger
 
@@ -111,12 +110,6 @@ data class Delete(
     override val needsValidCursor: Boolean = true
 }
 
-data class ReplaceRange( // TODO: remove
-    val sourceRange: TextRange, val newSource: String, val sourceCursorOffset: Int = 0
-) : TextInputCommand, TextEditCommand {
-    override val needsValidCursor: Boolean = sourceCursorOffset != 0
-}
-
 data object NewLine : TextInputCommand, TextEditCommand {
     override val needsValidCursor: Boolean = true
 }
@@ -138,19 +131,5 @@ data object Undo : TextInputCommand {
 }
 
 data object Redo : TextInputCommand {
-    override val needsValidCursor: Boolean = false
-}
-
-interface CursorMoveCommand
-
-data class MoveCursorOnLine(
-    val steps: Int
-) : TextInputCommand, CursorMoveCommand {
-    override val needsValidCursor: Boolean = steps != 0
-}
-
-data class SetCursor(
-    val newPosition: CursorPosition
-) : TextInputCommand, CursorMoveCommand {
     override val needsValidCursor: Boolean = false
 }

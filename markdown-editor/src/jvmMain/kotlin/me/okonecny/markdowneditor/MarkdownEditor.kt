@@ -1,10 +1,7 @@
 package me.okonecny.markdowneditor
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
@@ -32,6 +29,7 @@ inline fun <reified D : Document> MarkdownEditor(
     renderers: Renderers<D>,
     noinline onChange: (newEditorState: WysiwygEditorState<D>) -> Unit
 ) {
+    val editorState by rememberUpdatedState(editorState)
     WysiwygEditor(
         editorState = editorState,
         selectionStyle = documentTheme.styles.selection,

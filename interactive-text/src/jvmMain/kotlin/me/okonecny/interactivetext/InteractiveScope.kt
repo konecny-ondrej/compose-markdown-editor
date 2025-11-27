@@ -1,6 +1,7 @@
 package me.okonecny.interactivetext
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
@@ -22,7 +23,7 @@ data class InteractiveScope(
 
     val isPlaced: Boolean get() = containerLayoutCoordinates != null
 
-    private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableMapOf()
+    private val registeredComponents: MutableMap<InteractiveId, InteractiveComponent> = mutableStateMapOf()
     private val componentsInLineOrder: List<InteractiveComponent>
         get() = registeredComponents.values.sortedWith(::textLineComparison)
 
@@ -43,8 +44,16 @@ data class InteractiveScope(
         registeredComponents.clear()
     }
 
+    internal fun clear() {
+        registeredComponents.clear()
+    }
+
     fun register(component: InteractiveComponent) {
         registeredComponents[component.id] = component
+    }
+
+    fun unregister(componentId: InteractiveId) {
+        registeredComponents.remove(componentId)
     }
 
     fun hasComponent(id: InteractiveId): Boolean = registeredComponents.containsKey(id)

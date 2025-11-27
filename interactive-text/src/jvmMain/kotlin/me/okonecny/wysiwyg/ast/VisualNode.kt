@@ -2,6 +2,7 @@ package me.okonecny.wysiwyg.ast
 
 import me.okonecny.interactivetext.InteractiveId
 import me.okonecny.interactivetext.LinearInteractiveIdGenerator.Companion.firstInteractiveId
+import me.okonecny.lang.map
 import me.okonecny.wysiwyg.ast.data.HasText
 import me.okonecny.wysiwyg.ast.data.Text
 import kotlin.reflect.KClass
@@ -159,6 +160,49 @@ data class VisualNode<out T : Any, D : Any>(
             )
         )
         return replacedParent.root
+    }
+
+    /**
+     * Splits the subtree of this node so that each subtree represents a portion of the node's totalText.
+     * One subtree will contain all text up to the offset, the other will contain the rest of the text.
+     * @return A list of the two subtrees.
+     */
+    fun split(splitAtTextOffset: Int): Pair<VisualNode<T, D>, VisualNode<T, D>> {
+        if (children.isEmpty()) {
+            val thisAsText = this typedAs HasText::class
+            if (thisAsText == null) {
+                return Pair(this, this.copy()) // If this leaf node is non-text, then we cannot really split it.
+            } else {
+                // If this node is a text node, we split the text in the node.
+                val leftText = thisAsText.text.take(splitAtTextOffset)
+                val rightText = thisAsText.text.drop(splitAtTextOffset)
+                return Pair(leftText, rightText)
+                    .map {
+                        VisualNode<HasText, D>(thisAsText.data.replaceText(it))
+                    }
+                    .map {
+                        (it typedAs this)!! // We have checked that T is HasText.
+                    }
+            }
+        } else {
+            val textChild = findTextChildAtOffset(splitAtTextOffset)
+            val splitChildIndex = textChild.node.indexIn(this)
+            // This should not happen, except maybe in concurrent execution scenarios, because the textChild
+            // was searched for in this subtree, so the indexIn should always return something meaningful.
+                ?: throw IllegalStateException("The child node was not found in its subtree. Was it removed?")
+            val leftChildren = children.take(splitChildIndex)
+            val rightChildren = children.drop(splitChildIndex + 1)
+            val (splitLeftChild, splitRightChild) = children[splitChildIndex]
+                .split(
+                    splitAtTextOffset - leftChildren.sumOf(
+                        VisualNode<Any, D>::totalTextLength
+                    )
+                )
+            return Pair(
+                this.copy(proposedChildren = leftChildren + splitLeftChild),
+                this.copy(proposedChildren = listOf(splitRightChild) + rightChildren)
+            )
+        }
     }
 
     /**
@@ -334,6 +378,9 @@ data class VisualNode<out T : Any, D : Any>(
         }
         throw IllegalArgumentException("The passed node must be a child of this node.")
     }
+
+    fun findOffsetByTextChild(textWithCharOffset: TextWithCharOffset<D>): Int =
+        findOffsetByTextChild(textWithCharOffset.node, textWithCharOffset.charOffset)
 
     val totalTextLength: Int by lazy {
         if (data is HasText) {

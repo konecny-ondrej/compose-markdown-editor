@@ -140,6 +140,9 @@ fun <D : Any> WysiwygEditor(
         }
     }
     moveCursor()
+    if (editorState.nodeSelection == null) {
+        interactiveScope.selection = Selection.empty // TODO: sync the selection properly like we do with the cursor.
+    }
 
     LaunchedEffect(inputQueue.firstOrNull(), inputQueue.size, editorState.nodeCursor) {
         val textInputCommand = inputQueue.firstOrNull() ?: return@LaunchedEffect

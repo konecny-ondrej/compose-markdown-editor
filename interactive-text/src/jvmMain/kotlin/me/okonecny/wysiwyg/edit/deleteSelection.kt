@@ -15,7 +15,10 @@ internal fun <D : Any> deleteSelection(
 
     if (starTextNode == endTextNode) {
         val newText =
-            starTextNode.data.text.removeRange(nodeSelection.start.visualOffset, nodeSelection.end.visualOffset)
+            starTextNode.data.text.removeRange(
+                nodeSelection.start.textNodeUnderCursor.charOffset,
+                nodeSelection.end.textNodeUnderCursor.charOffset
+            )
         return if (newText.isEmpty()) {
             removeNode(starTextNode, editorState)
         } else {
@@ -26,7 +29,7 @@ internal fun <D : Any> deleteSelection(
                 visualDocument = nodeAfterEdit.root,
                 nodeCursor = VisualNodeCursorPosition(
                     nodeAfterEdit,
-                    nodeSelection.start.visualOffset
+                    nodeSelection.start.textNodeUnderCursor.charOffset
                 ),
                 nodeSelection = null
             )
@@ -60,8 +63,20 @@ internal fun <D : Any> deleteSelection(
         .copyModified { node, proposedChildren ->
             when (node) {
                 in nodesToRemove -> emptyList()
-                starTextNode -> listOf(starTextNode.copy(data = starTextNode.data.replaceText(newStartText), proposedChildren = proposedChildren))
-                endTextNode -> listOf(endTextNode.copy(data = endTextNode.data.replaceText(newEndText), proposedChildren = proposedChildren))
+                starTextNode -> listOf(
+                    starTextNode.copy(
+                        data = starTextNode.data.replaceText(newStartText),
+                        proposedChildren = proposedChildren
+                    )
+                )
+
+                endTextNode -> listOf(
+                    endTextNode.copy(
+                        data = endTextNode.data.replaceText(newEndText),
+                        proposedChildren = proposedChildren
+                    )
+                )
+
                 else -> listOf(node.copy(proposedChildren = proposedChildren))
             }
         }.singleOrNull() typedAs originalDocument) ?: return null // Cannot remove the document itself

@@ -1,5 +1,6 @@
 package me.okonecny.wysiwyg.edit
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.text.AnnotatedString
@@ -16,6 +17,7 @@ class CopyEditor<D : Any>(
     private val clipboard: Clipboard,
     private val serializers: VisualNodeSerializationContext<D, AnnotatedString>
 ) : CommandEditor<Copy, D> {
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun edit(editorState: WysiwygEditorState<D>, command: Copy): WysiwygEditorState<D>? {
         val selection: VisualNodeSelection<D> = editorState.nodeSelection ?: return null
         val serializedText = serializers.serialize(

@@ -1,6 +1,5 @@
 package me.okonecny.interactivetext
 
-import androidx.compose.foundation.text.isTypedEvent
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -44,9 +43,12 @@ fun Modifier.textInput(
     }
 
     return@composed onKeyEvent { keyEvent: KeyEvent ->
-        if (keyEvent.isTypedEvent) {
-            onInput(Type(StringBuilder().appendCodePoint(keyEvent.utf16CodePoint).toString()))
-        } else if (keyEvent.type == KeyEventType.KeyDown) {
+        if (keyEvent.type == KeyEventType.KeyDown) {
+            val typedChar = keyEvent.utf16CodePoint.toChar()
+            if (typedChar > Char.MIN_VALUE && typedChar < Char.MAX_VALUE && !typedChar.isISOControl()) {
+                onInput(Type(typedChar.toString()))
+                return@onKeyEvent false
+            }
             when (keyEvent.key) {
                 Key.Backspace -> onInput(
                     Delete(

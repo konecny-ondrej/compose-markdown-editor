@@ -3,14 +3,14 @@ interactiveTextVersion = "0.3.0"
 markdownEditorVersion = "0.3.0"
 
 javaTargetVersion = "21"
-kotlin = "2.1.20"
+kotlin = "2.2.20"
 
-kspVersion = "2.1.20-2.0.1"
+kspVersion = "2.3.4"
 centralPortalPublisherVersion = "0.0.4"
 dokkaVersion = "2.0.0"
-kotlinInjectVersion = "0.8.0"
-compose-plugin = "1.8.0"
-ideaExtVersion = "1.1.7"
+kotlinInjectVersion = "0.9.0"
+compose-plugin = "1.10.0"
+ideaExtVersion = "1.4"
 kermitVersion = "2.0.4"
 flexmarkVersion = "0.64.6"
 ktorVersion = "2.3.12"
@@ -24,7 +24,7 @@ ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref =
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorVersion" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktorVersion" }
 flexmark = { group = "com.vladsch.flexmark", name = "flexmark-all", version.ref = "flexmarkVersion" }
-constraintLayout = { group = "tech.annexflow.compose", name = "constraintlayout-compose-multiplatform", version = "0.6.0" }
+constraintLayout = { group = "tech.annexflow.compose", name = "constraintlayout-compose-multiplatform", version = "0.6.1" }
 
 [bundles]
 ktor-client = ["ktor-client-core", "ktor-client-cio", "ktor-client-logging"]

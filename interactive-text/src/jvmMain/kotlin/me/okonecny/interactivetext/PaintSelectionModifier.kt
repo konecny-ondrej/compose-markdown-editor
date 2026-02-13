@@ -14,30 +14,30 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
+import me.okonecny.wysiwyg.ast.VisualNode
 
 val LocalSelectionStyle = compositionLocalOf { SelectionStyle() }
 
-fun Modifier.paintComponentSelection(
+fun <T : Any, D : Any> Modifier.paintComponentSelection(
     interactiveScope: InteractiveScope,
-    interactiveId: InteractiveId
+    node: VisualNode<T, D>
 ) = composed {
     val selectionStyle = LocalSelectionStyle.current
     drawWithContent {
         val selection = interactiveScope.selection
         if (selection.isEmpty
             || !interactiveScope.isPlaced
-            || !interactiveScope.hasComponent(interactiveId)
-            || !interactiveScope.isComponentBetween(
-                interactiveId,
-                selection.start.componentId,
-                selection.end.componentId
+            || !interactiveScope.hasComponent(node.interactiveId)
+            || !node.isBetweenInReadingOrder(
+                node.root.findChildById(selection.start.componentId)!!,
+                node.root.findChildById(selection.end.componentId)!!
             )
         ) {
             drawContent()
             return@drawWithContent
         }
 
-        val component = interactiveScope.getComponent(interactiveId)
+        val component = interactiveScope.getComponent(node.interactiveId)
         val textLayout = component.textLayoutResult
         val componentCoordinates = component.attachedLayoutCoordinates
         if (textLayout == null || componentCoordinates == null) {
@@ -45,13 +45,13 @@ fun Modifier.paintComponentSelection(
             return@drawWithContent
         }
 
-        val selectionStart = if (selection.start.componentId == interactiveId) {
+        val selectionStart = if (selection.start.componentId == node.interactiveId) {
             selection.start.visualOffset
         } else {
             0
         }
         val text = textLayout.layoutInput.text
-        val selectionEnd = if (selection.end.componentId == interactiveId) {
+        val selectionEnd = if (selection.end.componentId == node.interactiveId) {
             selection.end.visualOffset.coerceAtMost(text.length)
         } else {
             text.length
@@ -100,26 +100,31 @@ private fun TextLayoutResult.getFilledPathForRange(start: Int, end: Int, growBy:
     return closedPath
 }
 
-internal fun Modifier.paintContainerSelection(
+internal fun <D : Any> Modifier.paintContainerSelection(
     interactiveScope: InteractiveScope,
-    selectionStyle: SelectionStyle
+    selectionStyle: SelectionStyle,
+    document: VisualNode<D, D>
 ) = clip(RectangleShape)
     .drawWithContent {
         val selection = interactiveScope.selection
         if (selection.isEmpty
             || !interactiveScope.isPlaced
-            || !interactiveScope.hasComponent(selection.start.componentId)
-            || !interactiveScope.hasComponent(selection.end.componentId)
+//            || !interactiveScope.hasComponent(selection.start.componentId)
+//            || !interactiveScope.hasComponent(selection.end.componentId)
         ) {
             drawContent()
             return@drawWithContent
         }
 
         var combinedSelectionPath = Path()
-        for (component in interactiveScope.componentsBetween(
-            interactiveScope.getComponent(selection.start.componentId),
-            interactiveScope.getComponent(selection.end.componentId)
-        )) {
+        for (node in document
+            .findChildById(selection.start.componentId)
+            ?.findAllSuccessorsWhile<Any>(VisualNode<Any, D>::nextNodeInReadingOrder) {
+                it.interactiveId != selection.end.componentId
+            } ?: listOf()
+        ) {
+            if (!interactiveScope.hasComponent(node.interactiveId)) continue
+            val component = interactiveScope.getComponent(node.interactiveId)
             val textLayout = component.textLayoutResult ?: continue
             val componentCoordinates = component.attachedLayoutCoordinates ?: continue
 

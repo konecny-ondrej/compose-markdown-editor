@@ -234,6 +234,13 @@ data class VisualNode<out T : Any, D : Any>(
     inline fun <reified T : Any> findPrev(predicate: (VisualNode<T, D>) -> Boolean = { true }): VisualNode<T, D>? =
         findFirst(VisualNode<Any, D>::previousNodeInReadingOrder, predicate)
 
+    fun isBetweenInReadingOrder(start: VisualNode<Any, D>?, end: VisualNode<Any, D>?): Boolean =
+        if (start == null || end == null) {
+            false
+        } else {
+            interactiveId >= start.interactiveId && interactiveId <= end.interactiveId
+        }
+
     inline fun <reified T : Any> findFirst(
         successor: VisualNode<Any, D>.() -> VisualNode<Any, D>?,
         predicate: (VisualNode<T, D>) -> Boolean = { true }

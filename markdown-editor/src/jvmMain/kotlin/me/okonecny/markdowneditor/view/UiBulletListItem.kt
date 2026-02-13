@@ -15,7 +15,7 @@ internal class UiBulletListItem : BlockRenderer<BulletListItem, FlexmarkDocument
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(
-                interactiveId = block.interactiveId,
+                node = block,
                 text = bullet,
                 style = DocumentTheme.current.styles.listNumber
             )

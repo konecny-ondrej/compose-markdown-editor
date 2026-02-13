@@ -20,7 +20,7 @@ internal class UiTaskListItem : BlockRenderer<TaskListItem, FlexmarkDocument> {
         val styles = DocumentTheme.current.styles
         Row {
             InteractiveText(
-                interactiveId = block.interactiveId,
+                node = block,
                 text = LocalListItemBullet.current,
                 style = styles.listNumber
             )

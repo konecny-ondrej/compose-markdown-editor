@@ -15,7 +15,7 @@ internal class UiOrderedListItem : BlockRenderer<OrderedListItem, FlexmarkDocume
         val bullet = LocalListItemBullet.current
         Row {
             InteractiveText(
-                interactiveId = block.interactiveId,
+                node = block,
                 text = bullet,
                 style = DocumentTheme.current.styles.listNumber
             )

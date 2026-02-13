@@ -15,7 +15,7 @@ internal class UiHtmlBlock : BlockRenderer<HtmlBlock, FlexmarkDocument> {
         Column(modifier = styles.codeBlock.modifier) {
             block.data.lines.forEach { line ->
                 InteractiveText(
-                    interactiveId = block.interactiveId,
+                    node = block,
                     text = line,
                     style = styles.codeBlock.textStyle
                 )

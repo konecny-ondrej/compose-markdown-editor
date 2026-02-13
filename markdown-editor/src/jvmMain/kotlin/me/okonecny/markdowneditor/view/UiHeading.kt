@@ -13,7 +13,7 @@ internal class UiHeading : BlockRenderer<Heading, FlexmarkDocument> {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
-            interactiveId = block.interactiveId,
+            node = block,
             text = inlines.text,
             inlineContent = inlines.inlineContent,
             style = when (block.data.level) {

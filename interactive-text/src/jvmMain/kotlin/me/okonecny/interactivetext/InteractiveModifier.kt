@@ -6,28 +6,28 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
+import me.okonecny.wysiwyg.ast.VisualNode
 
-fun Modifier.interactive(
-    interactiveId: InteractiveId,
-    userData: UserData = UserData.empty
+fun <T : Any, D : Any> Modifier.interactive(
+    node: VisualNode<T, D>
 ) = interactiveText(
-    interactiveId = interactiveId,
     textLayoutResult = null,
-    textLength = 0
+    textLength = 0,
+    node = node
 )
 
-fun Modifier.interactiveText(
-    interactiveId: InteractiveId,
+fun <T : Any, D : Any> Modifier.interactiveText(
     textLayoutResult: TextLayoutResult?,
     textLength: Int,
-    userData: UserData = UserData.empty
+    userData: UserData = UserData.empty,
+    node: VisualNode<T, D>
 ) = composed {
     val interactiveScope = LocalInteractiveScope.current ?: return@composed Modifier
     val cursorPosition = interactiveScope.cursorPosition
     val scrollIndex = LocalScrollIndex.current
 
     var interactiveModifier: Modifier = Modifier
-    if (cursorPosition != null && cursorPosition.componentId == interactiveId) {
+    if (cursorPosition != null && cursorPosition.componentId == node.interactiveId) {
         interactiveModifier = interactiveModifier
             .cursorLine(
                 textLayoutResult,
@@ -39,7 +39,7 @@ fun Modifier.interactiveText(
         .onGloballyPositioned { layoutCoordinates ->
             interactiveScope.register(
                 InteractiveComponent(
-                    id = interactiveId,
+                    id = node.interactiveId,
                     scrollIndex = scrollIndex,
                     layoutCoordinates = layoutCoordinates,
                     visualTextRange = TextRange(0, textLength),
@@ -50,11 +50,11 @@ fun Modifier.interactiveText(
         }
         .paintComponentSelection(
             interactiveScope,
-            interactiveId
+            node
         )
     DisposableEffect(interactiveScope) {
         onDispose {
-            interactiveScope.unregister(interactiveId)
+            interactiveScope.unregister(node.interactiveId)
         }
     }
     return@composed interactiveModifier

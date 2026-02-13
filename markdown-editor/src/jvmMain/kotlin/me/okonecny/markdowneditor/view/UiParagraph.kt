@@ -13,7 +13,7 @@ internal class UiParagraph : BlockRenderer<Paragraph, FlexmarkDocument> {
         val inlines = renderInlines(block.children)
         val styles = DocumentTheme.current.styles
         InteractiveText(
-            interactiveId = block.interactiveId,
+            node = block,
             text = inlines.text,
             style = styles.paragraph,
             inlineContent = inlines.inlineContent,

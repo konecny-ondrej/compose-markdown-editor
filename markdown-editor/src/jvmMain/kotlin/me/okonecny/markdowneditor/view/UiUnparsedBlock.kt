@@ -12,7 +12,7 @@ internal class UiUnparsedBlock : BlockRenderer<Any, FlexmarkDocument> {
     override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<Any, FlexmarkDocument>) {
         val text = "!${block.data}!"
         InteractiveText(
-            interactiveId = block.interactiveId,
+            node = block,
             text = text,
             style = DocumentTheme.current.styles.paragraph.copy(background = Color.Cyan)
         )

@@ -24,7 +24,7 @@ internal class UiTableBlock : BlockRenderer<Table, FlexmarkDocument> {
                                 is TableCell -> {
                                     val inlines = renderInlines(cell.children)
                                     InteractiveText(
-                                        interactiveId = cell.interactiveId,
+                                        node = cell,
                                         text = inlines.text,
                                         inlineContent = inlines.inlineContent,
                                         style = cellStyle.textStyle.copy(

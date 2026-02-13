@@ -7,11 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import me.okonecny.wysiwyg.ast.VisualNode
 
 
 @Composable
-fun InteractiveText(
-    interactiveId: InteractiveId,
+fun <T : Any, D : Any> InteractiveText(
+    node: VisualNode<T, D>,
     text: AnnotatedString,
     style: TextStyle,
     modifier: Modifier = Modifier,
@@ -27,10 +28,10 @@ fun InteractiveText(
         text = text,
         style = style,
         modifier = modifier.interactiveText(
-            interactiveId,
             textLayoutResult,
             text.length,
-            userData
+            userData,
+            node
         ).annotationClickDetector(
             textLayoutResult,
             activeAnnotationTags,
@@ -44,8 +45,8 @@ fun InteractiveText(
 }
 
 @Composable
-fun InteractiveText(
-    interactiveId: InteractiveId,
+fun <T : Any, D : Any> InteractiveText(
+    node: VisualNode<T, D>,
     text: String,
     style: TextStyle,
     modifier: Modifier = Modifier,
@@ -53,7 +54,7 @@ fun InteractiveText(
     activeAnnotationTags: Set<String> = setOf(),
     onAnnotationCLick: (Int, List<AnnotatedString.Range<String>>) -> Unit = { _, _ -> }
 ) = InteractiveText(
-    interactiveId,
+    node,
     AnnotatedString(text),
     style,
     modifier,

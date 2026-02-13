@@ -24,7 +24,7 @@ internal class UiCodeFence(
             val codeFenceRenderer = codeFenceRenderers[codeFenceType]
             if (codeFenceRenderer == null) {
                 InteractiveText(
-                    interactiveId = block.interactiveId,
+                    node = block,
                     text = codeBlockData.code,
                     style = styles.codeBlock.textStyle,
                     modifier = styles.codeBlock.modifier

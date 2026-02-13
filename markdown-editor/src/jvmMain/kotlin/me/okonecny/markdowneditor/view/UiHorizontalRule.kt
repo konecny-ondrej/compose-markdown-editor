@@ -17,7 +17,9 @@ internal class UiHorizontalRule : BlockRenderer<HorizontalRule, FlexmarkDocument
     override fun RenderContext<FlexmarkDocument>.render(block: VisualNode<HorizontalRule, FlexmarkDocument>) {
         val lineStyle = DocumentTheme.current.lineStyle
         Box(
-            modifier = Modifier.interactive(block.interactiveId).fillMaxWidth(1f)
+            modifier = Modifier.interactive(
+                node = block
+            ).fillMaxWidth(1f)
                 .then(Modifier.height(lineStyle.width * 2))
                 .then(Modifier.border(lineStyle))
         )

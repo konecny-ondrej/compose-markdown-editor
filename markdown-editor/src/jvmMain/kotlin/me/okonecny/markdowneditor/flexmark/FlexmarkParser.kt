@@ -162,7 +162,11 @@ class FlexmarkParser(
                 is Strikethrough -> Strikethrough
                 is Code -> CodeSpan
                 is Link -> if (node.isAnchor) {
-                    Anchor(node.url.toString())
+                    if (node.url.toString() == "@") {
+                        Anchor(node.unformattedText.lowercase())
+                    } else {
+                        Anchor(node.url.toString().drop(1)) // delete the "@" at the start of the anchor url.
+                    }
                 } else {
                     me.okonecny.markdowneditor.ast.data.Link(
                         target = node.url.toString(),

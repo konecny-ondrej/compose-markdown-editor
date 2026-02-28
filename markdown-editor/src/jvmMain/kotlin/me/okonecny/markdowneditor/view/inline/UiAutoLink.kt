@@ -14,10 +14,9 @@ internal class UiAutoLink : InlineRenderer<AutoLink, FlexmarkDocument> {
     @Composable
     override fun RenderContext<FlexmarkDocument>.render(inlineNode: VisualNode<AutoLink, FlexmarkDocument>): TextWithInlines =
         buildMappedString {
-            val url = inlineNode.data.target
-            val linkText = TextWithInlines(
-                inlineNode.data.text
-            )
+            val linkData = inlineNode.data
+            val url = linkData.target
+            val linkText = renderInlines(inlineNode.children)
             val annotatedLinkText = annotateLinkByHandler(linkText, url)
             appendStyled(
                 annotatedLinkText,

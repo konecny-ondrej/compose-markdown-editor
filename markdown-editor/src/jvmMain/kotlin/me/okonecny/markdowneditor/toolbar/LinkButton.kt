@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import me.okonecny.markdowneditor.ast.data.Anchor
 import me.okonecny.markdowneditor.ast.data.AutoLink
 import me.okonecny.markdowneditor.ast.data.Link
 import me.okonecny.wysiwyg.WysiwygEditorState
@@ -12,7 +13,9 @@ import me.okonecny.wysiwyg.ast.data.Text
 
 @Composable
 internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: (WysiwygEditorState<D>) -> Unit) {
-    val touchedLinks = editorState.touchedNodesOfType<Link>() + editorState.touchedNodesOfType<AutoLink>()
+    val touchedLinks = editorState.touchedNodesOfType<Link>() +
+            editorState.touchedNodesOfType<AutoLink>() +
+            editorState.touchedNodesOfType<Anchor>()
     val link = touchedLinks.singleOrNull()
 
     var showLinkDialog by remember { mutableStateOf(false) }
@@ -22,6 +25,7 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
             when (linkData) {
                 is Link -> linkData.target
                 is AutoLink -> linkData.target
+                is Anchor -> "@" + linkData.anchorName
                 else -> ""
             }
         )
@@ -51,10 +55,17 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
         onConfirm = { newUrl, newText ->
             showLinkDialog = false
 
-            val newLink = VisualNode<Link, D>(
-                data = Link(target = newUrl, title = null),
-                proposedChildren = listOf(VisualNode(Text(newText)))
-            )
+            val newLink = if (newUrl.startsWith("@")) {
+                VisualNode<Anchor, D>(
+                    data = Anchor(name = newUrl.drop(1)), // Drop the @ at the start of the url
+                    proposedChildren = listOf(VisualNode(Text(newText)))
+                )
+            } else {
+                VisualNode<Link, D>(
+                    data = Link(target = newUrl, title = null),
+                    proposedChildren = listOf(VisualNode(Text(newText)))
+                )
+            }
             val newDocument = if (link == null) { // Create new link.
                 val selection = editorState.nodeSelection
                 if (selection == null) {
@@ -69,6 +80,7 @@ internal fun <D : Any> LinkButton(editorState: WysiwygEditorState<D>, onChange: 
                 when (linkData) {
                     is Link -> link.replaceWith(newLink)
                     is AutoLink -> link.replaceWith(VisualNode(AutoLink(target = newUrl)))
+                    is Anchor -> link.replaceWith(newLink)
                     else -> editorState.visualDocument
                 }.root
             }

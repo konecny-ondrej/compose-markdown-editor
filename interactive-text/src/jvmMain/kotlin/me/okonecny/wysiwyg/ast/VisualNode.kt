@@ -26,8 +26,10 @@ data class VisualNode<out T : Any, D : Any>(
         }
 
     val root: VisualNode<D, D> by lazy {
+        @Suppress("UNCHECKED_CAST")
+        // If this is root, then the data type must be the same as the document type by definition.
         parent?.root
-            ?: this as VisualNode<D, D> // If this is root, then the data type must be the same as the document type.
+            ?: this as VisualNode<D, D>
     }
 
     val asTextNode: VisualNode<HasText, D>? = this typedAs HasText::class
@@ -126,7 +128,7 @@ data class VisualNode<out T : Any, D : Any>(
                 proposedChildren = siblingsBefore + newNode + siblingsAfter
             )
         )
-        return replacedParent.children[expectedParentIndex] as VisualNode<T, D>
+        return (replacedParent.children[expectedParentIndex] typedAs newNode)!!
     }
 
     /**
@@ -246,10 +248,11 @@ data class VisualNode<out T : Any, D : Any>(
         predicate: (VisualNode<T, D>) -> Boolean = { true }
     ): VisualNode<T, D>? {
         var currentNode: VisualNode<Any, D> = this.successor() ?: return null
-        while (currentNode.data !is T || !predicate(currentNode as VisualNode<T, D>)) {
+        val currentTypedNode = currentNode typedAs T::class
+        while (currentTypedNode == null || !predicate(currentTypedNode)) {
             currentNode = currentNode.successor() ?: return null
         }
-        return currentNode
+        return currentTypedNode
     }
 
     inline fun <reified T : Any> findAllSuccessorsWhile(
@@ -422,7 +425,7 @@ data class VisualNode<out T : Any, D : Any>(
     }
 
     override fun toString(): String {
-        return "VisualNode(${parent?.data?.let { "parent=" + it::class.simpleName } ?: "<ROOT>"}, data=$data)"
+        return "VisualNode($data, ${parent?.data?.let { "parent=" + it::class.simpleName } ?: "<ROOT>"})"
     }
 
     override fun equals(other: Any?): Boolean = this === other
@@ -463,6 +466,7 @@ infix fun <T : Any, D : Any> VisualNode<*, D>?.typedAs(dataClass: KClass<T>): Vi
     null
 } else {
     if (dataClass.isInstance(data)) {
+        @Suppress("UNCHECKED_CAST") // The T is checked just above.
         this as VisualNode<T, D>
     } else {
         null

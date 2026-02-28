@@ -15,10 +15,7 @@ data class Link(
 
 data class AutoLink(
     val target: String
-) : HasText {
-    override val text: String by ::target
-    override fun replaceText(text: String): AutoLink = AutoLink(text)
-}
+)
 
 data class Anchor(val name: String) : LinkTarget {
     override val anchorName: String by ::name

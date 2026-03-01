@@ -248,9 +248,10 @@ data class VisualNode<out T : Any, D : Any>(
         predicate: (VisualNode<T, D>) -> Boolean = { true }
     ): VisualNode<T, D>? {
         var currentNode: VisualNode<Any, D> = this.successor() ?: return null
-        val currentTypedNode = currentNode typedAs T::class
+        var currentTypedNode: VisualNode<T, D>? = currentNode typedAs T::class
         while (currentTypedNode == null || !predicate(currentTypedNode)) {
             currentNode = currentNode.successor() ?: return null
+            currentTypedNode = currentNode typedAs T::class
         }
         return currentTypedNode
     }

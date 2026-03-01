@@ -161,6 +161,7 @@ class FlexmarkParser(
                 is Emphasis -> me.okonecny.markdowneditor.ast.data.Emphasis
                 is Strikethrough -> Strikethrough
                 is Code -> CodeSpan
+                is AutoLink -> me.okonecny.markdowneditor.ast.data.Link(node.text.toString(), null)
                 is Link -> if (node.isAnchor) {
                     if (node.url.toString() == "@") {
                         Anchor(node.unformattedText.lowercase())
@@ -205,7 +206,6 @@ class FlexmarkParser(
 
                 is TextBase -> me.okonecny.markdowneditor.ast.data.TextBase
                 is GfmUser -> UserMention(node.text.toString())
-                is AutoLink -> me.okonecny.markdowneditor.ast.data.AutoLink(node.text.toString())
                 is HtmlEntity -> me.okonecny.markdowneditor.ast.data.HtmlEntity
                 is Emoji -> {
                     wantChildren = false

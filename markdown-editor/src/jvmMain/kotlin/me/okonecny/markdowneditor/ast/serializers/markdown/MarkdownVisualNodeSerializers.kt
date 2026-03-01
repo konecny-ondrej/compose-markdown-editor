@@ -10,6 +10,7 @@ inline fun <reified D : Any> VisualNodeSerializers.Companion.markdown(): VisualN
         .withUnknownNodeSerializer(NodeToEmptyAnnotatedString())
         .withSerializer<D>(BlockChildrenToMarkdown())
         .withSerializer(TextNodeAnnotatedStringSerializer())
+        .withSerializer(TextBaseToMarkdown())
         .withSerializer(HeadingToMarkdown())
         .withSerializer(ParagraphToMarkdown())
         .withSerializer(BlockQuoteToMarkdown())

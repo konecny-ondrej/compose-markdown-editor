@@ -204,7 +204,7 @@ class FlexmarkParser(
                     text = node.text()
                 )
 
-                is TextBase -> me.okonecny.markdowneditor.ast.data.TextBase
+                is TextBase -> me.okonecny.markdowneditor.ast.data.TextBase // TODO: why is TextBase needed?
                 is GfmUser -> UserMention(node.text.toString())
                 is HtmlEntity -> me.okonecny.markdowneditor.ast.data.HtmlEntity
                 is Emoji -> {

@@ -19,7 +19,6 @@ class MarkdownNewLineEditor<D : Any> : CommandEditor<NewLine, D> {
         val textNodeUnderCursor = cursor.textNodeUnderCursor
 
         val forbidNewLineIn = linkedSetOf(
-            TableCell::class,
             AutoLink::class, // TODO: make autolinks splittable? How? Convert them to ordinary links?
             TableCell::class
         )

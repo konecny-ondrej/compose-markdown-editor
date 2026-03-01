@@ -13,7 +13,7 @@ class BlockChildrenToMarkdown<T : Any, D : Any> : VisualNodeSerializer<T, D, Ann
         node: VisualNode<T, D>,
         selection: VisualNodeSelection<D>?
     ): AnnotatedString = buildAnnotatedString {
-        val childrenText = node.children.joinToAnnotatedString("\n\n", filter = AnnotatedString::isNotBlank) { child ->
+        val childrenText = node.children.joinToAnnotatedString("\n\n", filter = AnnotatedString::isNotEmpty) { child ->
             serialize(child, selection)
         }
         if (childrenText.isBlank()) return@buildAnnotatedString

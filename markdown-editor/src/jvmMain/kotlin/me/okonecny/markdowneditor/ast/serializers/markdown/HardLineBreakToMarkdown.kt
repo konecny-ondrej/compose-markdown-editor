@@ -12,5 +12,5 @@ class HardLineBreakToMarkdown<D : Any> : VisualNodeSerializer<HardLineBreak, D, 
     override fun VisualNodeSerializationContext<D, AnnotatedString>.serializeNode(
         node: VisualNode<HardLineBreak, D>,
         selection: VisualNodeSelection<D>?
-    ): AnnotatedString = AnnotatedString(if (selection.hitsNode(node)) "\n  " else "")
+    ): AnnotatedString = AnnotatedString(if (selection.hitsNode(node)) "  \n" else "")
 }

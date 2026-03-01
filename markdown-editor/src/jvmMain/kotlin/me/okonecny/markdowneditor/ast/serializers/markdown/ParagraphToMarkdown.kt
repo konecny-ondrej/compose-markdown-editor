@@ -4,7 +4,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import me.okonecny.markdowneditor.ast.data.Paragraph
 import me.okonecny.markdowneditor.joinToAnnotatedString
-import me.okonecny.markdowneditor.trim
 import me.okonecny.wysiwyg.ast.VisualNode
 import me.okonecny.wysiwyg.ast.VisualNodeSelection
 import me.okonecny.wysiwyg.ast.serializers.VisualNodeSerializationContext
@@ -15,11 +14,10 @@ class ParagraphToMarkdown<D : Any> : VisualNodeSerializer<Paragraph, D, Annotate
         node: VisualNode<Paragraph, D>,
         selection: VisualNodeSelection<D>?
     ): AnnotatedString = buildAnnotatedString {
-        val separator = ' '
         val paragraphText = node
             .children
-            .joinToAnnotatedString(separator.toString(), filter = AnnotatedString::isNotBlank) { childNode ->
-                serialize(childNode, selection).trim(separator)
+            .joinToAnnotatedString("", filter = AnnotatedString::isNotEmpty) { childNode ->
+                serialize(childNode, selection)
             }
         if (paragraphText.isBlank()) return@buildAnnotatedString
 

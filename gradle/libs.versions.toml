@@ -2,14 +2,14 @@
 interactiveTextVersion = "0.3.0"
 markdownEditorVersion = "0.3.0"
 
-javaTargetVersion = "21"
-kotlin = "2.2.20"
+javaTargetVersion = "25"
+kotlin = "2.3.10"
 
-kspVersion = "2.3.4"
+kspVersion = "2.3.5"
 centralPortalPublisherVersion = "0.0.4"
 dokkaVersion = "2.0.0"
 kotlinInjectVersion = "0.9.0"
-compose-plugin = "1.10.0"
+compose-plugin = "1.10.1"
 ideaExtVersion = "1.4"
 kermitVersion = "2.0.4"
 flexmarkVersion = "0.64.6"
